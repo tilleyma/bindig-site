@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Free Rekordbox library scan: health score, tag problems and tracks you never play, grouped by genre.">
+<title>BINDIG Scan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Doto:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap">
+<style>
+:root{
+  --bg:#050706; --panel:#0A0F0C; --line:#1C2A21; --ink:#E6EEE8; --muted:#8A968E; --dim:#12201A;
+  --signal:#78F09A; --signal-ink:#04130A; --ok:#78F09A; --warn:#FF5E57; --amber:#F2C14E; --glow:0 0 18px rgba(120,240,154,.45);
+  --display:"Doto","JetBrains Mono",ui-monospace,Menlo,monospace;
+  --mono:"JetBrains Mono","IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background-color:var(--bg);background-image:radial-gradient(ellipse 80% 60% at 20% 0%,rgba(120,240,154,.07),transparent 70%),linear-gradient(rgba(120,240,154,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(120,240,154,.035) 1px,transparent 1px);background-size:auto,32px 32px,32px 32px;min-height:100vh;color:var(--ink);font:15px/1.65 var(--mono);padding-inline:20px;font-variant-numeric:tabular-nums}
+.wrap{max-width:1140px;margin:0 auto;padding-bottom:80px}
+h1,h2,h3{font-family:var(--display);font-weight:900;line-height:1.05;margin:0;text-wrap:balance;text-transform:uppercase}
+p{margin:0}
+a{color:var(--signal)}
+:focus-visible{outline:2px solid var(--signal);outline-offset:3px}
+[hidden]{display:none!important}
+.lbl{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.sig{color:var(--signal);text-shadow:var(--glow)}
+.prompt{color:var(--signal);font-weight:700;font-size:14px}
+.note{font-size:13px;color:var(--muted)}
+nav{display:flex;justify-content:space-between;align-items:center;padding-block:20px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--display);font-weight:900;font-size:30px;letter-spacing:.06em;color:var(--ink);text-decoration:none}
+.navcta{color:var(--ink);text-decoration:none;font-size:13px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--ink);padding:8px 14px;white-space:nowrap}
+.btn{box-shadow:0 0 24px rgba(120,240,154,.25);background:var(--signal);color:var(--signal-ink);border:0;font:700 14px var(--mono);letter-spacing:.12em;text-transform:uppercase;padding:15px 22px;cursor:pointer;text-decoration:none;display:inline-block}
+.btn:hover{filter:brightness(1.1)}
+.btn[disabled]{opacity:.55;cursor:progress}
+.btn.ghost{background:transparent;color:var(--signal);border:1px solid var(--signal);box-shadow:none}
+header.intro{padding-block:44px 28px;display:grid;gap:14px}
+header.intro h1{font-size:clamp(30px,4.4vw,54px)}
+header.intro .lede{color:var(--muted);max-width:62ch}
+
+.drop{border:1px dashed var(--signal);background:var(--panel);padding:36px 24px;display:grid;gap:14px;justify-items:start;box-shadow:0 0 40px -14px rgba(120,240,154,.35)}
+.drop.over{background:#0E1A12}
+.drop h2{font-size:26px}
+.steps-inline{display:flex;flex-wrap:wrap;gap:8px 22px;color:var(--muted);font-size:13px}
+.steps-inline b{color:var(--signal);font-weight:700}
+.status{font-size:14px;min-height:1.6em}
+.status.err{color:var(--warn)}
+.term{font-size:13px;color:var(--muted);white-space:pre-wrap}
+
+section{padding-top:48px}
+.sh{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.sh h2{font-size:clamp(24px,3vw,36px)}
+
+.score{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;border:1px solid var(--line);background:var(--panel);padding:24px}
+.score .big{font:900 clamp(72px,10vw,120px)/1 var(--display);color:var(--signal);text-shadow:var(--glow)}
+.score .big small{font-size:.3em;color:var(--muted);text-shadow:none}
+.bars{display:grid;gap:10px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 14px;font-size:13px}
+.bar .track{grid-column:1/-1;height:6px;background:var(--dim)}
+.bar .fill{height:100%;background:var(--signal)}
+.bar .fill.warn{background:var(--amber)}
+.bar .fill.bad{background:var(--warn)}
+
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);margin-top:-1px}
+.cell{padding:18px;border-left:1px solid var(--line)}
+.cell:first-child{border-left:0}
+.cell b{display:block;font:900 32px/1 var(--display)}
+.cell span{font-size:12px;color:var(--muted)}
+
+.table{border:1px solid var(--line);background:var(--panel);overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:720px;font-size:13px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:500;color:var(--muted);font-size:11px;letter-spacing:.12em;text-transform:uppercase;position:sticky;top:0;background:var(--panel)}
+tr:last-child td{border-bottom:0}
+.was{color:var(--warn);text-decoration:line-through;word-break:break-word}
+.now{color:var(--ok);word-break:break-word}
+.conf{font-size:11px;padding:1px 6px;border:1px solid var(--line);white-space:nowrap}
+.conf.high{color:var(--signal);border-color:#2a5a3a}
+.conf.medium{color:var(--amber);border-color:#5a4a1e}
+.locked td{color:var(--muted);filter:blur(3px);user-select:none}
+
+.shelves{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:0;border:1px solid var(--line)}
+.shelf{padding:16px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);display:grid;gap:8px;align-content:start;background:var(--panel)}
+.shelf h3{font-size:18px;display:flex;justify-content:space-between;gap:8px}
+.shelf h3 span{font-family:var(--mono);font-size:12px;color:var(--muted);text-transform:none}
+.pill{font-size:11px;padding:1px 6px;border:1px solid var(--line);color:var(--muted)}
+.pill.cut{color:var(--warn);border-color:#5a2420}
+.item{font-size:12px;border-top:1px dashed var(--line);padding-top:6px}
+.item b{font-weight:500;color:var(--ink)}
+.item i{font-style:normal;color:var(--muted);display:block}
+
+.pay{display:grid;grid-template-columns:auto 1fr;gap:28px;border:1px solid var(--signal);background:var(--panel);padding:28px;align-items:center;box-shadow:0 0 50px -16px rgba(120,240,154,.4)}
+.pay .price{font:900 84px/1 var(--display);color:var(--signal);text-shadow:var(--glow)}
+.pay ul{list-style:none;padding:0;margin:10px 0 18px;display:grid;gap:6px;color:var(--muted);font-size:14px}
+.pay li::before{content:"> ";color:var(--signal)}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+label.chk{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+ol.howto{margin:0;padding-left:20px;display:grid;gap:6px;color:var(--muted);font-size:14px}
+ol.howto b{color:var(--ink);font-weight:500}
+.guide{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px;counter-reset:g}
+.gstep{margin:0;display:grid;gap:10px;align-content:start;counter-increment:g}
+.gstep figcaption{font-size:13px;color:var(--muted);line-height:1.55}
+.gstep figcaption::before{content:counter(g,decimal-leading-zero) "  ";color:var(--signal);font-weight:700}
+.gstep figcaption b{color:var(--ink);font-weight:500}
+.gwin{border:1px solid #2a3a30;background:#101512;font-size:11px;line-height:1.4;overflow:hidden}
+.gbar{display:flex;align-items:center;gap:5px;padding:6px 8px;background:#161d18;border-bottom:1px solid #2a3a30;color:var(--muted)}
+.gbar i{width:8px;height:8px;border-radius:50%;background:#2e3b33;display:inline-block}
+.gbar span{margin-left:6px}
+.gbody{padding:10px;min-height:170px;position:relative}
+.gmenus{display:flex;align-items:flex-start}
+.gmenu{background:#18201b;border:1px solid #2a3a30;min-width:0}
+.gmh{padding:4px 8px;background:var(--signal);color:var(--signal-ink);font-weight:700;display:inline-block}
+.gmenu ul{list-style:none;margin:0;padding:3px 0}
+.gmenu li{padding:3px 8px;color:#b9c4bc;display:flex;justify-content:space-between;gap:10px;white-space:nowrap}
+.gmenu li.hi{background:rgba(120,240,154,.18);color:var(--ink);outline:1px solid var(--signal)}
+.gsub{margin-top:26px;margin-left:-1px}
+.gfield{display:grid;gap:6px}
+.gfield .row2{display:flex;gap:6px;align-items:center}
+.gfield .inp{flex:1;min-width:0;border:1px solid #2a3a30;background:#0b0f0c;padding:4px 6px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gfield .b{border:1px solid var(--signal);color:var(--signal);padding:3px 8px;white-space:nowrap}
+.gtabs{display:flex;gap:2px;margin-bottom:8px;flex-wrap:wrap}
+.gtabs span{padding:2px 6px;border:1px solid #2a3a30;color:var(--muted)}
+.gtabs span.on{color:var(--signal-ink);background:var(--signal);border-color:var(--signal)}
+.gtree{list-style:none;margin:0;padding:0;display:grid;gap:3px}
+.gtree li{padding:2px 6px;color:#b9c4bc}
+.gtree li.in1{padding-left:18px}.gtree li.in2{padding-left:30px}.gtree li.in3{padding-left:42px}
+.gtree li.hi{background:rgba(120,240,154,.18);outline:1px solid var(--signal);color:var(--ink)}
+.gchk{display:inline-block;width:10px;height:10px;border:1px solid var(--signal);margin-right:6px;vertical-align:-1px;background:var(--signal)}
+.gchk.off{background:transparent;border-color:#3a4a40}
+.gctx{position:absolute;right:10px;top:10px;background:#18201b;border:1px solid #2a3a30;min-width:140px}
+.gctx li{list-style:none;padding:3px 8px;color:#b9c4bc}.gctx ul{margin:0;padding:3px 0}
+.gctx li.hi{background:rgba(120,240,154,.18);outline:1px solid var(--signal);color:var(--ink)}
+.gfile{display:grid;place-items:center;gap:8px;height:130px;border:1px dashed var(--signal);color:var(--signal)}
+.gfile .doc{width:34px;height:42px;border:1px solid var(--signal);position:relative;background:#0b0f0c}
+.gfile .doc::after{content:"XML";position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:9px}
+.gnote{font-size:12px;color:var(--muted);margin-top:14px}
+footer{margin-top:60px;border-top:1px solid var(--line);padding-block:24px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+@media (max-width:760px){
+  .score,.pay{grid-template-columns:1fr}
+  .grid4{grid-template-columns:1fr 1fr}
+  .cell:nth-child(3){border-left:0}.cell:nth-child(n+3){border-top:1px solid var(--line)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav><a class="brand" href="/">BINDIG</a><a class="navcta" href="/scan/">Free scan</a></nav>
+<header class="intro"><div class="prompt">$ ./bindig guide</div><h1>From Rekordbox to BINDIG <span class="sig">and back</span></h1><p class="lede">Two minutes, start to finish. Export your collection, scan it, then import the fixed file. Your music files are never uploaded or changed.</p></header>
+<section style="padding-top:8px"><div class="sh"><h2>1. Export your library</h2></div><div class="guide"><figure class="gstep"><div class="gwin" role="img" aria-label="In Rekordbox, open the <b>File</b> menu and choose <b>Export Collection in xml format</b>."><div class="gbar"><i></i><i></i><i></i><span>rekordbox</span></div><div class="gbody"><div class="gmenus"><div class="gmenu"><div class="gmh">File</div><ul><li class="">Import</li><li class="">Library</li><li class="hi">Export Collection in xml format</li><li class="">Preferences</li></ul></div></div></div></div><figcaption>In Rekordbox, open the <b>File</b> menu and choose <b>Export Collection in xml format</b>.</figcaption></figure><figure class="gstep"><div class="gwin" role="img" aria-label="Save it somewhere easy to find, like your <b>Desktop</b>. Keep the name <b>rekordbox.xml</b>."><div class="gbar"><i></i><i></i><i></i><span>Save</span></div><div class="gbody"><div class="gfield"><span>Save As:</span><div class="row2"><span class="inp">rekordbox.xml</span></div><span>Where:</span><div class="row2"><span class="inp">Desktop</span><span class="b">Save</span></div></div></div></div><figcaption>Save it somewhere easy to find, like your <b>Desktop</b>. Keep the name <b>rekordbox.xml</b>.</figcaption></figure><figure class="gstep"><div class="gwin" role="img" aria-label="Drag the file onto the drop box on the <b>scan page</b>, or click <b>Choose XML file</b>. The scan takes about 10 seconds."><div class="gbar"><i></i><i></i><i></i><span>bindig.app/scan</span></div><div class="gbody"><div class="gfile"><div class="doc"></div><span>Drop rekordbox.xml here</span></div></div></div><figcaption>Drag the file onto the drop box on the <b>scan page</b>, or click <b>Choose XML file</b>. The scan takes about 10 seconds.</figcaption></figure></div></section>
+<section><div class="sh"><h2>2. Import the fixed file</h2><span class="note">After you unlock and download rekordbox-bindig.xml.</span></div><div class="guide"><figure class="gstep"><div class="gwin" role="img" aria-label="<b>Back up first.</b> File → Library → <b>Backup Library</b>. If anything looks wrong you can restore it."><div class="gbar"><i></i><i></i><i></i><span>rekordbox</span></div><div class="gbody"><div class="gmenus"><div class="gmenu"><div class="gmh">File</div><ul><li class="">Import</li><li class="hi">Library<b>›</b></li><li class="">Export</li></ul></div><div class="gmenu gsub"><ul><li class="hi">Backup Library</li><li>Restore Library</li></ul></div></div></div></div><figcaption><b>Back up first.</b> File → Library → <b>Backup Library</b>. If anything looks wrong you can restore it.</figcaption></figure><figure class="gstep"><div class="gwin" role="img" aria-label="Preferences → <b>Advanced</b> → <b>Database</b>. Next to <b>rekordbox xml</b>, click <b>Browse</b> and pick <b>rekordbox-bindig.xml</b>."><div class="gbar"><i></i><i></i><i></i><span>Preferences</span></div><div class="gbody"><div class="gtabs"><span>View</span><span>Audio</span><span class="on">Advanced</span></div><div class="gtabs"><span class="on">Database</span><span>Recording</span></div><div class="gfield"><span>rekordbox xml · Imported Library</span><div class="row2"><span class="inp">~/Downloads/rekordbox-bindig.xml</span><span class="b">Browse</span></div></div></div></div><figcaption>Preferences → <b>Advanced</b> → <b>Database</b>. Next to <b>rekordbox xml</b>, click <b>Browse</b> and pick <b>rekordbox-bindig.xml</b>.</figcaption></figure><figure class="gstep"><div class="gwin" role="img" aria-label="Preferences → <b>View</b> → <b>Layout</b>. Tick <b>rekordbox xml</b> so it appears in the sidebar."><div class="gbar"><i></i><i></i><i></i><span>Preferences</span></div><div class="gbody"><div class="gtabs"><span class="on">View</span><span>Audio</span><span>Advanced</span></div><div class="gtabs"><span class="on">Layout</span><span>Browse</span></div><div><span class="gchk"></span>rekordbox xml<br><span class="gchk off"></span>iTunes<br><span class="gchk off"></span>Explorer</div></div></div><figcaption>Preferences → <b>View</b> → <b>Layout</b>. Tick <b>rekordbox xml</b> so it appears in the sidebar.</figcaption></figure><figure class="gstep"><div class="gwin" role="img" aria-label="Open <b>rekordbox xml → Playlists → BINDIG → Fixed tracks</b>. Select all tracks (<b>⌘A</b>), right-click, <b>Import To Collection</b>. Your tags update."><div class="gbar"><i></i><i></i><i></i><span>rekordbox</span></div><div class="gbody"><ul class="gtree"><li>Collection</li><li>Playlists</li><li>rekordbox xml</li><li class="in1">Playlists</li><li class="in2">BINDIG</li><li class="in3 hi">Fixed tracks</li><li class="in3">Purge</li></ul><div class="gctx"><ul><li>Import Playlist</li><li class="hi">Import To Collection</li></ul></div></div></div><figcaption>Open <b>rekordbox xml → Playlists → BINDIG → Fixed tracks</b>. Select all tracks (<b>⌘A</b>), right-click, <b>Import To Collection</b>. Your tags update.</figcaption></figure><figure class="gstep"><div class="gwin" role="img" aria-label="Right-click the <b>Purge</b> folder → <b>Import Playlist</b>. Review each genre in Rekordbox and remove the tracks you agree with. BINDIG never deletes anything."><div class="gbar"><i></i><i></i><i></i><span>rekordbox</span></div><div class="gbody"><ul class="gtree"><li>rekordbox xml</li><li class="in1">Playlists</li><li class="in2">BINDIG</li><li class="in3">Fixed tracks</li><li class="in3 hi">Purge</li><li class="in3">· Purge · Techno</li><li class="in3">· Purge · House</li></ul><div class="gctx"><ul><li class="hi">Import Playlist</li><li>Import To Collection</li></ul></div></div></div><figcaption>Right-click the <b>Purge</b> folder → <b>Import Playlist</b>. Review each genre in Rekordbox and remove the tracks you agree with. BINDIG never deletes anything.</figcaption></figure></div>
+<p class="gnote">Tags change inside Rekordbox's library only. Cue points, beat grids, My Tags and your audio files are not touched. If a track doesn't update, select it again in Fixed tracks and repeat Import To Collection.</p></section>
+<section><a class="btn" href="/scan/">&gt; Run a free scan</a></section>
+</div>
+<footer class="wrap"><span>BINDIG · beta</span><span>Illustrations, not screenshots. Not affiliated with AlphaTheta or Pioneer DJ.</span></footer>
+</body>
+</html>

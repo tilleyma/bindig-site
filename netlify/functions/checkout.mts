@@ -1,9 +1,11 @@
 // Creates a Stripe Checkout session for the one-off unlock.
 import { json, env } from "../../lib/http.mts";
+import { record } from "../../lib/track.mts";
 
-export default async (req) => {
+export default async (req, context) => {
   if (req.method !== "POST") return json({ error: "Use POST." }, 405);
   const key = env("STRIPE_SECRET_KEY");
+  await record("checkout", { enabled: !!key }, req, context);
   if (!key) return json({ error: "Payments aren't switched on yet. Join the waitlist and we'll email you." }, 503);
   const origin = new URL(req.url).origin;
   const price = Number(env("PRICE_CENTS") || 900);

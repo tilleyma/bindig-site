@@ -99,6 +99,43 @@ tr:last-child td{border-bottom:0}
 label.chk{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
 ol.howto{margin:0;padding-left:20px;display:grid;gap:6px;color:var(--muted);font-size:14px}
 ol.howto b{color:var(--ink);font-weight:500}
+.guide{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px;counter-reset:g}
+.gstep{margin:0;display:grid;gap:10px;align-content:start;counter-increment:g}
+.gstep figcaption{font-size:13px;color:var(--muted);line-height:1.55}
+.gstep figcaption::before{content:counter(g,decimal-leading-zero) "  ";color:var(--signal);font-weight:700}
+.gstep figcaption b{color:var(--ink);font-weight:500}
+.gwin{border:1px solid #2a3a30;background:#101512;font-size:11px;line-height:1.4;overflow:hidden}
+.gbar{display:flex;align-items:center;gap:5px;padding:6px 8px;background:#161d18;border-bottom:1px solid #2a3a30;color:var(--muted)}
+.gbar i{width:8px;height:8px;border-radius:50%;background:#2e3b33;display:inline-block}
+.gbar span{margin-left:6px}
+.gbody{padding:10px;min-height:170px;position:relative}
+.gmenus{display:flex;align-items:flex-start}
+.gmenu{background:#18201b;border:1px solid #2a3a30;min-width:0}
+.gmh{padding:4px 8px;background:var(--signal);color:var(--signal-ink);font-weight:700;display:inline-block}
+.gmenu ul{list-style:none;margin:0;padding:3px 0}
+.gmenu li{padding:3px 8px;color:#b9c4bc;display:flex;justify-content:space-between;gap:10px;white-space:nowrap}
+.gmenu li.hi{background:rgba(120,240,154,.18);color:var(--ink);outline:1px solid var(--signal)}
+.gsub{margin-top:26px;margin-left:-1px}
+.gfield{display:grid;gap:6px}
+.gfield .row2{display:flex;gap:6px;align-items:center}
+.gfield .inp{flex:1;min-width:0;border:1px solid #2a3a30;background:#0b0f0c;padding:4px 6px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gfield .b{border:1px solid var(--signal);color:var(--signal);padding:3px 8px;white-space:nowrap}
+.gtabs{display:flex;gap:2px;margin-bottom:8px;flex-wrap:wrap}
+.gtabs span{padding:2px 6px;border:1px solid #2a3a30;color:var(--muted)}
+.gtabs span.on{color:var(--signal-ink);background:var(--signal);border-color:var(--signal)}
+.gtree{list-style:none;margin:0;padding:0;display:grid;gap:3px}
+.gtree li{padding:2px 6px;color:#b9c4bc}
+.gtree li.in1{padding-left:18px}.gtree li.in2{padding-left:30px}.gtree li.in3{padding-left:42px}
+.gtree li.hi{background:rgba(120,240,154,.18);outline:1px solid var(--signal);color:var(--ink)}
+.gchk{display:inline-block;width:10px;height:10px;border:1px solid var(--signal);margin-right:6px;vertical-align:-1px;background:var(--signal)}
+.gchk.off{background:transparent;border-color:#3a4a40}
+.gctx{position:absolute;right:10px;top:10px;background:#18201b;border:1px solid #2a3a30;min-width:140px}
+.gctx li{list-style:none;padding:3px 8px;color:#b9c4bc}.gctx ul{margin:0;padding:3px 0}
+.gctx li.hi{background:rgba(120,240,154,.18);outline:1px solid var(--signal);color:var(--ink)}
+.gfile{display:grid;place-items:center;gap:8px;height:130px;border:1px dashed var(--signal);color:var(--signal)}
+.gfile .doc{width:34px;height:42px;border:1px solid var(--signal);position:relative;background:#0b0f0c}
+.gfile .doc::after{content:"XML";position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:9px}
+.gnote{font-size:12px;color:var(--muted);margin-top:14px}
 footer{margin-top:60px;border-top:1px solid var(--line);padding-block:24px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 @media (max-width:760px){
   .score,.pay{grid-template-columns:1fr}
@@ -117,13 +154,14 @@ footer{margin-top:60px;border-top:1px solid var(--line);padding-block:24px;font-
   <p class="lede">Drop in your Rekordbox XML. You get a health score, every tag problem we can fix, and the tracks you never reach for, grouped by genre. Your audio files never leave your computer.</p>
 </header>
 
+<section style="padding-top:8px;padding-bottom:28px" id="export"><div class="sh"><h2>Export your library</h2><span class="note">Illustrations; menus may look slightly different in your version of Rekordbox.</span></div><div class="guide"><figure class="gstep"><div class="gwin" role="img" aria-label="In Rekordbox, open the <b>File</b> menu and choose <b>Export Collection in xml format</b>."><div class="gbar"><i></i><i></i><i></i><span>rekordbox</span></div><div class="gbody"><div class="gmenus"><div class="gmenu"><div class="gmh">File</div><ul><li class="">Import</li><li class="">Library</li><li class="hi">Export Collection in xml format</li><li class="">Preferences</li></ul></div></div></div></div><figcaption>In Rekordbox, open the <b>File</b> menu and choose <b>Export Collection in xml format</b>.</figcaption></figure><figure class="gstep"><div class="gwin" role="img" aria-label="Save it somewhere easy to find, like your <b>Desktop</b>. Keep the name <b>rekordbox.xml</b>."><div class="gbar"><i></i><i></i><i></i><span>Save</span></div><div class="gbody"><div class="gfield"><span>Save As:</span><div class="row2"><span class="inp">rekordbox.xml</span></div><span>Where:</span><div class="row2"><span class="inp">Desktop</span><span class="b">Save</span></div></div></div></div><figcaption>Save it somewhere easy to find, like your <b>Desktop</b>. Keep the name <b>rekordbox.xml</b>.</figcaption></figure><figure class="gstep"><div class="gwin" role="img" aria-label="Drag the file onto the <b>drop box below</b>, or click <b>Choose XML file</b>. The scan takes about 10 seconds."><div class="gbar"><i></i><i></i><i></i><span>bindig.app/scan</span></div><div class="gbody"><div class="gfile"><div class="doc"></div><span>Drop rekordbox.xml here</span></div></div></div><figcaption>Drag the file onto the <b>drop box below</b>, or click <b>Choose XML file</b>. The scan takes about 10 seconds.</figcaption></figure></div></section>
 <div class="drop" id="drop">
   <h2>Drop rekordbox.xml here</h2>
   <div class="steps-inline"><span><b>1</b> Rekordbox → File → Export Collection in xml format</span><span><b>2</b> Drop the file here, or choose it</span></div>
   <div class="row">
     <label class="btn" for="file">Choose XML file</label>
     <input id="file" type="file" accept=".xml,text/xml" hidden>
-    <span class="note">Only track details (artist, title, genre, BPM, play count) are sent for analysis. Nothing is stored.</span>
+    <span class="note">Track details (artist, title, genre, BPM, play count) are sent for analysis, then discarded. We keep anonymous totals only, like how many tracks and fixes, never your track list.</span>
   </div>
   <p class="status" id="status" role="status" aria-live="polite"></p>
 </div>
@@ -178,15 +216,11 @@ footer{margin-top:60px;border-top:1px solid var(--line);padding-block:24px;font-
         <p class="note" id="unlocknote" style="margin-block:8px 16px"></p>
         <div class="row"><button class="btn" id="download">&gt; Download fixed XML</button></div>
         <p class="status" id="dlstatus" role="status" aria-live="polite"></p>
-        <ol class="howto" style="margin-top:16px">
-          <li>Rekordbox → <b>Preferences → Advanced → Database → rekordbox xml</b>: choose the downloaded file.</li>
-          <li>Preferences → View → Layout: tick <b>rekordbox xml</b> so it shows in the sidebar.</li>
-          <li>In the sidebar open <b>rekordbox xml → Playlists → BINDIG</b>.</li>
-          <li>Right-click <b>Fixed tracks</b> → select all tracks → <b>Import to Collection</b>. Rekordbox updates the tags of tracks you already have.</li>
-          <li>Right-click the <b>Purge</b> playlists → <b>Import Playlist</b> to review them.</li>
-        </ol>
+        <p class="note" style="margin-top:14px">Then bring it into Rekordbox:</p>
       </div>
     </div>
+    <div class="guide" style="margin-top:22px"><figure class="gstep"><div class="gwin" role="img" aria-label="<b>Back up first.</b> File → Library → <b>Backup Library</b>. If anything looks wrong you can restore it."><div class="gbar"><i></i><i></i><i></i><span>rekordbox</span></div><div class="gbody"><div class="gmenus"><div class="gmenu"><div class="gmh">File</div><ul><li class="">Import</li><li class="hi">Library<b>›</b></li><li class="">Export</li></ul></div><div class="gmenu gsub"><ul><li class="hi">Backup Library</li><li>Restore Library</li></ul></div></div></div></div><figcaption><b>Back up first.</b> File → Library → <b>Backup Library</b>. If anything looks wrong you can restore it.</figcaption></figure><figure class="gstep"><div class="gwin" role="img" aria-label="Preferences → <b>Advanced</b> → <b>Database</b>. Next to <b>rekordbox xml</b>, click <b>Browse</b> and pick <b>rekordbox-bindig.xml</b>."><div class="gbar"><i></i><i></i><i></i><span>Preferences</span></div><div class="gbody"><div class="gtabs"><span>View</span><span>Audio</span><span class="on">Advanced</span></div><div class="gtabs"><span class="on">Database</span><span>Recording</span></div><div class="gfield"><span>rekordbox xml · Imported Library</span><div class="row2"><span class="inp">~/Downloads/rekordbox-bindig.xml</span><span class="b">Browse</span></div></div></div></div><figcaption>Preferences → <b>Advanced</b> → <b>Database</b>. Next to <b>rekordbox xml</b>, click <b>Browse</b> and pick <b>rekordbox-bindig.xml</b>.</figcaption></figure><figure class="gstep"><div class="gwin" role="img" aria-label="Preferences → <b>View</b> → <b>Layout</b>. Tick <b>rekordbox xml</b> so it appears in the sidebar."><div class="gbar"><i></i><i></i><i></i><span>Preferences</span></div><div class="gbody"><div class="gtabs"><span class="on">View</span><span>Audio</span><span>Advanced</span></div><div class="gtabs"><span class="on">Layout</span><span>Browse</span></div><div><span class="gchk"></span>rekordbox xml<br><span class="gchk off"></span>iTunes<br><span class="gchk off"></span>Explorer</div></div></div><figcaption>Preferences → <b>View</b> → <b>Layout</b>. Tick <b>rekordbox xml</b> so it appears in the sidebar.</figcaption></figure><figure class="gstep"><div class="gwin" role="img" aria-label="Open <b>rekordbox xml → Playlists → BINDIG → Fixed tracks</b>. Select all tracks (<b>⌘A</b>), right-click, <b>Import To Collection</b>. Your tags update."><div class="gbar"><i></i><i></i><i></i><span>rekordbox</span></div><div class="gbody"><ul class="gtree"><li>Collection</li><li>Playlists</li><li>rekordbox xml</li><li class="in1">Playlists</li><li class="in2">BINDIG</li><li class="in3 hi">Fixed tracks</li><li class="in3">Purge</li></ul><div class="gctx"><ul><li>Import Playlist</li><li class="hi">Import To Collection</li></ul></div></div></div><figcaption>Open <b>rekordbox xml → Playlists → BINDIG → Fixed tracks</b>. Select all tracks (<b>⌘A</b>), right-click, <b>Import To Collection</b>. Your tags update.</figcaption></figure><figure class="gstep"><div class="gwin" role="img" aria-label="Right-click the <b>Purge</b> folder → <b>Import Playlist</b>. Review each genre in Rekordbox and remove the tracks you agree with. BINDIG never deletes anything."><div class="gbar"><i></i><i></i><i></i><span>rekordbox</span></div><div class="gbody"><ul class="gtree"><li>rekordbox xml</li><li class="in1">Playlists</li><li class="in2">BINDIG</li><li class="in3">Fixed tracks</li><li class="in3 hi">Purge</li><li class="in3">· Purge · Techno</li><li class="in3">· Purge · House</li></ul><div class="gctx"><ul><li class="hi">Import Playlist</li><li>Import To Collection</li></ul></div></div></div><figcaption>Right-click the <b>Purge</b> folder → <b>Import Playlist</b>. Review each genre in Rekordbox and remove the tracks you agree with. BINDIG never deletes anything.</figcaption></figure></div>
+    <p class="gnote">Tags change inside Rekordbox's library only. Cue points, beat grids, My Tags and your audio files are not touched. If a track doesn't update, select it again in Fixed tracks and repeat Import To Collection. Full guide: <a href="/guide/">bindig.netlify.app/guide</a></p>
   </section>
 </div>
 
@@ -208,6 +242,7 @@ footer{margin-top:60px;border-top:1px solid var(--line);padding-block:24px;font-
   function get(k){return idb().then(function(db){return new Promise(function(res){var rq=db.transaction("kv").objectStore("kv").get(k);rq.onsuccess=function(){res(rq.result);};rq.onerror=function(){res(null);};});}).catch(function(){return null;});}
   var ls={get:function(k){try{return localStorage.getItem(k);}catch(e){return null;}},set:function(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
 
+  function visitor(){var v=ls.get("bindig_visitor");if(!v){v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));ls.set("bindig_visitor",v);}return v;}
   function status(el,msg,err){el.textContent=msg||"";el.className="status"+(err?" err":"");}
 
   // ---- parse Rekordbox XML in the browser
@@ -226,7 +261,7 @@ footer{margin-top:60px;border-top:1px solid var(--line);padding-block:24px;font-
   }
 
   function post(url,headers){
-    return fetch(url,{method:"POST",headers:Object.assign({"content-type":"application/json"},headers||{}),body:JSON.stringify({cols:COLS,rows:state.rows})})
+    return fetch(url,{method:"POST",headers:Object.assign({"content-type":"application/json","x-bindig-visitor":visitor()},headers||{}),body:JSON.stringify({cols:COLS,rows:state.rows})})
       .then(function(r){return r.json().then(function(j){if(!r.ok) throw Object.assign(new Error(j.error||"Something went wrong."),{status:r.status});return j;});});
   }
 
@@ -295,7 +330,7 @@ footer{margin-top:60px;border-top:1px solid var(--line);padding-block:24px;font-
 
   $("buy").addEventListener("click",function(){
     var b=$("buy"); b.disabled=true; status($("paystatus"),"Opening secure checkout…");
-    fetch("/api/checkout",{method:"POST"}).then(function(r){return r.json().then(function(j){if(!r.ok) throw new Error(j.error); return j;});})
+    fetch("/api/checkout",{method:"POST",headers:{"x-bindig-visitor":visitor()}}).then(function(r){return r.json().then(function(j){if(!r.ok) throw new Error(j.error); return j;});})
       .then(function(j){ location.href=j.url; })
       .catch(function(e){ status($("paystatus"),e.message||"Checkout couldn't start.",true); b.disabled=false; });
   });
@@ -339,6 +374,7 @@ footer{margin-top:60px;border-top:1px solid var(--line);padding-block:24px;font-
   // ---- returning from Stripe, or a saved licence
   var qs=new URLSearchParams(location.search), sid=qs.get("session_id");
   state.token=ls.get("bindig_token")||null;
+  var lic=qs.get("licence"); if(lic){ state.token=lic; ls.set("bindig_token",lic); history.replaceState(null,"","/scan/"); restore(); status($("status"),"Tester licence active. Drop your XML to see the full results."); }
   function restore(){ return Promise.all([get("xml"),get("name")]).then(function(v){ if(v[0]) load(v[0],v[1]||"rekordbox.xml"); }); }
   if(sid){
     history.replaceState(null,"","/scan/");
