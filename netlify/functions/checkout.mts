@@ -5,7 +5,9 @@ import { record } from "../../lib/track.mts";
 export default async (req, context) => {
   if (req.method !== "POST") return json({ error: "Use POST." }, 405);
   const key = env("STRIPE_SECRET_KEY");
-  await record("checkout", { enabled: !!key }, req, context);
+  let email = "";
+  try { const b = await req.json(); email = typeof b?.email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(b.email) ? b.email.trim().slice(0, 200) : ""; } catch {}
+  await record("checkout", { enabled: !!key, gaveEmail: !!email }, req, context);
   if (!key) return json({ error: "Payments aren't switched on yet. Join the waitlist and we'll email you." }, 503);
   const origin = new URL(req.url).origin;
   const price = Number(env("PRICE_CENTS") || 900);
@@ -21,6 +23,7 @@ export default async (req, context) => {
     allow_promotion_codes: "true",
     "metadata[product]": "bindig-fix-v1",
   });
+  if (email) form.set("customer_email", email);
   if (env("STRIPE_AUTOMATIC_TAX") === "true") form.set("automatic_tax[enabled]", "true");
   const r = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",

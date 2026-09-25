@@ -35,7 +35,7 @@ export default async (req) => {
       avgScore: scans.length ? Math.round(sum(scans, (s) => s.score) / scans.length) : null,
       medianLibrary: sizes.length ? sizes[Math.floor(sizes.length / 2)] : null,
     },
-    funnel: { scans: scans.length, checkouts: events.checkout.length, paid: events.paid.length, fixRuns: events.fix.filter((f) => !f.tester).length, testerRuns: events.fix.filter((f) => f.tester).length },
+    funnel: { scans: scans.length, checkouts: events.checkout.length, emails: events.checkout.filter((x) => x.gaveEmail).length, paid: events.paid.length, fixRuns: events.fix.filter((f) => !f.tester).length, testerRuns: events.fix.filter((f) => f.tester).length },
     revenueCents: sum(events.paid.filter((p) => p.live), (p) => p.amount),
     days: Object.entries(days).sort(), genres: top(genres, 15), rules: top(rules, 10), countries: top(countries, 10),
   });

@@ -182,7 +182,7 @@ fetch("/api/stats?key="+encodeURIComponent(key)).then(function(r){return r.json(
  var t=d.totals;
  $("tiles").innerHTML=[["People",t.people],["Scans",t.scans],["Tracks scanned",t.tracks],["Median library",t.medianLibrary],["Fixes found",t.fixes],["Purge suggestions",t.purge],["Duplicates",t.duplicates],["Average score",t.avgScore]].map(function(x){return '<div class="tile"><b>'+fmt(x[1])+'</b><span>'+x[0]+'</span></div>';}).join("");
  var f=d.funnel, pct=function(a,b){return b?Math.round(100*a/b)+"%":"–";};
- $("funnel").innerHTML=[["Scans",f.scans,""],["Clicked unlock",f.checkouts,pct(f.checkouts,f.scans)],["Paid",f.paid,pct(f.paid,f.checkouts)],["Full runs",f.fixRuns,""],["Revenue",d.revenueCents/100,""]].map(function(x,i){return '<div class="fs"><b>'+(i===4?"$":"")+fmt(x[1])+'</b><span>'+x[0]+'</span> <i>'+x[2]+'</i></div>';}).join("");
+ $("funnel").innerHTML=[["Scans",f.scans,""],["Gave email to unlock",f.emails,pct(f.emails,f.scans)],["Paid",f.paid,pct(f.paid,f.emails)],["Full runs",f.fixRuns,""],["Revenue",d.revenueCents/100,""]].map(function(x,i){return '<div class="fs"><b>'+(i===4?"$":"")+fmt(x[1])+'</b><span>'+x[0]+'</span> <i>'+x[2]+'</i></div>';}).join("");
  var days=d.days, mx=Math.max.apply(null,days.map(function(x){return x[1];}).concat([1]));
  $("days").innerHTML=days.map(function(x){return '<div title="'+x[0]+': '+x[1]+' scans" style="height:'+(100*x[1]/mx)+'%"></div>';}).join("")||'<p class="note">No scans yet.</p>';
  $("daysaxis").innerHTML=days.length?'<span>'+days[0][0]+'</span><span>'+days[days.length-1][0]+'</span>':"";

@@ -136,6 +136,15 @@ ol.howto b{color:var(--ink);font-weight:500}
 .gfile .doc{width:34px;height:42px;border:1px solid var(--signal);position:relative;background:#0b0f0c}
 .gfile .doc::after{content:"XML";position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:9px}
 .gnote{font-size:12px;color:var(--muted);margin-top:14px}
+dialog.intent{border:1px solid var(--signal);background:var(--panel);color:var(--ink);padding:0;max-width:min(520px,calc(100vw - 32px));width:100%;box-shadow:0 0 80px -10px rgba(120,240,154,.45)}
+dialog.intent::backdrop{background:rgba(2,4,3,.78)}
+dialog.intent form{padding:26px;display:grid;gap:14px}
+dialog.intent h2{font-size:30px}
+dialog.intent label{display:grid;gap:6px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+dialog.intent input[type=email]{font:16px var(--mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);padding:13px 14px;width:100%;border-radius:0}
+dialog.intent input[type=email]:focus{border-color:var(--signal);outline:none}
+dialog.intent .x{justify-self:end;background:none;border:0;color:var(--muted);font:14px var(--mono);cursor:pointer;padding:0}
+.hp{position:absolute;left:-9999px}
 footer{margin-top:60px;border-top:1px solid var(--line);padding-block:24px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 @media (max-width:760px){
   .score,.pay{grid-template-columns:1fr}
@@ -223,6 +232,23 @@ footer{margin-top:60px;border-top:1px solid var(--line);padding-block:24px;font-
     <p class="gnote">Tags change inside Rekordbox's library only. Cue points, beat grids, My Tags and your audio files are not touched. If a track doesn't update, select it again in Fixed tracks and repeat Import To Collection. Full guide: <a href="/guide/">bindig.netlify.app/guide</a></p>
   </section>
 </div>
+
+<dialog class="intent" id="intent" aria-labelledby="intentTitle">
+  <form id="intentForm" name="unlock-intent" method="POST" data-netlify="true" netlify-honeypot="company" novalidate>
+    <button type="button" class="x" id="intentClose" aria-label="Close">close ✕</button>
+    <input type="hidden" name="form-name" value="unlock-intent">
+    <input type="hidden" name="tracks"><input type="hidden" name="score"><input type="hidden" name="fixes"><input type="hidden" name="purge"><input type="hidden" name="visitor">
+    <p class="hp"><label>Leave empty<input name="company" tabindex="-1" autocomplete="off"></label></p>
+    <div class="prompt">$ ./bindig unlock</div>
+    <h2 id="intentTitle">Where should we send your fixed library?</h2>
+    <p class="note" id="intentLede">We'll email your receipt and a link back to your results.</p>
+    <label for="intentEmail">Email<input id="intentEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></label>
+    <button class="btn" type="submit" id="intentGo">&gt; Continue to checkout</button>
+    <button class="btn ghost" type="button" id="intentDone" hidden>&gt; Back to my results</button>
+    <p class="status" id="intentStatus" role="status" aria-live="polite"></p>
+    <p class="note">One email about your purchase and launch news. No spam, never shared.</p>
+  </form>
+</dialog>
 
 <footer><span>BINDIG · beta</span><span>Not affiliated with AlphaTheta or Pioneer DJ.</span></footer>
 </div>
@@ -328,11 +354,37 @@ footer{margin-top:60px;border-top:1px solid var(--line);padding-block:24px;font-
 
   $("medium").addEventListener("change",function(){ if(state.full) render(state.full,true); });
 
-  $("buy").addEventListener("click",function(){
-    var b=$("buy"); b.disabled=true; status($("paystatus"),"Opening secure checkout…");
-    fetch("/api/checkout",{method:"POST",headers:{"x-bindig-visitor":visitor()}}).then(function(r){return r.json().then(function(j){if(!r.ok) throw new Error(j.error); return j;});})
+  // Unlock click = buying signal: capture the email first, then go to Stripe.
+  function openIntent(){
+    var d=$("intent"), h=(state.preview&&state.preview.health)||{};
+    var f=$("intentForm"); f.tracks.value=h.tracks||""; f.score.value=h.score==null?"":h.score; f.fixes.value=h.fixes||""; f.purge.value=h.purgeCandidates||""; f.visitor.value=visitor();
+    var saved=ls.get("bindig_email"); if(saved&&!f.email.value) f.email.value=saved;
+    status($("intentStatus"),""); $("intentGo").disabled=false;
+    if(d.showModal) d.showModal(); else d.setAttribute("open","");
+    setTimeout(function(){f.email.focus();},50);
+  }
+  function closeIntent(){var d=$("intent"); if(d.close) d.close(); else d.removeAttribute("open");}
+  $("buy").addEventListener("click",openIntent);
+  $("intentClose").addEventListener("click",closeIntent);
+  $("intentDone").addEventListener("click",closeIntent);
+  $("intentForm").addEventListener("submit",function(e){
+    e.preventDefault();
+    var f=e.target, email=f.email.value.trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){status($("intentStatus"),"Enter a full email address, like name@example.com.",true);f.email.focus();return;}
+    if(f.company.value) return;
+    ls.set("bindig_email",email);
+    $("intentGo").disabled=true; status($("intentStatus"),"Saving…");
+    var body=new URLSearchParams(new FormData(f)).toString();
+    fetch("/",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body:body}).catch(function(){})
+      .then(function(){ status($("intentStatus"),"Opening secure checkout…");
+        return fetch("/api/checkout",{method:"POST",headers:{"content-type":"application/json","x-bindig-visitor":visitor()},body:JSON.stringify({email:email})}); })
+      .then(function(r){return r.json().then(function(j){ if(r.status===503) throw {soon:true}; if(!r.ok) throw new Error(j.error); return j;});})
       .then(function(j){ location.href=j.url; })
-      .catch(function(e){ status($("paystatus"),e.message||"Checkout couldn't start.",true); b.disabled=false; });
+      .catch(function(err){
+        $("intentGo").disabled=false;
+        if(err&&err.soon){ $("intentTitle").textContent="You're first in line."; $("intentLede").textContent="Payments open very soon. We'll email "+email+" the moment you can unlock your library, and your scan will be waiting."; status($("intentStatus"),""); $("intentGo").hidden=true; $("intentEmail").closest("label").hidden=true; $("intentDone").hidden=false; }
+        else status($("intentStatus"),(err&&err.message)||"Checkout couldn't start. Try again.",true);
+      });
   });
 
   // ---- build the fixed XML: tag changes applied, BINDIG playlists added
