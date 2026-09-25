@@ -53,21 +53,26 @@ function cleanComments(c) {
   const m = /^\s*(\d{1,2}[AB]\s*-\s*Energy\s*\d+)\s*(?:-\s*)?(.*)$/i.exec(c);
   const prefix = m ? m[1].trim() : "";
   const rest = m ? m[2] : c;
-  const segs = rest.split(/\s+-\s+|\s*,\s+|\s+\|\s+/).map((x) => x.trim()).filter(Boolean);
-  const kept = [], keptNoStore = [];
+  // keep separators so the user's own punctuation survives when we drop a junk segment
+  const tok = rest.split(/(\s*\|\|\s*|\s+-\s+|\s*,\s+|\s+\|\s+)/);
+  const segs = []; for (let i = 0; i < tok.length; i += 2) segs.push({ text: tok[i].trim(), sep: i > 0 ? tok[i - 1] : "" });
+  const hasDomainElsewhere = (i) => segs.some((o, j) => j !== i && DOMAIN.test(o.text) && !STORE.test(o.text));
   let junk = false, store = false;
-  segs.forEach((seg, i) => {
-    const isStore = STORE.test(seg);
-    const isJunk = !isStore && (DOMAIN.test(seg) || (CREDIT.test(seg) && segs.some((o, j) => j !== i && DOMAIN.test(o) && !STORE.test(o))) || /^downloaded from\b/i.test(seg) || /^rlz by\b/i.test(seg));
-    if (isJunk) { junk = true; return; }
-    kept.push(seg);
-    if (isStore) { store = true; return; }
-    keptNoStore.push(seg);
+  segs.forEach((sg, i) => {
+    if (!sg.text) { sg.kind = "empty"; return; }
+    if (STORE.test(sg.text)) { sg.kind = "store"; store = true; return; }
+    if (DOMAIN.test(sg.text) || /^downloaded from\b/i.test(sg.text) || /^rlz by\b/i.test(sg.text) || (CREDIT.test(sg.text) && hasDomainElsewhere(i))) { sg.kind = "junk"; junk = true; return; }
+    sg.kind = "keep";
   });
-  const join = (arr) => [prefix, ...arr].filter(Boolean).join(" - ").replace(/\s*-\s*$/, "").trim();
-  const withoutJunk = join(kept);
-  const withoutStore = join(keptNoStore);
-  return { junk: junk && withoutJunk !== c.trim(), withoutJunk, store, withoutStore: withoutStore };
+  const build = (keepStore) => {
+    let out = "";
+    for (const sg of segs) {
+      if (sg.kind === "keep" || (keepStore && sg.kind === "store")) out += (out ? (sg.sep || " - ") : "") + sg.text;
+    }
+    return [prefix, out].filter(Boolean).join(" - ").trim();
+  };
+  const withoutJunk = build(true);
+  return { junk: junk && withoutJunk !== c.trim(), withoutJunk, store, withoutStore: build(false) };
 }
 
 export function analyse(tracks) {
