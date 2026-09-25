@@ -16,6 +16,7 @@ export default async (req, context) => {
     "line_items[0][quantity]": "1",
     "line_items[0][price_data][currency]": "usd",
     "line_items[0][price_data][unit_amount]": String(price),
+    "line_items[0][price_data][tax_behavior]": "inclusive",
     "line_items[0][price_data][product_data][name]": "BINDIG full library fix",
     "line_items[0][price_data][product_data][description]": "Every tag fix, the Purge playlists by genre and a fixed Rekordbox XML.",
     success_url: `${origin}/scan/?session_id={CHECKOUT_SESSION_ID}`,
@@ -24,10 +25,14 @@ export default async (req, context) => {
     "metadata[product]": "bindig-fix-v1",
   });
   if (email) form.set("customer_email", email);
-  if (env("STRIPE_AUTOMATIC_TAX") === "true") form.set("automatic_tax[enabled]", "true");
+  // Tax: price is always $9 all-in. Managed Payments (Stripe as merchant of record) is switched on with STRIPE_MANAGED_PAYMENTS=true
+  // once its terms are accepted in the Stripe Dashboard; otherwise STRIPE_AUTOMATIC_TAX=true uses Stripe Tax.
+  const managed = env("STRIPE_MANAGED_PAYMENTS") === "true";
+  if (managed) form.set("managed_payments[enabled]", "true");
+  else if (env("STRIPE_AUTOMATIC_TAX") === "true") form.set("automatic_tax[enabled]", "true");
   const r = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",
-    headers: { authorization: `Bearer ${key}`, "content-type": "application/x-www-form-urlencoded" },
+    headers: { authorization: `Bearer ${key}`, "content-type": "application/x-www-form-urlencoded", ...(managed ? { "stripe-version": "2026-02-25.preview" } : {}) },
     body: form,
   });
   const s = await r.json();

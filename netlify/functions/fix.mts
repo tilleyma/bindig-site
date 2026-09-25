@@ -12,7 +12,7 @@ export default async (req, context) => {
   if (error) return json({ error }, 400);
   const r = analyse(tracks);
   await record("fix", { tracks: r.health.tracks, fixes: r.health.fixes, purgeCandidates: r.health.purgeCandidates, tester: String(licence.sid || "").startsWith("tester") }, req, context);
-  return json({ health: r.health, taste: r.taste, fixes: r.fixes, purge: r.purge });
+  return json({ health: r.health, taste: r.taste, fixes: r.fixes, purge: r.purge, sets: r.sets, gaps: r.gaps });
 };
 
 export const config = { path: "/api/fix" };

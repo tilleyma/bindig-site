@@ -165,11 +165,11 @@ footer{border-top:1px solid var(--line);padding-block:28px;display:flex;justify-
 <section>
   <div class="sh"><h2>Four processes</h2><p>Each one runs on your machine against your Rekordbox export. Nothing is written until you approve it.</p></div>
   <div class="jobs">
-    <article class="job"><span class="id">PROC_01</span><h3>Fix tags</h3><p>Missing genres, artist names in title fields, year 0, misspelt artists. Checked against Discogs and MusicBrainz, rated by confidence.</p><code>Fereck Dawn → Ferreck Dawn
+    <article class="job"><span class="id">PROC_01</span><h3>Fix tags</h3><p>Download-site junk, artist names in title fields, misspelt artists, blank genres. Every fix rated by confidence and approved by you. Online lookups (Discogs, MusicBrainz) coming next.</p><code>Fereck Dawn → Ferreck Dawn
 year 0 → 2005</code></article>
-    <article class="job"><span class="id">PROC_02</span><h3>Build sets</h3><p>Playlists ordered by Camelot key, BPM and energy. Pick a mood and a length; it builds the arc.</p><code>12A→11A→10A→10A→9A→8A
+    <article class="job"><span class="id">PROC_02</span><h3>Build sets</h3><p>Playlists ordered by Camelot key, BPM and energy, built from the tracks you actually play, one per core genre.</p><code>12A→11A→10A→10A→9A→8A
 122 · 121 · 120 · 121 · 120</code></article>
-    <article class="job"><span class="id">PROC_03</span><h3>Find gaps</h3><p>Reads the artists, remixers and EPs you already play and lists the tracks you don't own yet.</p><code>453 releases you own
+    <article class="job"><span class="id">PROC_03</span><h3>Find gaps</h3><p>Finds the releases you own only part of and play, with shop links to complete them.</p><code>453 releases you own
 only part of</code></article>
     <article class="job"><span class="id">PROC_04</span><h3>Purge</h3><p>AI reads what you actually play and scores every track for fit. Suggested cuts arrive grouped by genre, so you review one shelf at a time. Nothing is deleted.</p><code>Techno · 621 to review
 House · 547 to review</code></article>
@@ -177,15 +177,15 @@ House · 547 to review</code></article>
 </section>
 
 <section>
-  <div class="sh"><h2>Change log</h2><p>Every change shows what it was, what it becomes and where the evidence came from.</p></div>
+  <div class="sh"><h2>Change log</h2><p>Every change shows what it was, what it becomes and why. You approve each one, and download the full log as a spreadsheet.</p></div>
   <div class="log">
     <table>
-      <thead><tr><th>Track</th><th>Field</th><th>Was</th><th>Now</th><th>Source</th><th>Conf.</th></tr></thead>
+      <thead><tr><th>Track</th><th>Field</th><th>Was</th><th>Now</th><th>Why</th><th>Conf.</th></tr></thead>
       <tbody>
-        <tr><td>Heaven Sent (Original Mix)</td><td>artist</td><td class="was">Fereck Dawn</td><td class="now">Ferreck Dawn</td><td class="src">Discogs</td><td>high</td></tr>
-        <tr><td>Robot Rock</td><td>year</td><td class="was">0</td><td class="now">2005</td><td class="src">MusicBrainz</td><td>high</td></tr>
-        <tr><td>The Word</td><td>title</td><td class="was">Hernan Cattaneo - The Word</td><td class="now">The Word</td><td class="src">Rule: artist in title</td><td>high</td></tr>
-        <tr><td>Easy As Can Be (Tom Middleton Remix)</td><td>genre</td><td class="was">—</td><td class="now">Progressive House</td><td class="src">Discogs</td><td>medium</td></tr>
+        <tr><td>Dodge (Victor Ruiz remix)</td><td>artist</td><td class="was">MONKEY SAFARI</td><td class="now">Monkey Safari</td><td class="src">Spelling on 18 of your 19 tracks</td><td>medium</td></tr>
+        <tr><td>Use of Weapons (Original Mix)</td><td>title</td><td class="was">South London Ordnance - Use of Weapons (Original Mix)</td><td class="now">Use of Weapons (Original Mix)</td><td class="src">Artist repeated in title</td><td>high</td></tr>
+        <tr><td>Use of Weapons (Original Mix)</td><td>comments</td><td class="was">10A - Energy 6 - DOWNLOADSITE.CLUB</td><td class="now">10A - Energy 6</td><td class="src">Download-site junk</td><td>high</td></tr>
+        <tr><td>Und Da Stehen Fremde Menschen (Patrice Bäumel Remix)</td><td>genre</td><td class="was">(blank)</td><td class="now">Techno</td><td class="src">4 of the artist's 5 other tracks</td><td>high</td></tr>
       </tbody>
     </table>
   </div>
@@ -216,7 +216,7 @@ House · 547 to review</code></article>
   <div class="sh"><h2>Sequence</h2><p>Your audio never leaves your computer. Only track details are sent for analysis. <a href="/guide/">See the visual guide</a>.</p></div>
   <div class="steps">
     <div class="step"><div class="n">01</div><h3>Export</h3><p>Rekordbox: File → Export Collection in xml format.</p></div>
-    <div class="step"><div class="n">02</div><h3>Scan</h3><p>BINDIG checks every track against Discogs and MusicBrainz.</p></div>
+    <div class="step"><div class="n">02</div><h3>Scan</h3><p>BINDIG finds problems, builds sets and learns your taste in about 10 seconds.</p></div>
     <div class="step"><div class="n">03</div><h3>Review</h3><p>Every change listed with its source. Accept all, or go track by track.</p></div>
     <div class="step"><div class="n">04</div><h3>Write</h3><p>Full backup first, then tags written. Undo with one command.</p></div>
   </div>

@@ -154,7 +154,10 @@ export function analyse(tracks) {
   };
   const issuesTracks = new Set([...fixedIds, ...dupOf.keys()]);
   health.score = Math.max(0, Math.round(100 * (1 - (issuesTracks.size + genreNeedsLookup * 0.5 + purge.flat.length * 0.5) / Math.max(1, tracks.length))));
-  return { health, fixes, purge: purge.byGenre, purgeFlat: purge.flat, taste: purge.taste };
+  const sets = buildSets(tracks, purge.taste);
+  const gaps = findGaps(tracks);
+  health.sets = sets.length; health.gapReleases = gaps.totalReleases;
+  return { health, fixes, purge: purge.byGenre, purgeFlat: purge.flat, taste: purge.taste, sets, gaps };
 }
 
 function countBy(arr, fn) { const m = {}; for (const x of arr) { const k = fn(x); m[k] = (m[k] || 0) + 1; } return m; }
@@ -227,5 +230,100 @@ export function preview(result) {
   const ruleKey = (f) => f.rule.replace(/\d+/g, "#");
   for (const f of bySev) { if (sample.length >= 12) break; if (seen.has(ruleKey(f))) continue; seen.add(ruleKey(f)); sample.push(f); }
   for (const f of bySev) { if (sample.length >= 12) break; if (!sample.includes(f)) sample.push(f); }
-  return { health: result.health, taste: result.taste, fixSample: sample, purgeByGenre: byGenre };
+  const setsPreview = result.sets.map((s, i) => ({ name: s.name, minutes: s.minutes, count: s.tracks.length, keys: s.tracks.map((t) => t.key), bpms: s.tracks.map((t) => t.bpm), tracks: i === 0 ? s.tracks.slice(0, 3) : [] }));
+  const gapsPreview = { totalReleases: result.gaps.totalReleases, releases: result.gaps.releases.slice(0, 3), artists: result.gaps.artists.slice(0, 5) };
+  return { health: result.health, taste: result.taste, fixSample: sample, purgeByGenre: byGenre, setsPreview, gapsPreview };
+}
+
+// ---------- Sets: harmonic, BPM-smooth playlists built from the tracks you actually play
+const MUSICAL_TO_CAMELOT = {
+  "Abm": "1A", "G#m": "1A", "B": "1B", "Ebm": "2A", "D#m": "2A", "F#": "2B", "Gb": "2B", "Bbm": "3A", "A#m": "3A", "Db": "3B", "C#": "3B",
+  "Fm": "4A", "Ab": "4B", "G#": "4B", "Cm": "5A", "Eb": "5B", "D#": "5B", "Gm": "6A", "Bb": "6B", "A#": "6B", "Dm": "7A", "F": "7B",
+  "Am": "8A", "C": "8B", "Em": "9A", "G": "9B", "Bm": "10A", "D": "10B", "F#m": "11A", "Gbm": "11A", "A": "11B", "C#m": "12A", "Dbm": "12A", "E": "12B",
+};
+function camelot(t) {
+  const m = /^\s*(\d{1,2}[AB])\b/i.exec(t.comments || "");
+  if (m) return m[1].toUpperCase();
+  const k = (t.key || "").trim();
+  if (/^\d{1,2}[AB]$/i.test(k)) return k.toUpperCase();
+  return MUSICAL_TO_CAMELOT[k] || null;
+}
+const energyOf = (t) => { const m = /Energy\s*(\d+)/i.exec(t.comments || ""); return m ? Number(m[1]) : null; };
+function compatible(a, b) {
+  if (!a || !b) return false;
+  const na = parseInt(a), nb = parseInt(b), la = a.slice(-1), lb = b.slice(-1);
+  if (na === nb) return true;
+  return la === lb && ((na - nb + 12) % 12 === 1 || (nb - na + 12) % 12 === 1);
+}
+
+export function buildSets(tracks, taste) {
+  const played = tracks.filter((t) => t.plays > 0);
+  const genreCount = {};
+  for (const t of played) if (t.genre) genreCount[t.genre] = (genreCount[t.genre] || 0) + 1;
+  const genres = Object.entries(genreCount).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([g]) => g);
+  const [lo, hi] = taste.bpmRange;
+  const withEnergy = tracks.filter((t) => energyOf(t) != null).length / Math.max(1, tracks.length) > 0.5;
+  const used = new Set();
+  const sets = [];
+  const arcs = { warm: [4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 6, 6], peak: [5, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 7, 7, 6] };
+  genres.forEach((g, gi) => {
+    const kind = gi % 2 === 0 ? "peak" : "warm";
+    const minutes = kind === "peak" ? 75 : 60;
+    const arc = arcs[kind];
+    const pool = tracks
+      .filter((t) => t.genre === g && !used.has(t.id) && t.time > 150 && t.bpm >= lo - 3 && t.bpm <= hi + 3)
+      .map((t) => ({ ...t, ck: camelot(t), en: energyOf(t) }))
+      .filter((t) => t.ck && (!withEnergy || t.en != null))
+      .sort((a, b) => (b.plays * 2 + (b.bitrate >= 256 ? 3 : 0)) - (a.plays * 2 + (a.bitrate >= 256 ? 3 : 0)))
+      .slice(0, 500);
+    if (pool.length < 6) return;
+    const score = (p) => p.plays * 2 + (p.bitrate >= 256 ? 3 : 0);
+    let best = null;
+    const starts = pool.filter((p) => !withEnergy || Math.abs(p.en - arc[0]) <= 1).slice(0, 25);
+    for (const start of starts) {
+      const seq = [start], ids = new Set([start.id]); let tot = start.time;
+      while (tot < minutes * 60) {
+        const cur = seq[seq.length - 1], want = arc[Math.min(seq.length, arc.length - 1)];
+        const cands = pool.filter((p) => !ids.has(p.id) && compatible(cur.ck, p.ck) && Math.abs(p.bpm - cur.bpm) <= 3 && p.bpm >= cur.bpm - 1.5 && (!withEnergy || Math.abs(p.en - want) <= 1) && primaryArtist(p.artist) !== primaryArtist(cur.artist));
+        if (!cands.length) break;
+        const nxt = cands.reduce((a, b) => (score(b) - (withEnergy ? 2 * Math.abs(b.en - want) : 0) - Math.abs(b.bpm - cur.bpm)) > (score(a) - (withEnergy ? 2 * Math.abs(a.en - want) : 0) - Math.abs(a.bpm - cur.bpm)) ? b : a);
+        seq.push(nxt); ids.add(nxt.id); tot += nxt.time;
+      }
+      const q = [tot >= minutes * 60 * 0.85 ? 1 : 0, seq.reduce((a, p) => a + score(p), 0)];
+      if (!best || q[0] > best.q[0] || (q[0] === best.q[0] && q[1] > best.q[1])) best = { q, seq, tot };
+    }
+    if (!best || best.seq.length < 6) return;
+    best.seq.forEach((p) => used.add(p.id));
+    sets.push({
+      name: `${g} · ${kind === "peak" ? "Peak" : "Warm-up"} (${Math.round(best.tot / 60)}m)`,
+      genre: g, minutes: Math.round(best.tot / 60),
+      tracks: best.seq.map((p) => ({ id: p.id, artist: p.artist, title: p.title, key: p.ck, bpm: Math.round(p.bpm), energy: p.en })),
+    });
+  });
+  return sets;
+}
+
+// ---------- Gaps: releases you own part of and play, plus artists to dig deeper into
+export function findGaps(tracks) {
+  const alb = new Map();
+  for (const t of tracks) {
+    if (!t.album) continue;
+    const tn = parseInt(t.tn || "0"); // track number (optional field)
+    const k = norm(t.album) + "|" + norm(primaryArtist(t.artist));
+    if (!alb.has(k)) alb.set(k, { album: t.album, artist: primaryArtist(t.artist), nums: new Set(), plays: 0, owned: 0 });
+    const a = alb.get(k); a.owned++; a.plays += t.plays || 0; if (tn > 0) a.nums.add(tn);
+  }
+  const releases = [];
+  for (const a of alb.values()) {
+    const nums = [...a.nums]; if (!nums.length) continue;
+    const mx = Math.max(...nums);
+    if (mx < 2 || mx > 12 || a.plays === 0) continue;
+    const missing = []; for (let i = 1; i <= mx; i++) if (!a.nums.has(i)) missing.push(i);
+    if (missing.length) releases.push({ album: a.album, artist: a.artist, owned: a.owned, of: mx, missing, plays: a.plays });
+  }
+  releases.sort((x, y) => y.plays - x.plays);
+  const art = {};
+  for (const t of tracks) if (t.plays > 0) for (const a of (t.artist || "").split(/\s*(?:,|&|\/|;| feat\.? | ft\.? )\s*/i)) if (a) art[a] = (art[a] || 0) + t.plays;
+  const artists = Object.entries(art).sort((a, b) => b[1] - a[1]).slice(0, 25).map(([name, plays]) => ({ name, plays }));
+  return { releases: releases.slice(0, 200), totalReleases: releases.length, artists };
 }
