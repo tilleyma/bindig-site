@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Your taste isn't binary. Your crate should be. BINDIG cleans, tags, sequences and purges your Rekordbox library.">
+<meta name="description" content="Your taste isn't binary. But your crate should be. BINDIG cleans, tags, sequences and purges your Rekordbox library.">
 <title>BINDIG</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,7 +37,8 @@ nav{display:flex;justify-content:space-between;align-items:center;padding-block:
 .navcta:hover{background:var(--ink);color:var(--bg)}
 
 .hero{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;padding-block:56px 40px}
-.hero h1{font-size:clamp(46px,7.4vw,96px);margin-block:18px 22px;text-transform:uppercase}
+.hero h1{font-size:clamp(32px,4.6vw,60px);line-height:1.08;margin-block:18px 22px;text-transform:uppercase}
+.hero h1 .sig{display:block;margin-top:.15em}
 .lede{font-size:17px;color:var(--muted);max-width:42ch}
 .lede b{color:var(--ink);font-weight:500}
 .cta{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:28px}
@@ -138,7 +139,7 @@ footer{border-top:1px solid var(--line);padding-block:28px;display:flex;justify-
 <header class="hero">
   <div>
     <div class="prompt">$ ./bindig scan ~/rekordbox.xml</div>
-    <h1>Your taste isn't binary. Your crate <span class="sig">should be</span><span class="caret"></span></h1>
+    <h1>Your taste isn't binary. <span class="sig">But your crate should be.<span class="caret"></span></span></h1>
     <p class="lede">Every track in your crate is a <b>1</b> or a <b>0</b>: one you reach for, or one you don't. BINDIG learns which from how you play, fixes the tags on the 1s, builds sets that mix in key and <b>purges the 0s</b>, genre by genre.</p>
     <div class="cta">
       <a class="btn" href="#join">&gt; Get early access</a>
