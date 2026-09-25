@@ -118,6 +118,7 @@ footer{border-top:1px solid var(--line);padding-block:28px;display:flex;justify-
   .price{border-right:0;border-bottom:1px solid var(--line)}
 }
 @media (max-width:520px){
+  .brand i{display:none}.navcta{white-space:nowrap}
   .jobs,.steps,.two{grid-template-columns:1fr}
   .job,.step{border-left:0}.job+.job,.step+.step{border-top:1px solid var(--line)}
 }
@@ -133,7 +134,7 @@ footer{border-top:1px solid var(--line);padding-block:28px;display:flex;justify-
 <div class="wrap">
 <nav>
   <div class="brand">BINDIG <i>v0.1 · beta</i></div>
-  <a class="navcta" href="#join">Join waitlist</a>
+  <a class="navcta" href="/scan/">Free scan</a>
 </nav>
 
 <header class="hero">
@@ -142,8 +143,9 @@ footer{border-top:1px solid var(--line);padding-block:28px;display:flex;justify-
     <h1>Your taste isn't binary. <span class="sig">But your crate should be.<span class="caret"></span></span></h1>
     <p class="lede">Every track in your crate is a <b>1</b> or a <b>0</b>: one you reach for, or one you don't. BINDIG learns which from how you play, fixes the tags on the 1s, builds sets that mix in key and <b>purges the 0s</b>, genre by genre.</p>
     <div class="cta">
-      <a class="btn" href="#join">&gt; Get early access</a>
-      <span class="note">$9 once. No subscription.</span>
+      <a class="btn" href="/scan/">&gt; Run a free scan</a>
+      <a class="navcta" href="#join">Join waitlist</a>
+      <span class="note">Free scan. $9 once to fix everything.</span>
     </div>
   </div>
   <figure class="bits" style="margin:0">
