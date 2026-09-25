@@ -30,6 +30,10 @@ const GENRE_ALIASES = {
 const SITE_TLD = "(?:com|pl|info|club|net|org|biz|ru|me|to|cc|io|xyz|eu)";
 const JUNK_BRACKET = new RegExp(`\\s*[\\[(](?:www\\.)?[\\w.-]+\\.${SITE_TLD}[\\])]`, "gi");
 const JUNK_TAIL = new RegExp(`\\s*[-–|]\\s*(?:www\\.)?[\\w.-]+\\.${SITE_TLD}\\s*$`, "i");
+// A trailing bare domain in a title/artist, e.g. "Track Name DeepDJ.org". Only when the name looks like a DJ/download site,
+// so artist names with dots (Mr.Oizo) are left alone.
+const JUNK_BARE = /\s+(?:www\.)?[\w-]*(?:dj|mp3|music|club|promo|download|house|techno|beat|track|zone|crate|fresh|exclusive|pool|remix)[\w-]*\.(?:[a-z]{2,6})(?:\.[a-z]{2})?\s*$/i;
+const JUNK_URL = /[\s_]*(?:[«»øº*~]+\s*)*(?:https?:\/\/|www\.)\S+(?:\s*[«»øº*~]+)*|\s+[\w.-]+\.blogspot\.com\b/gi;
 const JUNK_ANY = new RegExp(`(?:https?://\\S+|www\\.\\S+|\\b[\\w-]+\\.${SITE_TLD}\\b)`, "gi");
 
 const norm = (s) => (s || "").toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
@@ -38,6 +42,32 @@ const tidy = (s) => s.replace(/\s{2,}/g, " ").replace(/\s+([)\]])/g, "$1").repla
 
 function looksLikeJunkGenre(g) {
   return /\.(com|pl|info|club|net|org|biz|ru)\b/i.test(g) || /^(dj|mp3|music|club|www)/i.test(g) && /\./.test(g);
+}
+
+// Comments: keep the Mixed In Key prefix ("8A - Energy 6") and any personal notes; drop download-site junk.
+// Store receipts ("Purchased at Beatport.com") are offered separately as an optional, medium-confidence fix.
+const DOMAIN = /(?:https?:\/\/|www\.)\S+|\b[\w-]+(?:\.[\w-]+)*\.(?:com|org|net|info|club|pl|ru|uk|co|lt|lv|me|to|cc|io|xyz|eu|biz|de|fr|nl|es|it|us|fm|dj|top|site|online|store|live|in|tv|ws|su|ua|by|mx|br|cz|sk|hu|ro|gr|tk|ml|cf|ga|gq)(?:\/\S*)?\b/i;
+const STORE = /^(?:purchased (?:at|from)|bought (?:at|from)|delivered by|amazon\.com song id|itunes|bandcamp|juno(?:download)?|traxsource|beatport)\b/i;
+const CREDIT = /^(?:(?:rlz|ripped|uploaded|shared|posted|downloaded|download)(?:\s+(?:by|from|at))?|by|from|free download|visit)\b/i;
+function cleanComments(c) {
+  const m = /^\s*(\d{1,2}[AB]\s*-\s*Energy\s*\d+)\s*(?:-\s*)?(.*)$/i.exec(c);
+  const prefix = m ? m[1].trim() : "";
+  const rest = m ? m[2] : c;
+  const segs = rest.split(/\s+-\s+|\s*,\s+|\s+\|\s+/).map((x) => x.trim()).filter(Boolean);
+  const kept = [], keptNoStore = [];
+  let junk = false, store = false;
+  segs.forEach((seg, i) => {
+    const isStore = STORE.test(seg);
+    const isJunk = !isStore && (DOMAIN.test(seg) || (CREDIT.test(seg) && segs.some((o, j) => j !== i && DOMAIN.test(o) && !STORE.test(o))) || /^downloaded from\b/i.test(seg) || /^rlz by\b/i.test(seg));
+    if (isJunk) { junk = true; return; }
+    kept.push(seg);
+    if (isStore) { store = true; return; }
+    keptNoStore.push(seg);
+  });
+  const join = (arr) => [prefix, ...arr].filter(Boolean).join(" - ").replace(/\s*-\s*$/, "").trim();
+  const withoutJunk = join(kept);
+  const withoutStore = join(keptNoStore);
+  return { junk: junk && withoutJunk !== c.trim(), withoutJunk, store, withoutStore: withoutStore };
 }
 
 export function analyse(tracks) {
@@ -54,23 +84,19 @@ export function analyse(tracks) {
   for (const t of tracks) {
     let title = t.title || "";
     let artist = t.artist || "";
-    const strippedTitle = title.replace(JUNK_BRACKET, "").replace(JUNK_TAIL, "");
+    const strippedTitle = title.replace(JUNK_URL, "").replace(JUNK_BRACKET, "").replace(JUNK_TAIL, "").replace(JUNK_BARE, "");
     const cleanedTitle = tidy(strippedTitle);
     if (strippedTitle !== title && cleanedTitle) { add(t, "title", cleanedTitle, "Download-site text removed", "high"); title = cleanedTitle; }
-    const strippedArtist = artist.replace(JUNK_BRACKET, "").replace(JUNK_TAIL, "");
+    const strippedArtist = artist.replace(JUNK_URL, "").replace(JUNK_BRACKET, "").replace(JUNK_TAIL, "").replace(JUNK_BARE, "");
     const cleanedArtist = tidy(strippedArtist);
     if (strippedArtist !== artist && cleanedArtist) { add(t, "artist", cleanedArtist, "Download-site text removed", "high"); artist = cleanedArtist; }
     if (artist && title.toLowerCase().startsWith(artist.toLowerCase() + " - ")) {
       const rest = title.slice(artist.length + 3).trim();
       if (rest.length >= 2) add(t, "title", rest, "Artist name repeated in the title", "high");
     }
-    const c = t.comments || "";
-    if (JUNK_ANY.test(c)) {
-      JUNK_ANY.lastIndex = 0;
-      const cleaned = tidy(c.replace(JUNK_ANY, "").replace(/\s*-\s*-\s*/g, " - "));
-      add(t, "comments", cleaned, "Download-site link removed from comments", "high");
-    }
-    JUNK_ANY.lastIndex = 0;
+    const cc = cleanComments(t.comments || "");
+    if (cc.junk) add(t, "comments", cc.withoutJunk, "Download-site text removed from comments", "high");
+    if (cc.store) add(t, "comments", cc.withoutStore, "Store receipt removed from comments (optional)", "medium");
     const g = (t.genre || "").trim();
     if (g) {
       const alias = GENRE_ALIASES[g.toLowerCase()];
