@@ -354,7 +354,7 @@ export function buildMixes(tracks, taste, gemMap) {
     best.seq.forEach((p) => used.add(p.id));
     const nNew = best.seq.filter((p) => p.isNew).length;
     mixes.push({
-      name: `${g} Mix · ${kind === "peak" ? "Peak" : "Warm-up"}`,
+      name: `Gem Mix · ${g} · ${kind === "peak" ? "Peak" : "Warm-up"}`,
       genre: g, minutes: Math.round(best.tot / 60), gems: nNew,
       tracks: best.seq.map((p) => ({ id: p.id, artist: p.artist, title: p.title, key: p.ck, bpm: Math.round(p.bpm), energy: p.en, isNew: p.isNew, plays: p.plays || 0 })),
     });

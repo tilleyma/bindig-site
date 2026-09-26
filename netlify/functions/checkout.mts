@@ -8,7 +8,7 @@ export default async (req, context) => {
   let email = "";
   try { const b = await req.json(); email = typeof b?.email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(b.email) ? b.email.trim().slice(0, 200) : ""; } catch {}
   await record("checkout", { enabled: !!key, gaveEmail: !!email }, req, context);
-  if (!key) return json({ error: "Payments aren't switched on yet. Join the waitlist and we'll email you." }, 503);
+  if (!key) return json({ error: "Payments aren't switched on yet. Try again soon." }, 503);
   const origin = new URL(req.url).origin;
   const price = Number(env("PRICE_CENTS") || 900);
   const form = new URLSearchParams({
@@ -17,8 +17,8 @@ export default async (req, context) => {
     "line_items[0][price_data][currency]": "usd",
     "line_items[0][price_data][unit_amount]": String(price),
     "line_items[0][price_data][tax_behavior]": "inclusive",
-    "line_items[0][price_data][product_data][name]": "BINDIG full library fix",
-    "line_items[0][price_data][product_data][description]": "Every tag fix, the Purge playlists by genre and a fixed Rekordbox XML.",
+    "line_items[0][price_data][product_data][name]": "BINDIG · full unlock",
+    "line_items[0][price_data][product_data][description]": "Undiscovered Gems, Gem Mixes and clean tags for your Rekordbox library, as one import file.",
     success_url: `${origin}/scan/?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/scan/?cancelled=1`,
     allow_promotion_codes: "true",
