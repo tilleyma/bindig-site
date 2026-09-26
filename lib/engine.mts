@@ -166,7 +166,10 @@ export function analyse(tracks) {
   // Duplicates: same artist + title, keep the best copy
   const dupGroups = new Map();
   for (const t of tracks) {
-    const k = norm(primaryArtist(cur(t, "artist"))) + "|" + norm(cur(t, "title").replace(/\((original|extended) mix\)/i, ""));
+    // Skip samples/loops and tracks with no artist: short generic titles ("HORN") are not real duplicates.
+    const ar = norm(primaryArtist(cur(t, "artist")));
+    if (!ar || (t.time && t.time < 90)) continue;
+    const k = ar + "|" + norm(cur(t, "title").replace(/\((original|extended) mix\)/i, ""));
     if (k.length < 4) continue;
     if (!dupGroups.has(k)) dupGroups.set(k, []);
     dupGroups.get(k).push(t);
