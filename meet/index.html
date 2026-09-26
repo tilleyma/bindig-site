@@ -52,35 +52,60 @@ nav{display:flex;justify-content:space-between;align-items:center;padding-block:
 .reveal{transition:opacity .6s ease,transform .6s ease}
 .js .reveal.pending{opacity:.12;transform:translateY(10px)}
 @media (max-width:720px){.beat{grid-template-columns:1fr}}
+html{scroll-behavior:smooth}.beat{scroll-margin-top:12px}
+.summary{display:grid;gap:18px;padding-block:18px 30px}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tile{position:relative;display:grid;align-content:start;gap:6px;padding:18px 16px;border:1px solid var(--line);background:var(--panel);color:var(--ink);text-decoration:none;transition:border-color .2s,box-shadow .2s;overflow:hidden}
+.tile:hover{border-color:var(--signal);box-shadow:0 0 30px -12px rgba(120,240,154,.5)}
+.tn{font:900 clamp(40px,6vw,64px)/1 var(--display);color:var(--signal);text-shadow:var(--glow)}
+.tn.a{color:var(--amber);text-shadow:0 0 18px rgba(242,193,78,.45)}.tn.w{color:var(--ink);text-shadow:none}
+.tile b{font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+.tile .td{font-size:12px;color:var(--muted);line-height:1.45}
+#mini{display:block;width:100%;height:auto;margin-top:6px;image-rendering:pixelated;opacity:.9}
+.cta{display:flex;align-items:center;gap:18px;flex-wrap:wrap}.cta .note{font-size:12px;color:var(--muted)}
+.more{font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.08em}.more:hover{color:var(--signal)}
+@media (max-width:720px){nav .skip{display:none}.tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.tile{padding:12px 11px;gap:4px}.tn{font-size:36px}.tile b{font-size:11px}.tile .td{font-size:11px}.cta{gap:8px}.intro{padding-block:12px 4px}.summary{padding-block:12px 24px;gap:14px}.cta .btn{width:100%;text-align:center}}
+
 @media (prefers-reduced-motion:reduce){.js .reveal.pending{opacity:1;transform:none}}
 
 </style>
 </head>
 <body>
 <div class="wrap">
-<nav><a class="brand" href="/">BINDIG</a><a href="/scan/" style="font-size:13px">Skip to the free scan →</a></nav>
+<nav><a class="brand" href="/">BINDIG</a><a class="skip" href="/scan/" style="font-size:13px">Skip to the free scan →</a></nav>
 <header class="intro">
   <p class="sig" style="font-weight:700;font-size:14px">$ ./bindig scan --demo</p>
   <h1>Here's what it found in <span class="sig">my crate.</span></h1>
-  <p class="muted">My own Rekordbox library. Every number below is real, and nothing in it was changed to find them.</p>
+  <p class="muted">My own Rekordbox library. Every number is real.</p>
 </header>
 
-<section class="beat reveal">
+<section class="summary" aria-label="What BINDIG found">
+  <div class="tiles">
+    <a class="tile" href="#gems"><span class="tn a">675</span><b>Undiscovered gems</b><span class="td">Tracks I'd never played that fit my sound</span></a>
+    <a class="tile" href="#mixes"><span class="tn">4</span><b>Gem Mixes</b><span class="td">Favourites + gems, in key, ready to play</span></a>
+    <a class="tile" href="#fixes"><span class="tn">530</span><b>Tag fixes</b><span class="td">Junk, typos and blank genres, cleaned</span></a>
+    <a class="tile" href="#tracks"><span class="tn w">7,668</span><b>Tracks scanned</b><span class="td">4,372 never played</span><canvas id="mini" aria-hidden="true"></canvas></a>
+  </div>
+  <div class="cta"><a class="btn" href="/scan/">&gt; Try it on your crate, free</a><p class="note">Free to try · Nothing changes in Rekordbox unless you import it</p></div>
+  <a class="more" href="#tracks">↓ See how it works</a>
+</section>
+
+<section class="beat reveal" id="tracks">
   <div><div class="n w" data-count="7668">7,668</div><h2>tracks in the crate</h2><p>Each square is one track. Green means played. Dark means it has never left the crate.</p></div>
   <div><canvas id="grid" width="1080" height="720" role="img" aria-label="Grid of 7,668 tracks: 3,296 played and 4,372 never played"></canvas><div class="legend"><span><span class="sw" style="background:var(--signal)"></span>3,296 played</span><span><span class="sw" style="background:#12201A;border:1px solid #2a3a30"></span>4,372 never played</span></div></div>
 </section>
 
-<section class="beat reveal">
+<section class="beat reveal" id="gems">
   <div><span class="kick">▸ The agent found</span><div class="n" data-count="675">675</div><h2>undiscovered gems</h2><p>BINDIG learned my taste from what I actually play, then dug through the 4,372 tracks I'd never played. These 675 fit my sound best: same artists, same labels, same BPM range, good quality.</p></div>
   <div class="card"><span class="kick">Found by BINDIG · with the reason it fits</span><b>Sébastien Léger, Roy Rosenfeld, Lost Miracle – All Night Long (Extended Mix) <span class="newtag">new to you</span></b><span class="why">Artist you've played 54 times · Same label as 14 tracks you play · Indie Dance, one of your core genres</span><span class="why">4A · 121 BPM · fit 82/100</span></div>
 </section>
 
-<section class="beat reveal">
+<section class="beat reveal" id="mixes">
   <div><span class="kick">▸ The agent suggests</span><div class="n" data-count="4">4</div><h2>Gem Mixes</h2><p>Then BINDIG built mixes around them: my favourites with a gem woven in about every third track. In key, BPM moving smoothly, following an energy arc. Ready to play, not just a list.</p></div>
   <div class="card"><span class="kick">Suggested by BINDIG · gems marked new to you</span><b>Gem Mix · House · Peak · 13 tracks · 4 new to you</b><div class="keys"><span class="">9A</span><span class="">9A</span><span class="new">9A</span><span class="">9A</span><span class="">9A</span><span class="new">8A</span><span class="">7A</span><span class="">7A</span><span class="new">8A</span><span class="">8A</span><span class="">7A</span><span class="new">6A</span><span class="">5A</span></div><ul><li>Alex Flatner – The Voice (feat. Deafny Moon) [Spirit Catcher's Re-Interpretation] <span class="k">9A · 127</span></li><li>Kadosh &amp; Magit Cacoon – L.O.V.E <span class="k">9A · 126</span></li><li>Emanuel Satie, Tim Engelhardt, Maga, Sean Doron – You Can Dance  (Original Mix) <span class="k">9A · 125</span> <span class=newtag>new to you</span></li><li>Alphadog – New Day <span class="k">9A · 124</span></li><li>Barry Can't Swim – Kimbara (Extended Mix) <span class="k">9A · 125</span></li><li>Helsloot &amp; Jono McCleery – One Step (feat. Jono McCleery) <span class="k">8A · 124</span> <span class=newtag>new to you</span></li></ul></div>
 </section>
 
-<section class="beat reveal">
+<section class="beat reveal" id="fixes">
   <div><span class="kick">▸ It also cleaned</span><div class="n" data-count="530">530</div><h2>tag fixes</h2><p>Download-site junk, artist names repeated in titles, blank genres, misspellings. Every fix has a reason, and you approve each one.</p></div>
   <div class="card"><b>South London Ordnance</b><span>title: <span class="was">South London Ordnance - Use of Weapons (Original Mix)</span></span><span>→ <span class="now">Use of Weapons (Original Mix)</span></span><span class="why">Artist name repeated in the title</span></div>
 </section>
@@ -103,6 +128,7 @@ nav{display:flex;justify-content:space-between;align-items:center;padding-block:
   function draw(n){ for(var i=0;i<n;i++){cx.fillStyle=bit(i)?'#78F09A':'#12201A';cx.fillRect((i%cols)*cell+1,Math.floor(i/cols)*cell+1,cell-2,cell-2);} }
   var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   draw(N);
+  var mv=document.getElementById('mini'); if(mv){ var mc=mv.getContext('2d'), mcell=3, mcols=Math.ceil(N/36); mv.width=mcols*mcell; mv.height=36*mcell; for(var i=0;i<N;i++){ mc.fillStyle=bit(i)?'#78F09A':'#1a2e24'; mc.fillRect((i%mcols)*mcell,Math.floor(i/mcols)*mcell,mcell-1,mcell-1);} }
   if(reduce||!('IntersectionObserver' in window)) return;
   document.documentElement.classList.add('js');
   var beats=[].slice.call(document.querySelectorAll('.reveal'));
