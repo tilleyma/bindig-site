@@ -7,6 +7,16 @@ export default async (req) => {
   const want = env("STATS_KEY");
   if (!want || key !== want) return json({ error: "Not authorised." }, 401);
   const store = getStore({ name: "events", consistency: "strong" });
+  if (req.method === "POST" && new URL(req.url).searchParams.get("reset") === "all") {
+    // Owner-only reset: wipes usage events and friend-code counters.
+    let n = 0;
+    for (const name of ["events", "codes"]) {
+      const st = name === "events" ? store : getStore({ name, consistency: "strong" });
+      const { blobs } = await st.list();
+      await Promise.all(blobs.map((b) => st.delete(b.key))); n += blobs.length;
+    }
+    return json({ reset: true, deleted: n });
+  }
   const kinds = ["scan", "checkout", "paid", "fix", "friend"];
   const events = {};
   for (const k of kinds) {
