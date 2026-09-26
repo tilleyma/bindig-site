@@ -415,6 +415,21 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
 
 <div class="sticky" id="sticky" hidden><div class="in"><span class="msg" id="stickymsg"></span><button class="btn" type="button" id="stickyBuy">&gt; Unlock for $9</button></div></div>
 
+<dialog class="intent" id="consent" aria-labelledby="consentTitle">
+  <form method="dialog" style="gap:16px">
+    <p class="sig" style="font-weight:700;font-size:13px">$ ./bindig --beta</p>
+    <h2 id="consentTitle">We're in beta testing.</h2>
+    <p class="note" style="font-size:14px;color:var(--ink)">We'd love to keep a copy of this library's track details so we can check BINDIG is really helping and make it better.</p>
+    <ul class="note" style="margin:0;padding-left:18px;display:grid;gap:4px">
+      <li>Track names, tags, play counts, cue and playlist counts</li>
+      <li>The changes you pick when you download</li>
+      <li>Never your audio or file paths. Never shared. Deleted when the beta ends.</li>
+    </ul>
+    <p style="font-weight:600">Are you OK with this?</p>
+    <button type="button" class="btn" id="consentYes">&gt; Yes, share and scan</button>
+    <button type="button" id="consentNo" style="background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font:12px var(--mono);justify-self:center">No thanks, scan without sharing</button>
+  </form>
+</dialog>
 <dialog class="intent" id="intent" aria-labelledby="intentTitle">
   <form id="intentForm" name="unlock-intent" method="POST" data-netlify="true" netlify-honeypot="company" novalidate>
     <button type="button" class="x" id="intentClose" aria-label="Close">close ✕</button>
@@ -780,7 +795,10 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
   $("dlUndo").addEventListener("click",function(){ dl("undo","rekordbox-bindig-undo.xml","undostatus",function(r){return "Downloaded rekordbox-bindig-undo.xml: restores "+fmt(r.tracks)+" tracks.";}); });
 
   // ---- file input + drag and drop
-  function readFile(f){ if(!f) return; if(!/\.xml$/i.test(f.name)){ status($("status"),"Choose the .xml file exported from Rekordbox.",true); return; } var r=new FileReader(); r.onload=function(){load(r.result,f.name);}; r.onerror=function(){status($("status"),"Couldn't read that file.",true);}; r.readAsText(f); }
+  function readFile(f){ if(!f) return; if(!/\.xml$/i.test(f.name)){ status($("status"),"Choose the .xml file exported from Rekordbox.",true); return; }
+    if(!state.consentDone && !sharing()){ var dlg=$("consent"), go=function(yes){ state.consentDone=true; $("shareLib").checked=yes; ls.set("bindig_share",yes?"1":""); ls.set("bindig_share_asked","1"); try{dlg.close();}catch(e){} readFile(f); };
+      $("consentYes").onclick=function(){go(true);}; $("consentNo").onclick=function(){go(false);}; dlg.oncancel=function(e){e.preventDefault();};
+      if(dlg.showModal) dlg.showModal(); else go(false); setTimeout(function(){$("consentYes").focus();},30); return; } var r=new FileReader(); r.onload=function(){load(r.result,f.name);}; r.onerror=function(){status($("status"),"Couldn't read that file.",true);}; r.readAsText(f); }
   $("file").addEventListener("change",function(e){readFile(e.target.files[0]);});
   var d=$("drop");
   ["dragenter","dragover"].forEach(function(ev){d.addEventListener(ev,function(e){e.preventDefault();d.classList.add("over");});});
