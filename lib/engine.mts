@@ -221,6 +221,13 @@ export function analyse(tracks) {
   health.mixes = mixes.length; health.gapReleases = gaps.totalReleases;
   health.mixGems = mixes.reduce((a, m) => a + m.gems, 0);
   health.mixNote = mixOut.note;
+  health.ready = {
+    played: tracks.filter((t) => t.plays > 0).length,
+    keys: tracks.filter((t) => camelot(t)).length,
+    bpm: tracks.filter((t) => t.bpm > 0).length,
+    genres: tracks.filter((t) => cur(t, "genre")).length,
+    energy: tracks.filter((t) => energyOf(t) != null).length,
+  };
   return { health, fixes, gems: gems.byGenre, gemsFlat: gems.flat, tidy: tidyUp, taste: taste.summary, mixes, gaps };
 }
 
@@ -343,7 +350,8 @@ function compatible(a, b) {
   return la === lb && ((na - nb + 12) % 12 === 1 || (nb - na + 12) % 12 === 1);
 }
 
-// Mixes: flowing playlists that weave tracks you love with undiscovered gems (about 1 in 3), in key, BPM-smooth, on an energy arc.
+// Gem Crates: your favourites plus undiscovered gems (about 1 in 3), key-compatible and close in BPM, sorted for easy auditioning.
+// Energy shaping (warm-up/peak) only when Mixed In Key energy is present. BINDIG digs; the DJ does the mixing.
 // First one mix per core genre; if the library is small or genres are sparse, fall back to cross-genre mixes by BPM.
 export function buildMixes(tracks, taste, gemMap, cur = (t, f) => t[f] || "") {
   const played = tracks.filter((t) => t.plays > 0);
@@ -388,6 +396,8 @@ export function buildMixes(tracks, taste, gemMap, cur = (t, f) => t[f] || "") {
     best.seq.forEach((p) => used.add(p.id));
     return best;
   }
+  const bpmRange = (best) => { const b = best.seq.map((p) => Math.round(p.bpm)).sort((x, y) => x - y); return b[0] === b[b.length - 1] ? `${b[0]} BPM` : `${b[0]}–${b[b.length - 1]} BPM`; };
+  const arcName = (kind) => (withEnergy ? ` · ${kind === "peak" ? "Peak" : "Warm-up"}` : "");
   const push = (best, name, genre) => mixes.push({
     name, genre, minutes: Math.round(best.tot / 60), gems: best.seq.filter((p) => p.isNew).length,
     tracks: best.seq.map((p) => ({ id: p.id, artist: cur(p, "artist"), title: cur(p, "title"), key: p.ck, bpm: Math.round(p.bpm), energy: p.en, isNew: p.isNew, plays: p.plays || 0 })),
@@ -397,7 +407,7 @@ export function buildMixes(tracks, taste, gemMap, cur = (t, f) => t[f] || "") {
     const kind = gi % 2 === 0 ? "peak" : "warm";
     const pool = tracks.filter((t) => G(t) === g && eligible(t)).map(decorate).filter((t) => t.ck && (!withEnergy || t.en != null));
     const best = build(pool, kind, kind === "peak" ? 75 : 60);
-    if (best) push(best, `Gem Mix · ${g} · ${kind === "peak" ? "Peak" : "Warm-up"}`, g);
+    if (best) push(best, `Gem Crate · ${g} · ${bpmRange(best)}${arcName(kind)}`, g);
   });
   // Fallback: cross-genre mixes around your BPM range, for smaller or loosely tagged libraries
   for (const kind of ["peak", "warm"]) {
@@ -405,14 +415,13 @@ export function buildMixes(tracks, taste, gemMap, cur = (t, f) => t[f] || "") {
     const pool = tracks.filter(eligible).map(decorate).filter((t) => t.ck && (!withEnergy || t.en != null));
     const best = build(pool, kind, kind === "peak" ? 60 : 50);
     if (!best) break;
-    const bp = best.seq.map((p) => p.bpm).sort((x, y) => x - y);
-    push(best, `Gem Mix · ${Math.round(bp[0])}–${Math.round(bp[bp.length - 1])} BPM · ${kind === "peak" ? "Peak" : "Warm-up"}`, "Mixed genres");
+    push(best, `Gem Crate · Mixed genres · ${bpmRange(best)}${arcName(kind)}`, "Mixed genres");
   }
   let note = "";
   if (!mixes.length) {
     note = keyed < tracks.length * 0.5 ? "Most tracks have no key yet. Analyse them in Rekordbox (or Mixed In Key), export again and rescan."
       : played.length < 20 ? "Not enough played tracks yet to learn your favourites. Play a few more sets, export again and rescan."
-      : "We couldn't find enough tracks that flow in key and BPM with your favourites to build a full mix.";
+      : "We couldn't find enough tracks that sit with your favourites in key and BPM to fill a Gem Crate.";
   }
   return { mixes, note };
 }

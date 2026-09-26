@@ -18,7 +18,7 @@ export default async (req, context) => {
     "line_items[0][price_data][unit_amount]": String(price),
     "line_items[0][price_data][tax_behavior]": "inclusive",
     "line_items[0][price_data][product_data][name]": "BINDIG · full unlock",
-    "line_items[0][price_data][product_data][description]": "Undiscovered Gems, Gem Mixes and clean tags for your Rekordbox library, as one import file.",
+    "line_items[0][price_data][product_data][description]": "Undiscovered Gems, Gem Crates and clean tags for your Rekordbox library, as one import file.",
     success_url: `${origin}/scan/?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/scan/?cancelled=1`,
     allow_promotion_codes: "true",
