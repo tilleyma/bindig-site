@@ -611,7 +611,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
       '<button type="button" class="rv-go" data-go="gems">Explore gems →</button>';
     var M=p.mixes||[];
     $("rvMixes").innerHTML='<div class="rv-n" data-to="'+M.length+'">'+M.length+'</div><h3>Gem Crates</h3>'+
-      (M.length?'<ul class="rv-list rv-detail">'+M.map(function(m){return '<li><span>'+esc(m.name)+'</span><i>'+m.minutes+' min · '+m.tracks.length+' tracks · '+m.gems+(m.gems===1?' gem':' gems')+'</i>'</li>';}).join("")+'</ul>'+
+      (M.length?'<ul class="rv-list rv-detail">'+M.map(function(m){return '<li><span>'+esc(m.name)+'</span><i>'+m.minutes+' min · '+m.tracks.length+' tracks · '+m.gems+(m.gems===1?' gem':' gems')+'</i></li>';}).join("")+'</ul>'+
       '<div class="keys rv-detail">'+M[0].tracks.map(function(t){return '<span'+(t.isNew?' class="new"':'')+'>'+esc(t.key)+'</span>';}).join("")+'</div>':'<p class="note rv-detail">'+esc((p.health&&p.health.mixNote)||"")+'</p>')+
       '<button type="button" class="rv-go" data-go="mixes">Explore Gem Crates →</button>';
     var by=(p.health&&p.health.byRule)||{}, rules=Object.keys(by).map(function(k){return [k,by[k]];}).sort(function(a,b){return b[1]-a[1];});
