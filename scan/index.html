@@ -247,6 +247,7 @@ details.howto .guide{padding:4px 16px 18px}
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);margin-top:28px}
 .tile{padding:22px;border-left:1px solid var(--line);border-top:1px solid var(--line);margin-top:-1px;background:var(--panel);display:grid;gap:10px;align-content:start}
 .tile:nth-child(odd){border-left:0}
+.tile.wide{grid-column:1/-1;border-left:0}
 .tile .n{font:900 56px/1 var(--display);color:var(--ink)}
 .tile .n small{font:500 14px var(--mono);color:var(--muted);margin-left:8px}
 .tile h3{font-size:22px}
@@ -327,10 +328,9 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
 
   <div id="freeView">
     <div class="tiles">
-      <article class="tile" id="tileFix"></article>
       <article class="tile" id="tileGems"></article>
       <article class="tile" id="tileMixes"></article>
-      <article class="tile" id="tileGaps"></article>
+      <article class="tile wide" id="tileFix"></article>
     </div>
 
     <section class="paycard" id="paywall">
@@ -359,14 +359,13 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
   <div id="paidView" hidden>
     <div class="paidhead"><h2>Unlocked. <span class="sig">Let's sort your crate.</span></h2><span class="note" id="unlocknote"></span></div>
     <div class="tabs" role="tablist" id="tabs">
-      <button role="tab" data-tab="review" aria-selected="true">1 · Review fixes</button>
-      <button role="tab" data-tab="gems" aria-selected="false">2 · Undiscovered gems</button>
-      <button role="tab" data-tab="mixes" aria-selected="false">3 · Mixes</button>
-      <button role="tab" data-tab="missing" aria-selected="false">4 · Missing</button>
-      <button role="tab" data-tab="import" aria-selected="false">5 · Import to Rekordbox</button>
+      <button role="tab" data-tab="gems" aria-selected="true">1 · Undiscovered gems</button>
+      <button role="tab" data-tab="mixes" aria-selected="false">2 · Mixes</button>
+      <button role="tab" data-tab="review" aria-selected="false">3 · Clean tags</button>
+      <button role="tab" data-tab="import" aria-selected="false">4 · Import to Rekordbox</button>
     </div>
     <section class="panel" data-panel="review">
-      <p class="note" style="margin-bottom:12px">Tick what you want changed. Nothing is applied until you import it in step 5.</p>
+      <p class="note" style="margin-bottom:12px">Tick what you want changed. Nothing is applied until you import it in step 4.</p>
       <div id="fixreview">
       <div class="reviewbar"><span><b id="okcount">0</b> of <span id="allcount">0</span> fixes approved</span><button class="linkbtn" type="button" id="approveHigh">Approve all high-confidence</button><button class="linkbtn" type="button" id="approveNone">Clear all</button><span>Medium-confidence fixes start unticked. Open a group to check them.</span></div>
       <div id="groups"></div>
@@ -380,7 +379,6 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
       <div id="pgroups"></div>
     </section>
     <section class="panel" data-panel="mixes" hidden><p class="note" style="margin-bottom:12px">Your favourites woven with undiscovered gems, about one in three. Every mix moves in key, keeps BPM smooth and follows an energy arc. Tracks marked <span class="newtag">new to you</span> are the gems.</p><div id="sets"></div></section>
-    <section class="panel" data-panel="missing" hidden><p class="note" style="margin-bottom:12px">Releases you own part of and play, with links to complete them.</p><div id="gaps"></div></section>
     <section class="panel" data-panel="import" hidden id="unlocked">
       <p class="note">Seven short steps. Your progress is saved on this device.</p>
       <div class="progress" aria-hidden="true"><div id="prog" style="width:0%"></div></div>
@@ -476,7 +474,6 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
           ["> "+fmt(h.unplayed)+" tracks you've never played. looking for gems…"],
           ["> "+fmt(h.gems)+" undiscovered gems that fit your sound","ok"],
           ["> weaving them into "+(h.mixes||0)+" mixes with your favourites","ok"],
-          ["> "+fmt(h.gapReleases||0)+" releases you own only part of"],
           ["> done. library health "+h.score+"/100","ok"]];
         var wait=quiet?0:Math.max(0,1200-(Date.now()-t0)), chain=sleep(wait);
         steps.forEach(function(s){ chain=chain.then(function(){ L.push(s); term(L); return sleep(quiet?0:520); }); });
@@ -500,9 +497,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
     $("tileMixes").innerHTML='<div class="n">'+mp.length+'<small>mixes</small></div><h3>Favourites meet gems</h3>'+
       (mp[0]?'<div class="ex"><b>'+esc(mp[0].name)+' · '+mp[0].count+' tracks · '+mp[0].gems+' new to you</b>'+keys(mp[0])+mp[0].tracks.slice(0,2).map(function(t){return '<span>'+esc(t.artist)+' – '+esc(t.title)+' · '+esc(t.key)+' · '+t.bpm+' BPM'+(t.isNew?' <span class="newtag">new to you</span>':'')+'</span>';}).join("")+'</div>':'<p class="note">Analyse your tracks in Rekordbox first so they have keys.</p>')+
       mp.slice(1).map(function(m){return '<div class="ex"><b>🔒 '+esc(m.name)+'</b><span class="note">'+m.count+' tracks · '+m.gems+' new to you</span></div>';}).join("")+unl("Unlock all "+mp.length+" mixes");
-    $("tileGaps").innerHTML='<div class="n">'+fmt(gp.totalReleases)+'<small>releases to complete</small></div><h3>What\'s missing</h3>'+
-      gp.releases.slice(0,2).map(function(r){return '<div class="ex"><b>'+esc(r.artist)+' – '+esc(r.album)+'</b><span class="note">You own '+r.owned+' of '+r.of+' · played '+r.plays+' times</span></div>';}).join("")+lockRows(2)+unl("Unlock all "+fmt(gp.totalReleases)+" with shop links");
-    $("stack").innerHTML=[fmt(h.fixes)+" tag fixes, each with its reason",fmt(h.gems)+" undiscovered gems, ranked and grouped by genre",mp.length+" mixes blending your favourites with gems",fmt(gp.totalReleases)+" releases to complete, with shop links","Fixed Rekordbox file, trial file, undo file and change log"].map(function(x){return '<li><span>'+x+'</span></li>';}).join("");
+    $("stack").innerHTML=[fmt(h.gems)+" undiscovered gems, ranked and grouped by genre",mp.length+" mixes blending your favourites with gems",fmt(h.fixes)+" tag fixes, each with its reason","Fixed Rekordbox file, trial file, undo file and change log"].map(function(x){return '<li><span>'+x+'</span></li>';}).join("");
     $("stickymsg").innerHTML='Your crate is ready · <b>'+fmt(h.fixes)+'</b> fixes · <b>'+fmt(h.gems)+'</b> gems · <b>'+mp.length+'</b> mixes';
   }
   function setStage(n){ Array.prototype.forEach.call(document.querySelectorAll("#stepbar span"),function(x){ var k=+x.dataset.s; x.className=k<n?"done":k===n?"on":""; }); }
@@ -522,7 +517,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
     setStage(5);
     renderReview(); renderGems(); renderTidy(); renderSetsGaps(p,true); renderSteps();
     $("unlocknote").textContent=fmt(p.fixes.length)+" fixes · "+fmt(Object.values(p.gems).reduce(function(a,b){return a+b.length;},0))+" gems · "+(p.mixes||[]).length+" mixes";
-    showTab(ls.get("bindig_tab")||"review");
+    var tb=ls.get("bindig_tab"); showTab(["gems","mixes","review","import"].indexOf(tb)>=0?tb:"gems");
   }
   function showTab(name){
     Array.prototype.forEach.call(document.querySelectorAll("#tabs button"),function(b){b.setAttribute("aria-selected",String(b.dataset.tab===name));});
@@ -629,12 +624,6 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
       $("sets").innerHTML=sets.map(function(s){return '<details class="grp"><summary><span>♫</span><span>'+esc(s.name)+' · '+s.minutes+' min'+keys(s.tracks.map(function(t){return t.key;}),s.tracks.map(function(t){return t.isNew;}))+'</span><span class="cnt">'+s.gems+' new · '+s.tracks.length+' tracks</span><span class="chev">›</span></summary><div class="inner"><table><thead><tr><th>#</th><th>Track</th><th>Key</th><th>BPM</th><th>Energy</th></tr></thead><tbody>'+
         s.tracks.map(function(t,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(t.artist)+' – '+esc(t.title)+(t.isNew?' <span class="newtag">new to you</span>':'')+'</td><td>'+esc(t.key)+'</td><td>'+t.bpm+'</td><td>'+(t.energy||"–")+'</td></tr>';}).join("")+'</tbody></table></div></details>';}).join("")+'<p class="note" style="margin-top:10px">These come in your download as playlists under BINDIG → Mixes.</p>';
     }
-    var g=full?p.gaps:p.gapsPreview, list=full?g.releases.slice(0,60):g.releases;
-    var link=function(q){var e=encodeURIComponent(q);return '<span class="srch"><a target="_blank" rel="noopener" href="https://www.beatport.com/search?q='+e+'">Beatport</a><a target="_blank" rel="noopener" href="https://www.discogs.com/search/?q='+e+'&type=release">Discogs</a><a target="_blank" rel="noopener" href="https://bandcamp.com/search?q='+e+'">Bandcamp</a></span>';};
-    $("gaps").innerHTML='<div class="table"><table><thead><tr><th>Release</th><th>You own</th><th>Your plays</th><th>Find it</th></tr></thead><tbody>'+
-      list.map(function(r){return '<tr><td>'+esc(r.artist)+' – '+esc(r.album)+'</td><td>'+r.owned+' of '+r.of+'</td><td>'+r.plays+'</td><td>'+(full?link(r.artist+" "+r.album):'<span class="note">after unlock</span>')+'</td></tr>';}).join("")+
-      '</tbody></table></div><p class="note" style="margin-top:10px">'+fmt(g.totalReleases)+' releases in total'+(full?(g.totalReleases>60?' (top 60 shown by how much you play them)':''):'. Unlock to see them all with shop links.')+'</p>'+
-      '<p class="note" style="margin-top:6px">Artists you play most: '+g.artists.slice(0,full?15:5).map(function(a){return esc(a.name);}).join(", ")+'.</p>';
   }
 
   // ---- guided steps
