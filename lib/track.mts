@@ -24,6 +24,6 @@ export function scanSummary(r, tracks) {
   return {
     tracks: h.tracks, played: h.played, score: h.score, fixes: h.fixes, fixable: h.fixable,
     byRule: h.byRule, genreNeedsLookup: h.genreNeedsLookup, yearMissing: h.yearMissing, labelMissing: h.labelMissing,
-    duplicates: h.duplicates, purgeCandidates: h.purgeCandidates, bpmRange: r.taste.bpmRange, genres: topGenres,
+    duplicates: h.duplicates, gems: h.gems, mixes: h.mixes, bpmRange: r.taste.bpmRange, genres: topGenres,
   };
 }

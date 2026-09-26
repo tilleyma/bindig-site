@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="See what BINDIG finds in a real Rekordbox library: tag fixes, undiscovered gems and mixes.">
+<title>Meet BINDIG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Doto:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap">
+<style>
+:root{--bg:#050706;--panel:#0A0F0C;--line:#1C2A21;--ink:#E6EEE8;--muted:#8A968E;--dim:#12201A;--signal:#78F09A;--signal-ink:#04130A;--amber:#F2C14E;--glow:0 0 18px rgba(120,240,154,.45);
+--display:"Doto","JetBrains Mono",ui-monospace,Menlo,monospace;--mono:"JetBrains Mono","IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;color-scheme:dark}
+*{box-sizing:border-box}html{background:var(--bg)}
+body{margin:0;min-height:100vh;background-color:var(--bg);background-image:radial-gradient(ellipse 70% 55% at 50% 0%,rgba(120,240,154,.08),transparent 70%),linear-gradient(rgba(120,240,154,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(120,240,154,.03) 1px,transparent 1px);background-size:auto,32px 32px,32px 32px;color:var(--ink);font:15px/1.65 var(--mono);padding-inline:20px;font-variant-numeric:tabular-nums}
+a{color:var(--signal)}:focus-visible{outline:2px solid var(--signal);outline-offset:3px}
+h1,h2,h3{font-family:var(--display);font-weight:900;margin:0;line-height:1.05;text-wrap:balance;text-transform:uppercase}
+p{margin:0}
+.sig{color:var(--signal);text-shadow:var(--glow)}
+.btn{box-shadow:0 0 30px rgba(120,240,154,.3);background:var(--signal);color:var(--signal-ink);border:0;font:700 15px var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:17px 34px;cursor:pointer;text-decoration:none;display:inline-block}
+.btn:hover{filter:brightness(1.1)}
+.muted{color:var(--muted)}
+.foot{font-size:12px;color:var(--muted);display:flex;gap:18px;justify-content:center;flex-wrap:wrap;padding-block:24px}
+.foot a{color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.caret::after{content:"_";animation:blink 1s steps(1) infinite;color:var(--signal)}@keyframes blink{50%{opacity:0}}}
+
+.wrap{max-width:980px;margin:0 auto}
+nav{display:flex;justify-content:space-between;align-items:center;padding-block:20px}
+.brand{font-family:var(--display);font-weight:900;font-size:26px;letter-spacing:.06em;color:var(--ink);text-decoration:none}
+.intro{padding-block:28px 10px;display:grid;gap:10px}
+.intro h1{font-size:clamp(28px,4.4vw,48px)}
+.beat{padding-block:34px;border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(0,300px) 1fr;gap:28px;align-items:start}
+.beat .n{font:900 clamp(56px,8vw,88px)/1 var(--display);color:var(--signal);text-shadow:var(--glow)}
+.beat .n.w{color:var(--ink);text-shadow:none}
+.beat h2{font-size:22px;margin-top:8px}
+.beat p{color:var(--muted);font-size:14px;margin-top:8px;max-width:52ch}
+.card{border:1px solid var(--line);background:var(--panel);padding:16px;font-size:13px;display:grid;gap:8px}
+.card b{font-weight:500}
+.was{color:#FF5E57;text-decoration:line-through;word-break:break-word}.now{color:var(--signal);word-break:break-word}
+.why{color:var(--muted);font-size:12px}
+.keys{display:flex;flex-wrap:wrap;gap:4px}.keys span{font-size:11px;padding:1px 5px;border:1px solid #2a5a3a;color:var(--signal)}.keys span.new{border-color:var(--amber);color:var(--amber)}
+.newtag{font-size:10px;padding:1px 6px;border:1px solid var(--amber);color:var(--amber);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.card ul{list-style:none;margin:0;padding:0;display:grid;gap:5px}.card .k{color:var(--muted);font-size:11px;margin-left:6px}
+#grid{display:block;width:100%;height:auto;image-rendering:pixelated;border:1px solid var(--signal);box-shadow:0 0 40px -12px rgba(120,240,154,.4);background:var(--panel);padding:8px}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:8px}.sw{display:inline-block;width:9px;height:9px;margin-right:6px}
+.final{padding-block:50px 30px;border-top:1px solid var(--line);text-align:center;display:grid;gap:18px;justify-items:center}
+.final h2{font-size:clamp(30px,5vw,56px)}
+.reveal{transition:opacity .6s ease,transform .6s ease}
+.js .reveal.pending{opacity:.12;transform:translateY(10px)}
+@media (max-width:720px){.beat{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.js .reveal.pending{opacity:1;transform:none}}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav><a class="brand" href="/">BINDIG</a><a href="/scan/" style="font-size:13px">Skip to the free scan →</a></nav>
+<header class="intro">
+  <p class="sig" style="font-weight:700;font-size:14px">$ ./bindig scan --demo</p>
+  <h1>Here's what it found in <span class="sig">a real crate.</span></h1>
+  <p class="muted">The founder's own Rekordbox library. Every number below is real.</p>
+</header>
+
+<section class="beat reveal">
+  <div><div class="n w" data-count="7668">7,668</div><h2>tracks in the crate</h2><p>Each square is one track. Green means played. Dark means it has never left the crate.</p></div>
+  <div><canvas id="grid" width="1080" height="720" role="img" aria-label="Grid of 7,668 tracks: 3,296 played and 4,372 never played"></canvas><div class="legend"><span><span class="sw" style="background:var(--signal)"></span>3,296 played</span><span><span class="sw" style="background:#12201A;border:1px solid #2a3a30"></span>4,372 never played</span></div></div>
+</section>
+
+<section class="beat reveal">
+  <div><div class="n" data-count="530">530</div><h2>tag fixes</h2><p>Download-site junk, artist names repeated in titles, blank genres, misspellings. Every fix has a reason, and you approve each one.</p></div>
+  <div class="card"><b>South London Ordnance</b><span>title: <span class="was">South London Ordnance - Use of Weapons (Original Mix)</span></span><span>→ <span class="now">Use of Weapons (Original Mix)</span></span><span class="why">Artist name repeated in the title</span></div>
+</section>
+
+<section class="beat reveal">
+  <div><div class="n" data-count="675">675</div><h2>undiscovered gems</h2><p>Out of 4,372 tracks never played, these fit the DJ's sound best: same artists, same labels, same BPM range, good quality.</p></div>
+  <div class="card"><b>Sébastien Léger, Roy Rosenfeld, Lost Miracle – All Night Long (Extended Mix) <span class="newtag">new to you</span></b><span class="why">Artist you've played 54 times · Same label as 14 tracks you play · Indie Dance, one of your core genres</span><span class="why">4A · 121 BPM · fit 82/100</span></div>
+</section>
+
+<section class="beat reveal">
+  <div><div class="n" data-count="4">4</div><h2>mixes</h2><p>Favourites woven with gems, about one in three. In key, BPM moving smoothly, following an energy arc.</p></div>
+  <div class="card"><b>House Mix · Peak · 13 tracks · 4 new to you</b><div class="keys"><span class="">9A</span><span class="">9A</span><span class="new">9A</span><span class="">9A</span><span class="">9A</span><span class="new">8A</span><span class="">7A</span><span class="">7A</span><span class="new">8A</span><span class="">8A</span><span class="">7A</span><span class="new">6A</span><span class="">5A</span></div><ul><li>Alex Flatner – The Voice (feat. Deafny Moon) [Spirit Catcher's Re-Interpretation] <span class="k">9A · 127</span></li><li>Kadosh &amp; Magit Cacoon – L.O.V.E <span class="k">9A · 126</span></li><li>Emanuel Satie, Tim Engelhardt, Maga, Sean Doron – You Can Dance  (Original Mix) <span class="k">9A · 125</span> <span class=newtag>new to you</span></li><li>Alphadog – New Day <span class="k">9A · 124</span></li><li>Barry Can't Swim – Kimbara (Extended Mix) <span class="k">9A · 125</span></li><li>Helsloot &amp; Jono McCleery – One Step (feat. Jono McCleery) <span class="k">8A · 124</span> <span class=newtag>new to you</span></li></ul></div>
+</section>
+
+<section class="beat reveal">
+  <div><div class="n" data-count="452">452</div><h2>releases to complete</h2><p>Records the DJ owns part of and plays, with shop links for the rest.</p></div>
+  <div class="card"><b>Lemon And Soul – Galim Remixed</b><span class="why">Owns 1 of 5 tracks · played 32 times</span></div>
+</section>
+
+<section class="final reveal">
+  <h2>Turn your 0s <span class="sig">into 1s.</span></h2>
+  <p class="muted" style="max-width:52ch">Your turn. Export your Rekordbox library and see what's hiding in your crate. Free, in about 10 seconds.</p>
+  <a class="btn" href="/scan/">&gt; Try it on your crate, free</a>
+</section>
+</div>
+<footer class="foot"><span>BINDIG · beta</span><a href="/guide/">How it works</a><span>Not affiliated with AlphaTheta or Pioneer DJ.</span></footer>
+<script>
+(function(){
+  var B64="BoEBQAAAAAgAAgAAApQAEQTgZAwBmAAgQAgoQAiBIAgBlBAAYkIAIAIABAaFBFIAASCEAADAAAAACgAgEDgSAAABQkAAACgEogAIQAAAaAAIBJKAAQAARAQEIAVAIIRRAISAggAAAAAACgjAUAAAACBQACAAgEQAgIMAEgoiUMCTgBMQhBQMABEGACAREIgyAIEAQKgwRSEKBBhBIQwAoAEAEIIANECDAYAoAwAAACi4ASCFOQRAAAIRCAFCIIEREAQKYAIAAwgIQsJAAoAUIEgIAAwQACIAABAIBDBoAAQgFAQAPAiIhAwQYAIAAAAYIQIAAIKADgAAAIBQAgyEhAAAoKAQAAlBAQIAMAAaatG4qW0opXgklUZPr///+YIMpErHgP70pt8TOL/HK18147/YCIBBfNXgAIqAChMLAJCNe16xHW731f+/hYPpAinfsgd08QAoAEACAAAI5SuHdO2WKDgNNxsCBSAggCZAMYAAAABAA4f3jIIKhBOgpg/7v/Qp0EYBo8CyABBKX8MhItX/frgPkX/9r5j3fARqPC7lvoaAoBAAEUGD0UACIMHeHoLvHluxxo76Envv79v0z++AQEAggCEAp7CHuftC37zL+fX/9Wvr+0ds/2vvJ7Vube/ll/XXc70NnX7/vv80Bf+XX9//kACBtF8AFgSAqCEBgRH+kutgT4C0GuYYBoAIAxgIYKAAAAEICAAAgAaRJ7//fq///P390//9/f99/7/d3/d99/f//++pPt99//pgHNZhrtzvp8zSaTEINjASKZN8iyAQgWKFAPZCB3yChUoa6ZmFT7BEQIFJEUCBB0gEYbu8/c1//ezP/9+/1788k+P/AzvcmFvHNdf3VkhOrjxwnkJZeYtDGgnns277cF7Wf9//99r/xC/////ve/voiet/7/9zZc/BAjjXVV+bPq8HSDYLlgL9+zub//+3fojY13d6+3/f+v9/5////nnf9vkvm9bgGXGP+f/492+Y9dVvn/f+ZeHv7v+U+rWMb2LvPzLfv7fwMRP8/3P3fQeSrTn/Zp++/WV42rv0/p3+vLMnCLv/NfAIBf//2/2b/BXvq2dAgz/q/2vtU/V3ZEUD24fVRaEcOjgzyNOFRqnp3ig4RJHituohAOBhRiUIAsAhwBhUKvFPct7ELHpe6sozI/LRBAABwu/t4WFlH4ouaE7lzQwlnWFZSONb1+oJWEpOWSya0mk1/7+/3/jP/2f/37d4Td//tJ/8RHbTtv5AiEVf9Xyez3094TdzCmgAgAE=";
+  var N=7668, bytes=atob(B64), pad=bytes.length*8-N;
+  function bit(i){var j=i+pad;return (bytes.charCodeAt(j>>3)>>(7-(j&7)))&1;}
+  var cv=document.getElementById('grid'), cx=cv.getContext('2d'), cols=108, cell=10, rows=Math.ceil(N/cols);
+  cv.width=cols*cell; cv.height=rows*cell;
+  function draw(n){ for(var i=0;i<n;i++){cx.fillStyle=bit(i)?'#78F09A':'#12201A';cx.fillRect((i%cols)*cell+1,Math.floor(i/cols)*cell+1,cell-2,cell-2);} }
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  draw(N);
+  if(reduce||!('IntersectionObserver' in window)) return;
+  document.documentElement.classList.add('js');
+  var beats=[].slice.call(document.querySelectorAll('.reveal'));
+  beats.forEach(function(b){b.classList.add('pending');});
+  function countUp(el){ var to=+el.dataset.count, t0=performance.now(), d=900; (function step(t){ var k=Math.min(1,(t-t0)/d); el.textContent=Math.round(to*(1-Math.pow(1-k,3))).toLocaleString('en-US'); if(k<1) requestAnimationFrame(step); })(t0); }
+  var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.remove('pending'); var n=e.target.querySelector('[data-count]'); if(n&&!n.dataset.done){n.dataset.done=1;countUp(n);} io.unobserve(e.target); } }); },{threshold:.35});
+  beats.forEach(function(b){io.observe(b);});
+})();
+</script>
+</body>
+</html>

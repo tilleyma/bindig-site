@@ -11,8 +11,8 @@ export default async (req, context) => {
   const { tracks, error } = await readTracks(req);
   if (error) return json({ error }, 400);
   const r = analyse(tracks);
-  await record("fix", { tracks: r.health.tracks, fixes: r.health.fixes, purgeCandidates: r.health.purgeCandidates, tester: String(licence.sid || "").startsWith("tester") }, req, context);
-  return json({ health: r.health, taste: r.taste, fixes: r.fixes, purge: r.purge, sets: r.sets, gaps: r.gaps });
+  await record("fix", { tracks: r.health.tracks, fixes: r.health.fixes, gems: r.health.gems, tester: String(licence.sid || "").startsWith("tester") }, req, context);
+  return json({ health: r.health, taste: r.taste, fixes: r.fixes, gems: r.gems, tidy: r.tidy, mixes: r.mixes, gaps: r.gaps });
 };
 
 export const config = { path: "/api/fix" };

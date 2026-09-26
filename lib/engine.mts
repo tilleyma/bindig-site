@@ -1,5 +1,5 @@
 // BINDIG analysis engine v0.2 — runs server-side only.
-// Input: slim track list from a Rekordbox XML. Output: tag fixes, purge suggestions, health summary.
+// Input: slim track list from a Rekordbox XML. Output: tag fixes, undiscovered gems, mixes, tidy-up, gaps, health summary.
 // Rules learned from the pilot: never swap a specific genre for a broader one; never guess a genre without evidence.
 
 export const CORE_GENRES = [
@@ -168,12 +168,20 @@ export function analyse(tracks) {
     for (const t of sorted.slice(1)) dupOf.set(t.id, sorted[0]);
   }
 
-  const purge = purgeModel(tracks, cur, dupOf);
+  const taste = tasteModel(tracks, cur);
+  const gems = gemsModel(tracks, cur, dupOf, taste);
+  const tidyUp = [...dupOf.entries()].map(([id, best]) => {
+    const t = tracks.find((x) => x.id === id);
+    return { id, artist: cur(t, "artist"), title: cur(t, "title"), genre: cur(t, "genre") || "(none)", bitrate: t.bitrate, plays: t.plays,
+      keep: { id: best.id, bitrate: best.bitrate, plays: best.plays },
+      reason: best.plays > t.plays ? `You play the other copy (${best.plays} plays)` : (best.bitrate || 0) > (t.bitrate || 0) ? `The other copy is better quality (${best.bitrate} kbps)` : "Same track twice, same quality" };
+  });
 
   const fixedIds = new Set(fixes.map((f) => f.id));
   const health = {
     tracks: tracks.length,
     played: tracks.filter((t) => t.plays > 0).length,
+    unplayed: tracks.filter((t) => !(t.plays > 0)).length,
     fixable: fixedIds.size,
     fixes: fixes.length,
     byRule: countBy(fixes, (f) => f.rule
@@ -181,21 +189,23 @@ export function analyse(tracks) {
       .replace(/^Matches the spelling on \d+ of your \d+ tracks by this artist$/, "Artist spelling matched to the rest of your library")),
     genreNeedsLookup, yearMissing, labelMissing,
     duplicates: dupOf.size,
-    purgeCandidates: purge.flat.length,
+    gems: gems.flat.length,
   };
   const issuesTracks = new Set([...fixedIds, ...dupOf.keys()]);
-  health.score = Math.max(0, Math.round(100 * (1 - (issuesTracks.size + genreNeedsLookup * 0.5 + purge.flat.length * 0.5) / Math.max(1, tracks.length))));
-  const sets = buildSets(tracks, purge.taste);
+  health.score = Math.max(0, Math.round(100 * (1 - (issuesTracks.size + genreNeedsLookup * 0.5) / Math.max(1, tracks.length))));
+  const mixes = buildMixes(tracks, taste.summary, new Map(gems.flat.map((g) => [g.id, g])));
   const gaps = findGaps(tracks);
-  health.sets = sets.length; health.gapReleases = gaps.totalReleases;
-  return { health, fixes, purge: purge.byGenre, purgeFlat: purge.flat, taste: purge.taste, sets, gaps };
+  health.mixes = mixes.length; health.gapReleases = gaps.totalReleases;
+  health.mixGems = mixes.reduce((a, m) => a + m.gems, 0);
+  return { health, fixes, gems: gems.byGenre, gemsFlat: gems.flat, tidy: tidyUp, taste: taste.summary, mixes, gaps };
 }
 
 function countBy(arr, fn) { const m = {}; for (const x of arr) { const k = fn(x); m[k] = (m[k] || 0) + 1; } return m; }
 
-// Taste model v0: learns from what you play (plays > 0 or rated), scores never-played tracks for fit.
-function purgeModel(tracks, cur, dupOf) {
-  const played = tracks.filter((t) => t.plays > 0 || t.rating > 0);
+// Taste model: learns from what you play (plays > 0 or rated).
+function tasteModel(tracks, cur) {
+  const isPlayed = (t) => t.plays > 0 || t.rating > 0;
+  const played = tracks.filter(isPlayed);
   const base = played.length / Math.max(1, tracks.length);
   const feat = {
     genre: (t) => cur(t, "genre") || "(none)",
@@ -205,68 +215,80 @@ function purgeModel(tracks, cur, dupOf) {
   };
   const stats = {};
   for (const [f, fn] of Object.entries(feat)) {
-    const all = new Map(), hit = new Map();
-    for (const t of tracks) { const v = fn(t); if (v == null) continue; all.set(v, (all.get(v) || 0) + 1); if (t.plays > 0 || t.rating > 0) hit.set(v, (hit.get(v) || 0) + 1); }
-    stats[f] = { all, hit };
+    const all = new Map(), hit = new Map(), plays = new Map();
+    for (const t of tracks) { const v = fn(t); if (v == null) continue; all.set(v, (all.get(v) || 0) + 1); if (isPlayed(t)) { hit.set(v, (hit.get(v) || 0) + 1); plays.set(v, (plays.get(v) || 0) + (t.plays || 0)); } }
+    stats[f] = { all, hit, plays };
   }
-  // play rate per value with a prior pulling toward the library base rate
   const aff = (f, v) => { if (v == null) return base; const a = stats[f].all.get(v) || 0, h = stats[f].hit.get(v) || 0; return (h + 3 * base) / (a + 3); };
   const bpms = played.map((t) => t.bpm).filter(Boolean).sort((a, b) => a - b);
   const q = (p) => bpms.length ? bpms[Math.floor(p * (bpms.length - 1))] : 0;
   const bpmLo = q(0.1), bpmHi = q(0.9);
-  const now = Date.now();
-  const weights = { genre: 0.35, artist: 0.3, label: 0.15, bpm: 0.2 };
+  const topGenres = [...stats.genre.hit.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([g]) => g);
+  return { base, feat, stats, aff, bpmLo, bpmHi, topGenres, summary: { playedTracks: played.length, bpmRange: [Math.round(bpmLo), Math.round(bpmHi)], topGenres } };
+}
 
+// Undiscovered gems: tracks you have (almost) never played that fit your taste and are good quality.
+function gemsModel(tracks, cur, dupOf, T) {
+  const weights = { genre: 0.35, artist: 0.3, label: 0.15, bpm: 0.2 };
+  const now = Date.now();
   const flat = [];
   for (const t of tracks) {
-    if (t.plays > 0 || t.rating > 0) continue;
+    if ((t.plays || 0) > 1 || t.rating > 0 || dupOf.has(t.id)) continue;
+    if (t.time && t.time < 120) continue;
+    let fit = 0; for (const [f, w] of Object.entries(weights)) fit += w * T.aff(f, T.feat[f](t));
+    const rel = fit / Math.max(0.01, T.base);
+    let score = Math.max(0, Math.min(1, (rel - 0.8) / 1.2)) * 50;
     const reasons = [];
-    let fit = 0;
-    for (const [f, w] of Object.entries(weights)) fit += w * aff(f, feat[f](t));
-    const rel = fit / Math.max(0.01, base); // 1.0 = average
-    let cut = Math.max(0, 1 - rel) * 60;
-    const ageYears = t.added ? (now - Date.parse(t.added)) / 3.15e10 : 0;
-    if (ageYears >= 2) { cut += Math.min(25, ageYears * 6); reasons.push(`Never played in ${Math.floor(ageYears)} years`); }
-    else if (ageYears >= 1) { cut += 8; reasons.push("Never played in over a year"); }
-    if (aff("artist", feat.artist(t)) < base * 0.5 && (stats.artist.all.get(feat.artist(t)) || 0) >= 3) reasons.push("An artist you rarely play");
-    const g = feat.genre(t);
-    if (aff("genre", g) < base * 0.6) reasons.push(`You rarely play ${g === "(none)" ? "untagged tracks" : g}`);
-    if (t.bpm && bpmLo && (t.bpm < bpmLo - 4 || t.bpm > bpmHi + 4)) { cut += 10; reasons.push(`${Math.round(t.bpm)} BPM, outside your ${Math.round(bpmLo)}–${Math.round(bpmHi)} range`); }
-    if (t.bitrate && t.bitrate < 192 && /mp3/i.test(t.kind || "")) { cut += 10; reasons.push(`Low quality: ${t.bitrate} kbps`); }
-    if (t.time && t.time < 90) { cut += 15; reasons.push("Under 90 seconds (sample or loop?)"); }
-    const d = dupOf.get(t.id);
-    if (d) { cut += 30; reasons.unshift(d.plays > 0 ? "Duplicate: you play the other copy" : `Duplicate: another copy is ${d.bitrate || "?"} kbps`); }
-    cut = Math.min(100, Math.round(cut));
-    if (cut < 35 || reasons.length === 0) continue;
-    flat.push({ id: t.id, artist: cur(t, "artist"), title: cur(t, "title"), genre: g, score: cut, verdict: cut >= 60 ? "cut" : "review", reasons: reasons.slice(0, 3) });
+    const a = T.feat.artist(t), aPlays = T.stats.artist.plays.get(a) || 0, aHits = T.stats.artist.hit.get(a) || 0;
+    if (aHits >= 2 && aPlays >= 5) { score += Math.min(14, 4 + aPlays / 6); reasons.push(`Artist you've played ${aPlays} times`); }
+    const l = T.feat.label(t), lHits = l ? (T.stats.label.hit.get(l) || 0) : 0;
+    if (lHits >= 3) { score += Math.min(10, 3 + lHits / 3); reasons.push(`Same label as ${lHits} tracks you play`); }
+    const g = T.feat.genre(t);
+    if (T.topGenres.includes(g)) { score += 5; reasons.push(`${g}, one of your core genres`); }
+    if (t.bpm && T.bpmLo) {
+      if (t.bpm >= T.bpmLo - 2 && t.bpm <= T.bpmHi + 2) { score += 6; reasons.push(`${Math.round(t.bpm)} BPM, right in your range`); }
+      else score -= 12;
+    }
+    const lossless = /wav|aiff|aif|flac|alac/i.test(t.kind || "");
+    if (lossless) { score += 12; reasons.push("Lossless quality"); }
+    else if (t.bitrate >= 320) { score += 10; reasons.push("320 kbps"); }
+    else if (t.bitrate >= 256) score += 7;
+    else if (t.bitrate && t.bitrate < 192) score -= 15;
+    if (camelot(t)) score += 4;
+    if (energyOf(t) != null) score += 3;
+    if (t.time >= 240 && t.time <= 660) score += 4;
+    const ageYears = t.added ? (now - Date.parse(t.added)) / 3.15e10 : 5;
+    if (ageYears < 1) { score += 4; reasons.push("Added this year"); }
+    if ((t.plays || 0) === 1) reasons.push("Played just once");
+    score = Math.max(0, Math.min(100, Math.round(score)));
+    if (score < 55 || reasons.length < 2) continue;
+    flat.push({ id: t.id, artist: cur(t, "artist"), title: cur(t, "title"), genre: g, score, key: camelot(t), bpm: Math.round(t.bpm || 0), reasons: reasons.slice(0, 3) });
   }
   flat.sort((a, b) => b.score - a.score);
   const counts = countBy(flat, (p) => p.genre);
   const byGenre = {};
   for (const p of flat) {
-    const shelf = counts[p.genre] >= 10 && p.genre !== "(none)" ? p.genre : p.genre === "(none)" ? "No genre" : "Other genres";
+    const shelf = p.genre === "(none)" ? "No genre" : counts[p.genre] >= 8 ? p.genre : "Other genres";
     (byGenre[shelf] ||= []).push(p);
   }
-  const topGenres = [...stats.genre.hit.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([g]) => g);
-  return { flat, byGenre, taste: { playedTracks: played.length, bpmRange: [Math.round(bpmLo), Math.round(bpmHi)], topGenres } };
+  return { flat, byGenre };
 }
 
 // Free preview: counts plus a sample. The full lists are only returned to paid users.
 export function preview(result) {
-  const byGenre = Object.entries(result.purge).map(([genre, items]) => ({
-    genre, count: items.length, cut: items.filter((i) => i.verdict === "cut").length, sample: items.slice(0, 3),
-  })).sort((a, b) => b.count - a.count);
+  const gemsByGenre = Object.entries(result.gems).map(([genre, items]) => ({ genre, count: items.length, sample: items.slice(0, 2) }))
+    .sort((a, b) => b.count - a.count);
   const bySev = [...result.fixes].sort((a, b) => (a.confidence === "high" ? 0 : 1) - (b.confidence === "high" ? 0 : 1));
   const seen = new Set(); const sample = [];
   const ruleKey = (f) => f.rule.replace(/\d+/g, "#");
   for (const f of bySev) { if (sample.length >= 12) break; if (seen.has(ruleKey(f))) continue; seen.add(ruleKey(f)); sample.push(f); }
   for (const f of bySev) { if (sample.length >= 12) break; if (!sample.includes(f)) sample.push(f); }
-  const setsPreview = result.sets.map((s, i) => ({ name: s.name, minutes: s.minutes, count: s.tracks.length, keys: s.tracks.map((t) => t.key), bpms: s.tracks.map((t) => t.bpm), tracks: i === 0 ? s.tracks.slice(0, 3) : [] }));
+  const mixesPreview = result.mixes.map((m, i) => ({ name: m.name, minutes: m.minutes, count: m.tracks.length, gems: m.gems, keys: m.tracks.map((t) => t.key), news: m.tracks.map((t) => !!t.isNew), tracks: i === 0 ? m.tracks.slice(0, 3) : [] }));
   const gapsPreview = { totalReleases: result.gaps.totalReleases, releases: result.gaps.releases.slice(0, 3), artists: result.gaps.artists.slice(0, 5) };
-  return { health: result.health, taste: result.taste, fixSample: sample, purgeByGenre: byGenre, setsPreview, gapsPreview };
+  return { health: result.health, taste: result.taste, fixSample: sample, gemsByGenre, mixesPreview, gapsPreview, tidyCount: result.tidy.length };
 }
 
-// ---------- Sets: harmonic, BPM-smooth playlists built from the tracks you actually play
+// ---------- Key helpers
 const MUSICAL_TO_CAMELOT = {
   "Abm": "1A", "G#m": "1A", "B": "1B", "Ebm": "2A", "D#m": "2A", "F#": "2B", "Gb": "2B", "Bbm": "3A", "A#m": "3A", "Db": "3B", "C#": "3B",
   "Fm": "4A", "Ab": "4B", "G#": "4B", "Cm": "5A", "Eb": "5B", "D#": "5B", "Gm": "6A", "Bb": "6B", "A#": "6B", "Dm": "7A", "F": "7B",
@@ -287,7 +309,8 @@ function compatible(a, b) {
   return la === lb && ((na - nb + 12) % 12 === 1 || (nb - na + 12) % 12 === 1);
 }
 
-export function buildSets(tracks, taste) {
+// Mixes: flowing playlists that weave tracks you love with undiscovered gems (about 1 in 3), in key, BPM-smooth, on an energy arc.
+export function buildMixes(tracks, taste, gemMap) {
   const played = tracks.filter((t) => t.plays > 0);
   const genreCount = {};
   for (const t of played) if (t.genre) genreCount[t.genre] = (genreCount[t.genre] || 0) + 1;
@@ -295,43 +318,48 @@ export function buildSets(tracks, taste) {
   const [lo, hi] = taste.bpmRange;
   const withEnergy = tracks.filter((t) => energyOf(t) != null).length / Math.max(1, tracks.length) > 0.5;
   const used = new Set();
-  const sets = [];
-  const arcs = { warm: [4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 6, 6], peak: [5, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 7, 7, 6] };
+  const mixes = [];
+  const arcs = { warm: [4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 6, 6, 6], peak: [5, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 7, 7, 6] };
   genres.forEach((g, gi) => {
     const kind = gi % 2 === 0 ? "peak" : "warm";
     const minutes = kind === "peak" ? 75 : 60;
     const arc = arcs[kind];
     const pool = tracks
-      .filter((t) => t.genre === g && !used.has(t.id) && t.time > 150 && t.bpm >= lo - 3 && t.bpm <= hi + 3)
-      .map((t) => ({ ...t, ck: camelot(t), en: energyOf(t) }))
-      .filter((t) => t.ck && (!withEnergy || t.en != null))
-      .sort((a, b) => (b.plays * 2 + (b.bitrate >= 256 ? 3 : 0)) - (a.plays * 2 + (a.bitrate >= 256 ? 3 : 0)))
-      .slice(0, 500);
-    if (pool.length < 6) return;
-    const score = (p) => p.plays * 2 + (p.bitrate >= 256 ? 3 : 0);
+      .filter((t) => t.genre === g && !used.has(t.id) && t.time > 150 && t.bpm >= lo - 3 && t.bpm <= hi + 3 && (t.plays > 0 || gemMap.has(t.id)))
+      .map((t) => ({ ...t, ck: camelot(t), en: energyOf(t), isNew: !(t.plays > 0) && gemMap.has(t.id), gs: gemMap.get(t.id)?.score || 0 }))
+      .filter((t) => t.ck && (!withEnergy || t.en != null));
+    const favs = pool.filter((p) => !p.isNew), gemsP = pool.filter((p) => p.isNew);
+    if (favs.length < 5 || gemsP.length < 2) return;
+    const score = (p) => p.isNew ? p.gs / 6 : p.plays * 2 + (p.bitrate >= 256 ? 3 : 0);
+    const wantNew = (i) => i % 3 === 2;
     let best = null;
-    const starts = pool.filter((p) => !withEnergy || Math.abs(p.en - arc[0]) <= 1).slice(0, 25);
+    const starts = favs.filter((p) => !withEnergy || Math.abs(p.en - arc[0]) <= 1).sort((a, b) => score(b) - score(a)).slice(0, 25);
     for (const start of starts) {
       const seq = [start], ids = new Set([start.id]); let tot = start.time;
       while (tot < minutes * 60) {
         const cur = seq[seq.length - 1], want = arc[Math.min(seq.length, arc.length - 1)];
-        const cands = pool.filter((p) => !ids.has(p.id) && compatible(cur.ck, p.ck) && Math.abs(p.bpm - cur.bpm) <= 3 && p.bpm >= cur.bpm - 1.5 && (!withEnergy || Math.abs(p.en - want) <= 1) && primaryArtist(p.artist) !== primaryArtist(cur.artist));
+        const ok = (p) => !ids.has(p.id) && compatible(cur.ck, p.ck) && Math.abs(p.bpm - cur.bpm) <= 3 && p.bpm >= cur.bpm - 1.5 && (!withEnergy || Math.abs(p.en - want) <= 1) && primaryArtist(p.artist) !== primaryArtist(cur.artist);
+        const prefer = wantNew(seq.length) ? gemsP : favs, other = wantNew(seq.length) ? favs : gemsP;
+        let cands = prefer.filter(ok); if (!cands.length) cands = other.filter(ok);
         if (!cands.length) break;
-        const nxt = cands.reduce((a, b) => (score(b) - (withEnergy ? 2 * Math.abs(b.en - want) : 0) - Math.abs(b.bpm - cur.bpm)) > (score(a) - (withEnergy ? 2 * Math.abs(a.en - want) : 0) - Math.abs(a.bpm - cur.bpm)) ? b : a);
+        const val = (p) => score(p) - (withEnergy ? 2 * Math.abs(p.en - want) : 0) - Math.abs(p.bpm - cur.bpm);
+        const nxt = cands.reduce((a, b) => (val(b) > val(a) ? b : a));
         seq.push(nxt); ids.add(nxt.id); tot += nxt.time;
       }
-      const q = [tot >= minutes * 60 * 0.85 ? 1 : 0, seq.reduce((a, p) => a + score(p), 0)];
-      if (!best || q[0] > best.q[0] || (q[0] === best.q[0] && q[1] > best.q[1])) best = { q, seq, tot };
+      const nNew = seq.filter((p) => p.isNew).length;
+      const q = [tot >= minutes * 60 * 0.85 ? 1 : 0, Math.min(nNew, Math.floor(seq.length / 3)), seq.reduce((a, p) => a + score(p), 0)];
+      if (!best || q[0] > best.q[0] || (q[0] === best.q[0] && (q[1] > best.q[1] || (q[1] === best.q[1] && q[2] > best.q[2])))) best = { q, seq, tot };
     }
     if (!best || best.seq.length < 6) return;
     best.seq.forEach((p) => used.add(p.id));
-    sets.push({
-      name: `${g} · ${kind === "peak" ? "Peak" : "Warm-up"} (${Math.round(best.tot / 60)}m)`,
-      genre: g, minutes: Math.round(best.tot / 60),
-      tracks: best.seq.map((p) => ({ id: p.id, artist: p.artist, title: p.title, key: p.ck, bpm: Math.round(p.bpm), energy: p.en })),
+    const nNew = best.seq.filter((p) => p.isNew).length;
+    mixes.push({
+      name: `${g} Mix · ${kind === "peak" ? "Peak" : "Warm-up"}`,
+      genre: g, minutes: Math.round(best.tot / 60), gems: nNew,
+      tracks: best.seq.map((p) => ({ id: p.id, artist: p.artist, title: p.title, key: p.ck, bpm: Math.round(p.bpm), energy: p.en, isNew: p.isNew, plays: p.plays || 0 })),
     });
   });
-  return sets;
+  return mixes;
 }
 
 // ---------- Gaps: releases you own part of and play, plus artists to dig deeper into

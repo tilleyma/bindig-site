@@ -154,7 +154,7 @@ footer{margin-top:60px;border-top:1px solid var(--line);padding-block:24px;font-
 .cols div{flex:1;background:var(--signal);border-radius:4px 4px 0 0;min-width:3px}
 .cols div:hover{background:#a6f7bd}
 .axis{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px}
-.funnel{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--line)}
+.funnel{display:grid;grid-template-columns:repeat(6,1fr);border:1px solid var(--line)}
 .fs{padding:16px;border-left:1px solid var(--line)}.fs:first-child{border-left:0}
 .fs b{display:block;font:900 30px/1 var(--display)}.fs span{font-size:12px;color:var(--muted)}.fs i{font-style:normal;font-size:12px;color:var(--signal)}
 @media (max-width:760px){.tiles{grid-template-columns:1fr 1fr}.tile:nth-child(odd){border-left:0}.tile:nth-child(even){border-left:1px solid var(--line)}.two{grid-template-columns:1fr}.funnel{grid-template-columns:1fr 1fr}}
@@ -180,9 +180,9 @@ function bars(el,rows){var max=Math.max.apply(null,rows.map(function(r){return r
 fetch("/api/stats?key="+encodeURIComponent(key)).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error);return j;});}).then(function(d){
  $("out").hidden=false; $("msg").textContent="Anonymous totals from every free scan. No track names are stored."; $("gen").textContent="Updated "+new Date(d.generatedAt).toLocaleString();
  var t=d.totals;
- $("tiles").innerHTML=[["People",t.people],["Scans",t.scans],["Tracks scanned",t.tracks],["Median library",t.medianLibrary],["Fixes found",t.fixes],["Purge suggestions",t.purge],["Duplicates",t.duplicates],["Average score",t.avgScore]].map(function(x){return '<div class="tile"><b>'+fmt(x[1])+'</b><span>'+x[0]+'</span></div>';}).join("");
+ $("tiles").innerHTML=[["People",t.people],["Scans",t.scans],["Tracks scanned",t.tracks],["Median library",t.medianLibrary],["Fixes found",t.fixes],["Undiscovered gems",t.gems],["Duplicates",t.duplicates],["Average score",t.avgScore]].map(function(x){return '<div class="tile"><b>'+fmt(x[1])+'</b><span>'+x[0]+'</span></div>';}).join("");
  var f=d.funnel, pct=function(a,b){return b?Math.round(100*a/b)+"%":"–";};
- $("funnel").innerHTML=[["Scans",f.scans,""],["Gave email to unlock",f.emails,pct(f.emails,f.scans)],["Paid",f.paid,pct(f.paid,f.emails)],["Full runs",f.fixRuns,""],["Revenue",d.revenueCents/100,""]].map(function(x,i){return '<div class="fs"><b>'+(i===4?"$":"")+fmt(x[1])+'</b><span>'+x[0]+'</span> <i>'+x[2]+'</i></div>';}).join("");
+ $("funnel").innerHTML=[["Scans",f.scans,""],["Gave email to unlock",f.emails,pct(f.emails,f.scans)],["Paid",f.paid,pct(f.paid,f.emails)],["Friend codes",f.friends||0,""],["Full runs",f.fixRuns,""],["Revenue",d.revenueCents/100,""]].map(function(x,i){return '<div class="fs"><b>'+(i===4?"$":"")+fmt(x[1])+'</b><span>'+x[0]+'</span> <i>'+x[2]+'</i></div>';}).join("");
  var days=d.days, mx=Math.max.apply(null,days.map(function(x){return x[1];}).concat([1]));
  $("days").innerHTML=days.map(function(x){return '<div title="'+x[0]+': '+x[1]+' scans" style="height:'+(100*x[1]/mx)+'%"></div>';}).join("")||'<p class="note">No scans yet.</p>';
  $("daysaxis").innerHTML=days.length?'<span>'+days[0][0]+'</span><span>'+days[days.length-1][0]+'</span>':"";

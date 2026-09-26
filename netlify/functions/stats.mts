@@ -7,7 +7,7 @@ export default async (req) => {
   const want = env("STATS_KEY");
   if (!want || key !== want) return json({ error: "Not authorised." }, 401);
   const store = getStore({ name: "events", consistency: "strong" });
-  const kinds = ["scan", "checkout", "paid", "fix"];
+  const kinds = ["scan", "checkout", "paid", "fix", "friend"];
   const events = {};
   for (const k of kinds) {
     events[k] = [];
@@ -31,11 +31,11 @@ export default async (req) => {
     generatedAt: new Date().toISOString(),
     totals: {
       scans: scans.length, people: visitors.size, tracks: sum(scans, (s) => s.tracks), played: sum(scans, (s) => s.played),
-      fixes: sum(scans, (s) => s.fixes), purge: sum(scans, (s) => s.purgeCandidates), duplicates: sum(scans, (s) => s.duplicates),
+      fixes: sum(scans, (s) => s.fixes), gems: sum(scans, (s) => s.gems || s.purgeCandidates), duplicates: sum(scans, (s) => s.duplicates),
       avgScore: scans.length ? Math.round(sum(scans, (s) => s.score) / scans.length) : null,
       medianLibrary: sizes.length ? sizes[Math.floor(sizes.length / 2)] : null,
     },
-    funnel: { scans: scans.length, checkouts: events.checkout.length, emails: events.checkout.filter((x) => x.gaveEmail).length, paid: events.paid.length, fixRuns: events.fix.filter((f) => !f.tester).length, testerRuns: events.fix.filter((f) => f.tester).length },
+    funnel: { scans: scans.length, checkouts: events.checkout.length, emails: events.checkout.filter((x) => x.gaveEmail).length, paid: events.paid.length, friends: events.friend.length, fixRuns: events.fix.filter((f) => !f.tester).length, testerRuns: events.fix.filter((f) => f.tester).length },
     revenueCents: sum(events.paid.filter((p) => p.live), (p) => p.amount),
     days: Object.entries(days).sort(), genres: top(genres, 15), rules: top(rules, 10), countries: top(countries, 10),
   });
