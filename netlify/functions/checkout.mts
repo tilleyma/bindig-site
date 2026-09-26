@@ -36,7 +36,7 @@ export default async (req, context) => {
     body: form,
   });
   const s = await r.json();
-  if (!r.ok) { console.error("stripe checkout error", s?.error?.message); return json({ error: "Checkout couldn't start. Try again in a minute." }, 502); }
+  if (!r.ok) { console.error("stripe checkout error", s?.error?.message); const why = String(s?.error?.code || s?.error?.message || "").replace(/\b(sk|rk|pk)_(live|test)_[A-Za-z0-9*]+/g, "$1_$2_…").slice(0, 160); return json({ error: "Checkout couldn't start. Try again in a minute.", why }, 502); }
   return json({ url: s.url });
 };
 
