@@ -541,7 +541,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
     post("/api/fix",{authorization:"Bearer "+state.token}).then(function(full){
       state.full=full; initReview(full); render(full,true); window.scrollTo(0,0); refreshTester();
     }).catch(function(e){
-      if(e.status===402){ state.token=null; ls.set("bindig_token",""); }
+      if(e.status===402){ state.token=null; ls.set("bindig_token",""); refreshTester(); status($("paystatus"),""); return; }
       status($("paystatus"),e.message,true);
     });
   }
@@ -760,7 +760,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
   d.addEventListener("drop",function(e){readFile(e.dataTransfer.files[0]);});
 
   // ---- returning from Stripe, or a saved licence
-  function refreshTester(){ var tk=state.token||"", sidv=""; try{ sidv=JSON.parse(atob(tk.split(".")[0].replace(/-/g,"+").replace(/_/g,"/"))).sid||""; }catch(e){} $("tester").hidden=!/^tester/.test(sidv); }
+  function refreshTester(){ var tk=state.token||"", sidv=""; try{ sidv=JSON.parse(atob(tk.split(".")[0].replace(/-/g,"+").replace(/_/g,"/"))).sid||""; }catch(e){} $("tester").hidden=!/^(tester|friend)/.test(sidv); $("tester").firstChild.nodeValue=(/^friend/.test(sidv)?"Friend pass active ":"Tester pass active "); }
   $("testerOff").addEventListener("click",function(){ ls.set("bindig_token",""); state.token=null; location.href="/scan/"; });
   var qs=new URLSearchParams(location.search), sid=qs.get("session_id");
   state.token=ls.get("bindig_token")||null; setTimeout(refreshTester,0);
