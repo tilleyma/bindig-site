@@ -286,7 +286,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
 .sticky .msg{font-size:14px}.sticky .msg b{color:var(--signal)}
 .cp{display:block;font-style:normal;font-size:11px;color:var(--muted)}.cp.keep{color:var(--signal)}.cp .fn{color:var(--ink)}
 .tabnav{display:flex;justify-content:space-between;gap:12px;margin-top:34px;padding-top:20px;border-top:1px solid var(--line);flex-wrap:wrap}.tabnav .ghost{background:none;border:1px solid var(--line);color:var(--ink);font:600 13px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:14px 18px;cursor:pointer}.tabnav .ghost:hover{border-color:var(--signal)}.tabnav .btn{margin-left:auto}.tabnav [hidden]{display:none}
-.share{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:12px;color:var(--muted);text-align:left;cursor:pointer;max-width:640px}.share input{margin-top:3px;accent-color:var(--signal)}.share b{color:var(--ink);font-weight:600}
+.share{display:flex;gap:12px;align-items:flex-start;margin:4px 0 18px;padding:12px 14px;border:1px solid #5a4a1e;background:rgba(242,193,78,.05);font-size:13px;color:var(--muted);text-align:left;cursor:pointer;max-width:680px}.share input{margin-top:3px;width:18px;height:18px;accent-color:var(--amber);flex:none}.share b{color:var(--amber)}.share b{font-weight:600}
 .tester{font-size:11px;color:var(--amber);border:1px solid #5a4a1e;padding:4px 8px;display:flex;gap:8px;align-items:center}
 .tester button{background:none;border:0;color:var(--amber);text-decoration:underline;cursor:pointer;font:11px var(--mono);padding:0}
 .paidhead{padding-top:36px;display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap}
@@ -317,12 +317,12 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
   <div class="exporthead" style="margin-top:26px"><h2>2 · Drop the file here</h2></div>
   <div class="drop" id="drop">
     <h2>Drop rekordbox.xml here</h2>
+    <label class="share"><input type="checkbox" id="shareLib"> <span><b>Beta tester? Tick to share this library with us (optional).</b> Share a copy of this library's track details (names, tags, play counts, no file paths) and the changes you pick, so we can check BINDIG is helping. Used only to improve BINDIG, never shared, deleted when the beta ends.</span></label>
     <div class="row">
       <label class="btn" for="file">Choose XML file</label>
       <input id="file" type="file" accept=".xml,text/xml" hidden>
-      <span class="note">BINDIG only reads this copy. Your audio files never leave your computer, and track details are discarded after analysis unless you choose to share them below.</span>
+      <span class="note">BINDIG only reads this copy. Your audio files never leave your computer, and track details are discarded after analysis unless you choose to share them above.</span>
     </div>
-    <label class="share"><input type="checkbox" id="shareLib"> <span><b>Help shape the beta (optional).</b> Share a copy of this library's track details (names, tags, play counts, no file paths) and the changes you pick, so we can check BINDIG is helping. Used only to improve BINDIG, never shared, deleted when the beta ends.</span></label>
     <p class="status" id="status" role="status" aria-live="polite"></p>
   </div>
 </section>
