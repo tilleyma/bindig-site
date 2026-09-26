@@ -62,8 +62,8 @@ section{padding-top:48px}
 .bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 14px;font-size:13px}
 .bar .track{grid-column:1/-1;height:6px;background:var(--dim)}
 .bar .fill{height:100%;background:var(--signal)}
-.bar .fill.warn{background:var(--amber)}
-.bar .fill.bad{background:var(--warn)}
+.bar .fill.f-amber{background:var(--amber)}
+.bar .fill.f-red{background:var(--warn)}
 
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);margin-top:-1px}
 .cell{padding:18px;border-left:1px solid var(--line)}
@@ -445,7 +445,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
   </div>
 </div>
 
-<footer><span>BINDIG · beta</span><a href="mailto:bindig.dj@gmail.com?subject=BINDIG%20feedback">Feedback: bindig.dj@gmail.com</a><a href="https://www.instagram.com/bindig.dj/" target="_blank" rel="noopener">Instagram @bindig.dj</a><span>Not affiliated with AlphaTheta or Pioneer DJ.</span></footer>
+<footer><span>BINDIG · beta</span><a href="mailto:bindig.dj@gmail.com?subject=BINDIG%20feedback">Email: bindig.dj@gmail.com</a><a href="https://www.instagram.com/bindig.dj/" target="_blank" rel="noopener">Instagram @bindig.dj</a><span>Not affiliated with AlphaTheta or Pioneer DJ.</span></footer>
 </div>
 
 <div class="sticky" id="sticky" hidden><div class="in"><span class="msg" id="stickymsg"></span><button class="btn" type="button" id="stickyBuy">&gt; Unlock for $9</button></div></div>
@@ -589,7 +589,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
     $("score").innerHTML=h.score+"<small>/100</small>";
     $("headline").textContent=full?"Your crate, unlocked":"Here's what BINDIG found in your crate";
     var t=p.taste; $("taste").textContent="Your sound: "+t.topGenres.slice(0,4).join(", ")+" · "+t.bpmRange[0]+"–"+t.bpmRange[1]+" BPM";
-    var bars=[["Tracks with fixable tags",h.fixable,""],["Genre missing, needs lookup",h.genreNeedsLookup,"warn"],["Year missing",h.yearMissing,"warn"],["Duplicates",h.duplicates,"bad"],["Never played",h.unplayed,""]];
+    var bars=[["Tracks with fixable tags",h.fixable,""],["Genre missing, needs lookup",h.genreNeedsLookup,"f-amber"],["Year missing",h.yearMissing,"f-amber"],["Duplicates",h.duplicates,"f-red"],["Never played",h.unplayed,""]];
     $("bars").innerHTML=bars.map(function(b){var pct=Math.min(100,100*b[1]/Math.max(1,h.tracks));return '<div class="bar"><span>'+esc(b[0])+'</span><span>'+fmt(b[1])+' · '+pct.toFixed(1)+'%</span><div class="track"><div class="fill '+b[2]+'" style="width:'+pct+'%"></div></div></div>';}).join("");
     $("cells").innerHTML=[["Tracks",h.tracks],["Played",h.played],["Fixes found",h.fixes],["Label missing",h.labelMissing]].map(function(c){return '<div class="cell"><b>'+fmt(c[1])+'</b><span>'+c[0]+'</span></div>';}).join("");
     renderReady(h);
