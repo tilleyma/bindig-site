@@ -4,7 +4,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 export const json = (body, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", "cache-control": "no-store" } });
 
-export const COLS = ["id", "artist", "title", "album", "genre", "year", "comments", "label", "bpm", "key", "plays", "rating", "added", "bitrate", "time", "kind", "tn"];
+export const COLS = ["id", "artist", "title", "album", "genre", "year", "comments", "label", "bpm", "key", "plays", "rating", "added", "bitrate", "time", "kind", "tn", "cues", "lists"];
 
 // Client sends { cols, rows } (compact) to stay under the request size limit.
 export async function readTracks(req) {
@@ -15,7 +15,7 @@ export async function readTracks(req) {
   if (rows.length === 0) return { error: "No tracks found in that file." };
   if (rows.length > 40000) return { error: "Libraries over 40,000 tracks aren't supported yet." };
   const idx = Object.fromEntries(cols.map((c, i) => [c, i]));
-  const num = new Set(["bpm", "plays", "rating", "bitrate", "time", "tn"]);
+  const num = new Set(["bpm", "plays", "rating", "bitrate", "time", "tn", "cues", "lists"]);
   const tracks = rows.map((r) => {
     const t = {};
     for (const c of COLS) { const v = idx[c] !== undefined ? r[idx[c]] : undefined; t[c] = num.has(c) ? Number(v) || 0 : v == null ? "" : String(v).slice(0, 500); }

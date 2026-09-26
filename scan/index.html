@@ -284,6 +284,9 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
 .sticky{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(5,7,6,.94);backdrop-filter:blur(6px);border-top:1px solid var(--signal);padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px))}
 .sticky .in{max-width:1140px;margin:0 auto;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .sticky .msg{font-size:14px}.sticky .msg b{color:var(--signal)}
+.cp{display:block;font-style:normal;font-size:11px;color:var(--muted)}.cp.keep{color:var(--signal)}.cp .fn{color:var(--ink)}
+.tabnav{display:flex;justify-content:space-between;gap:12px;margin-top:34px;padding-top:20px;border-top:1px solid var(--line);flex-wrap:wrap}.tabnav .ghost{background:none;border:1px solid var(--line);color:var(--ink);font:600 13px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:14px 18px;cursor:pointer}.tabnav .ghost:hover{border-color:var(--signal)}.tabnav .btn{margin-left:auto}.tabnav [hidden]{display:none}
+.share{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:12px;color:var(--muted);text-align:left;cursor:pointer;max-width:640px}.share input{margin-top:3px;accent-color:var(--signal)}.share b{color:var(--ink);font-weight:600}
 .tester{font-size:11px;color:var(--amber);border:1px solid #5a4a1e;padding:4px 8px;display:flex;gap:8px;align-items:center}
 .tester button{background:none;border:0;color:var(--amber);text-decoration:underline;cursor:pointer;font:11px var(--mono);padding:0}
 .paidhead{padding-top:36px;display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap}
@@ -317,8 +320,9 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
     <div class="row">
       <label class="btn" for="file">Choose XML file</label>
       <input id="file" type="file" accept=".xml,text/xml" hidden>
-      <span class="note">BINDIG only reads this copy. Your audio files never leave your computer, and track details are discarded after analysis.</span>
+      <span class="note">BINDIG only reads this copy. Your audio files never leave your computer, and track details are discarded after analysis unless you choose to share them below.</span>
     </div>
+    <label class="share"><input type="checkbox" id="shareLib"> <span><b>Help shape the beta (optional).</b> Share a copy of this library's track details (names, tags, play counts, no file paths) and the changes you pick, so we can check BINDIG is helping. Used only to improve BINDIG, never shared, deleted when the beta ends.</span></label>
     <p class="status" id="status" role="status" aria-live="polite"></p>
   </div>
 </section>
@@ -381,7 +385,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
       <div id="groups"></div>
     </div>
   
-          <details class="grp" id="tidybox" style="margin-top:22px"><summary><input type="checkbox" id="tidyAll" aria-label="Include all duplicates"><span>Tidy-up (optional): duplicate copies <span class="conf medium">optional</span></span><span class="cnt" id="tidycnt">0</span><span class="chev">›</span></summary><div class="inner"><p class="note" style="padding:10px 14px">The same track appears twice. Ticked copies go into a Tidy-up playlist so you can check and remove them yourself. BINDIG never deletes anything.</p><ul class="plist" id="tidylist"></ul></div></details>
+          <details class="grp" id="tidybox" style="margin-top:22px"><summary><input type="checkbox" id="tidyAll" aria-label="Include all duplicates"><span>Tidy-up (optional): duplicate copies <span class="conf medium">optional</span></span><span class="cnt" id="tidycnt">0</span><span class="chev">›</span></summary><div class="inner"><p class="note" style="padding:10px 14px">The same track appears twice. BINDIG keeps the copy with your cue points, playlists and plays (✓ Keep) and suggests the other one (Spare). Ticked spares go into a Tidy-up playlist so you can check them in Rekordbox and remove them yourself. ⚠ means the spare also has cues or is in a playlist. BINDIG never deletes anything.</p><ul class="plist" id="tidylist"></ul></div></details>
 </section>
     <section class="panel" data-panel="gems" hidden>
       <p class="note" style="margin-bottom:12px">Tracks you've barely played that fit your taste, ranked best first. Each one lands in an Undiscovered Gems playlist for its genre. Untick anything you don't want included.</p>
@@ -402,6 +406,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
     </div>
     
     </section>
+    <nav class="tabnav" aria-label="Move between steps"><button type="button" class="ghost" id="tabPrev">‹ Back</button><button type="button" class="btn" id="tabNext">Next ›</button></nav>
   </div>
 </div>
 
@@ -418,7 +423,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
     <p class="hp"><label>Leave empty<input name="company" tabindex="-1" autocomplete="off"></label></p>
     <div class="prompt">$ ./bindig unlock</div>
     <h2 id="intentTitle">Where should we send your fixed library?</h2>
-    <p class="note" id="intentLede">We'll email your receipt and a link back to your results.</p>
+    <p class="note" id="intentLede">Stripe emails your receipt. Your results open right here, ready to download.</p>
     <label for="intentEmail">Email<input id="intentEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></label>
     <details class="friend" id="friendBox"><summary>Have a friend code?</summary><label for="friendCode" style="margin-top:8px">Code<input id="friendCode" name="friend_code" type="text" autocomplete="off" autocapitalize="characters" placeholder="Enter your code" style="font:16px var(--mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);padding:13px 14px;width:100%;border-radius:0;text-transform:uppercase"></label></details>
     <button class="btn" type="submit" id="intentGo">&gt; Continue to checkout</button>
@@ -431,7 +436,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
 <script>
 (function(){
   "use strict";
-  var COLS=["id","artist","title","album","genre","year","comments","label","bpm","key","plays","rating","added","bitrate","time","kind","tn"];
+  var COLS=["id","artist","title","album","genre","year","comments","label","bpm","key","plays","rating","added","bitrate","time","kind","tn","cues","lists"];
   var $=function(id){return document.getElementById(id);};
   var state={xmlText:null,fileName:null,rows:null,preview:null,full:null,token:null};
   var fmt=function(n){return Number(n||0).toLocaleString("en-US");};
@@ -444,6 +449,16 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
   var ls={get:function(k){try{return localStorage.getItem(k);}catch(e){return null;}},set:function(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
 
   function visitor(){var v=ls.get("bindig_visitor");if(!v){v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));ls.set("bindig_visitor",v);}return v;}
+  function sharing(){ var c=$("shareLib"); return !!(c&&c.checked); }
+  function sendAfter(r){
+    if(!sharing()||!state.full) return;
+    try{
+      var F=state.full.fixes, fx=[]; F.forEach(function(f,k){ if(state.ok[k]) fx.push([f.id,f.field,f.from,f.to,f.confidence]); });
+      var gm=[]; Object.keys(state.full.gems).forEach(function(g){ state.full.gems[g].forEach(function(x){ gm.push([x.id,g,x.score,state.cut[x.id]?1:0]); }); });
+      var mx=(state.full.mixes||[]).map(function(m){return {name:m.name,ids:m.tracks.map(function(t){return t.id;}),gems:m.gems};});
+      fetch("/api/share",{method:"POST",headers:{"content-type":"application/json","x-bindig-visitor":visitor(),"x-bindig-share":"1"},body:JSON.stringify({tracks:r.tracks,fixes:fx,gems:gm,mixes:mx,tidy:Object.keys(state.tidyOn||{})})}).catch(function(){});
+    }catch(e){}
+  }
   function status(el,msg,err){el.textContent=msg||"";el.className="status"+(err?" err":"");}
 
   // ---- parse Rekordbox XML in the browser
@@ -452,17 +467,21 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
     if(doc.getElementsByTagName("parsererror").length) throw new Error("That file isn't valid XML.");
     var col=doc.getElementsByTagName("COLLECTION")[0];
     if(!col) throw new Error("No COLLECTION found. Export it from Rekordbox with File → Export Collection in xml format.");
-    var ts=col.getElementsByTagName("TRACK"), rows=[];
+    var ts=col.getElementsByTagName("TRACK"), rows=[], inLists={}, pls=doc.getElementsByTagName("PLAYLISTS")[0];
+    if(pls){ var pt=pls.getElementsByTagName("TRACK"); for(var j=0;j<pt.length;j++){ var key=pt[j].getAttribute("Key"); if(key) inLists[key]=(inLists[key]||0)+1; } }
+    state.meta={};
     for(var i=0;i<ts.length;i++){
       var t=ts[i], g=function(a){return t.getAttribute(a)||"";};
-      rows.push([g("TrackID"),g("Artist"),g("Name"),g("Album"),g("Genre"),g("Year"),g("Comments"),g("Label"),+g("AverageBpm")||0,g("Tonality"),+g("PlayCount")||0,+g("Rating")||0,g("DateAdded"),+g("BitRate")||0,+g("TotalTime")||0,g("Kind"),+g("TrackNumber")||0]);
+      var raw=(g("Location")||"").replace(/^file:\/\/localhost/,""), dec; try{dec=decodeURIComponent(raw);}catch(e){dec=raw;} var loc=dec.split("/"), cues=t.getElementsByTagName("POSITION_MARK").length;
+      state.meta[g("TrackID")]={file:loc.pop()||"",folder:loc.pop()||"",cues:cues,lists:inLists[g("TrackID")]||0};
+      rows.push([g("TrackID"),g("Artist"),g("Name"),g("Album"),g("Genre"),g("Year"),g("Comments"),g("Label"),+g("AverageBpm")||0,g("Tonality"),+g("PlayCount")||0,+g("Rating")||0,g("DateAdded"),+g("BitRate")||0,+g("TotalTime")||0,g("Kind"),+g("TrackNumber")||0,cues,inLists[g("TrackID")]||0]);
     }
     if(!rows.length) throw new Error("No tracks found in that file.");
     return rows;
   }
 
   function post(url,headers){
-    return fetch(url,{method:"POST",headers:Object.assign({"content-type":"application/json","x-bindig-visitor":visitor()},headers||{}),body:JSON.stringify({cols:COLS,rows:state.rows})})
+    return fetch(url,{method:"POST",headers:Object.assign({"content-type":"application/json","x-bindig-visitor":visitor()},sharing()&&url==="/api/scan"?{"x-bindig-share":"1"}:{},headers||{}),body:JSON.stringify({cols:COLS,rows:state.rows})})
       .then(function(r){return r.json().then(function(j){if(!r.ok) throw Object.assign(new Error(j.error||"Something went wrong."),{status:r.status});return j;});});
   }
 
@@ -506,7 +525,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
       (g0?'<div class="ex"><b>'+esc(g0.artist)+' – '+esc(g0.title)+' <span class="newtag">new to you</span></b><span class="note">'+esc(g0.reasons.join(" · "))+'</span></div>':'')+lockRows(2)+unl("Unlock all "+fmt(h.gems)+" gems");
     var keys=function(m){return '<div class="keys">'+m.keys.map(function(k,i){return '<span'+(m.news[i]?' class="new"':'')+'>'+esc(k)+'</span>';}).join("")+'</div>';};
     $("tileMixes").innerHTML='<div class="n">'+mp.length+'<small>Gem Mixes</small></div><h3>Favourites meet gems</h3>'+
-      (mp[0]?'<div class="ex"><b>'+esc(mp[0].name)+' · '+mp[0].count+' tracks · '+mp[0].gems+' new to you</b>'+keys(mp[0])+mp[0].tracks.slice(0,2).map(function(t){return '<span>'+esc(t.artist)+' – '+esc(t.title)+' · '+esc(t.key)+' · '+t.bpm+' BPM'+(t.isNew?' <span class="newtag">new to you</span>':'')+'</span>';}).join("")+'</div>':'<p class="note">Analyse your tracks in Rekordbox first so they have keys.</p>')+
+      (mp[0]?'<div class="ex"><b>'+esc(mp[0].name)+' · '+mp[0].count+' tracks · '+mp[0].gems+' new to you</b>'+keys(mp[0])+mp[0].tracks.slice(0,2).map(function(t){return '<span>'+esc(t.artist)+' – '+esc(t.title)+' · '+esc(t.key)+' · '+t.bpm+' BPM'+(t.isNew?' <span class="newtag">new to you</span>':'')+'</span>';}).join("")+'</div>':'<p class="note">'+esc(h.mixNote||"No Gem Mixes this time.")+'</p>')+
       mp.slice(1).map(function(m){return '<div class="ex"><b>🔒 '+esc(m.name)+'</b><span class="note">'+m.count+' tracks · '+m.gems+' new to you</span></div>';}).join("")+unl("Unlock all "+mp.length+" Gem Mixes");
     $("stack").innerHTML=[fmt(h.gems)+" undiscovered gems, ranked and grouped by genre",mp.length+" Gem Mixes blending your favourites with gems",fmt(h.fixes)+" tag fixes, each with its reason","A Rekordbox file you import on your terms, plus an undo file and change log"].map(function(x){return '<li><span>'+x+'</span></li>';}).join("");
     $("stickymsg").innerHTML='Your crate is ready · <b>'+fmt(h.fixes)+'</b> fixes · <b>'+fmt(h.gems)+'</b> gems · <b>'+mp.length+'</b> Gem Mixes';
@@ -534,7 +553,12 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
     Array.prototype.forEach.call(document.querySelectorAll("#tabs button"),function(b){b.setAttribute("aria-selected",String(b.dataset.tab===name));});
     Array.prototype.forEach.call(document.querySelectorAll("[data-panel]"),function(s){s.hidden=s.dataset.panel!==name;});
     ls.set("bindig_tab",name);
+    var O=["gems","mixes","review","import"], L={gems:"Undiscovered gems",mixes:"Gem Mixes",review:"Clean tags",import:"Import to Rekordbox"}, k=O.indexOf(name);
+    $("tabPrev").hidden=k<=0; $("tabNext").hidden=k>=O.length-1;
+    if(k>0) $("tabPrev").textContent="‹ "+(k)+" · "+L[O[k-1]]; if(k<O.length-1) $("tabNext").textContent=(k+2)+" · "+L[O[k+1]]+" ›";
+    $("tabPrev").dataset.to=O[k-1]||""; $("tabNext").dataset.to=O[k+1]||"";
   }
+  ["tabPrev","tabNext"].forEach(function(id){ $(id).addEventListener("click",function(e){ var to=e.currentTarget.dataset.to; if(to){ showTab(to); $("tabs").scrollIntoView({behavior:"smooth",block:"start"}); } }); });
   $("tabs").addEventListener("click",function(e){ var b=e.target.closest("button[data-tab]"); if(b){ showTab(b.dataset.tab); $("tabs").scrollIntoView({behavior:"smooth",block:"start"}); } });
   $("again").addEventListener("click",function(){ $("results").hidden=true; $("sticky").hidden=true; $("stageDrop").hidden=false; $("file").value=""; window.scrollTo(0,0); setStage(1); });
 
@@ -618,7 +642,9 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
   // ---- tidy-up: duplicate copies, optional, unticked by default
   function renderTidy(){
     var T=state.full.tidy||[]; $("tidybox").hidden=!T.length;
-    $("tidylist").innerHTML=T.map(function(x){return '<li><input type="checkbox" data-tid="'+esc(x.id)+'"'+(state.tidyOn[x.id]?" checked":"")+' aria-label="Include in Tidy-up"><span><b style="font-weight:500">'+esc(x.artist)+' – '+esc(x.title)+'</b><i>'+esc(x.reason)+'</i></span><span class="sc">'+(x.bitrate||"?")+' kbps</span></li>';}).join("");
+    var desc=function(c){ if(!c) return ""; var m=(state.meta||{})[c.id]||{}, bits=[]; bits.push(c.cues?c.cues+" cue"+(c.cues>1?"s":""):"no cues"); bits.push(c.lists?"in "+c.lists+" playlist"+(c.lists>1?"s":""):"in no playlists"); bits.push(c.plays?c.plays+" play"+(c.plays>1?"s":""):"never played"); bits.push((c.bitrate||"?")+" kbps"); if(c.added) bits.push("added "+c.added); return (m.file?'<span class="fn">'+esc((m.folder?m.folder+"/":"")+m.file)+'</span> · ':'')+bits.join(" · "); };
+    $("tidylist").innerHTML=T.map(function(x){return '<li><input type="checkbox" data-tid="'+esc(x.id)+'"'+(state.tidyOn[x.id]?" checked":"")+' aria-label="Include the spare copy in Tidy-up"><span><b style="font-weight:500">'+esc(x.artist)+' – '+esc(x.title)+'</b>'+
+      (x.keep&&x.spare?'<i class="cp keep">✓ Keep: '+desc(x.keep)+'</i><i class="cp spare">'+(x.careful?'⚠':'○')+' Spare: '+desc(x.spare)+'</i>':'')+'<i>'+esc(x.reason)+'</i></span></li>';}).join("");
     var n=Object.keys(state.tidyOn).length; $("tidycnt").textContent=n+" of "+T.length+" ticked"; $("tidyAll").checked=T.length&&n===T.length; $("tidyAll").indeterminate=n>0&&n<T.length;
   }
   $("tidylist").addEventListener("change",function(e){ var id=e.target.dataset.tid; if(!id) return; if(e.target.checked) state.tidyOn[id]=1; else delete state.tidyOn[id]; renderTidy(); });
@@ -627,7 +653,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
   // ---- mixes & gaps
   function renderSetsGaps(p,full){
     var sets=p.mixes, keys=function(arr,news){return '<div class="keys">'+arr.map(function(k,i){return '<span'+(news&&news[i]?' class="new"':'')+'>'+esc(k)+'</span>';}).join("")+'</div>';};
-    if(!sets||!sets.length){ $("sets").innerHTML='<p class="note">Not enough analysed tracks with keys to build sets. Analyse your tracks in Rekordbox (or Mixed In Key) first.</p>'; }
+    if(!sets||!sets.length){ $("sets").innerHTML='<p class="note">'+esc((p.health&&p.health.mixNote)||"No Gem Mixes this time.")+'</p>'; }
     else if(!full){
       $("sets").innerHTML='<div class="shelves">'+sets.map(function(s,i){return '<div class="shelf"><h3>'+esc(s.name)+' <span>'+s.count+' tracks</span></h3>'+keys(s.keys)+
         (i===0?s.tracks.map(function(t){return '<div class="item"><b>'+esc(t.artist)+' – '+esc(t.title)+'</b><i>'+esc(t.key)+' · '+t.bpm+' BPM'+(t.energy?' · energy '+t.energy:'')+'</i></div>';}).join("")+'<div class="note">+ '+(s.count-3)+' more after unlock</div>':'<div class="note">Full tracklist after unlock</div>')+'</div>';}).join("")+'</div>';
@@ -665,7 +691,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
     var f=$("intentForm"); f.tracks.value=h.tracks||""; f.score.value=h.score==null?"":h.score; f.fixes.value=h.fixes||""; f.gems.value=h.gems||""; f.visitor.value=visitor();
     var saved=ls.get("bindig_email"); if(saved&&!f.email.value) f.email.value=saved;
     status($("intentStatus"),""); $("intentGo").disabled=false;
-    var sp=(state.preview&&state.preview.mixesPreview)||[]; $("intentLede").textContent="You're unlocking "+fmt(h.fixes)+" fixes, "+fmt(h.gems)+" undiscovered gems and "+sp.length+" Gem Mixes for $9. We'll email your receipt and a link back to your results.";
+    var sp=(state.preview&&state.preview.mixesPreview)||[]; $("intentLede").textContent="You're unlocking "+fmt(h.fixes)+" fixes, "+fmt(h.gems)+" undiscovered gems and "+sp.length+" Gem Mixes for $9. Stripe emails your receipt. Your results open right here, ready to download.";
     if(d.showModal) d.showModal(); else d.setAttribute("open",""); setStage(4);
     setTimeout(function(){f.email.focus();},50);
   }
@@ -705,7 +731,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
   });
 
   // ---- build XML files: trial (10 tracks), full (fixes + Mixes + Undiscovered + Tidy-up), undo (originals)
-  var ATTR={title:"Name",artist:"Artist",genre:"Genre",comments:"Comments"};
+  var ATTR={title:"Name",artist:"Artist",genre:"Genre",comments:"Comments",album:"Album"};
   function buildXml(mode){
     var doc=new DOMParser().parseFromString(state.xmlText,"application/xml");
     var byId={}, ts=doc.getElementsByTagName("COLLECTION")[0].getElementsByTagName("TRACK");
@@ -740,7 +766,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
   function save(name,text){ var blob=new Blob([text],{type:"application/xml"}), a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href); a.remove();},2000); }
   function dl(mode,name,el,msg){ try{ var r=buildXml(mode); if(!r.tracks&&mode!=="full"){ status($(el),"No approved fixes yet. Tick some fixes above first.",true); return; } save(name,r.xml); status($(el),msg(r)); }catch(e){ status($(el),"Couldn't build the file: "+e.message,true); } }
   if($("dlTrial")) $("dlTrial").addEventListener("click",function(){ dl("trial","rekordbox-bindig-trial.xml","trialstatus",function(r){return "Downloaded rekordbox-bindig-trial.xml: "+r.tracks+" tracks.";}); });
-  $("dlFull").addEventListener("click",function(){ dl("full","rekordbox-bindig.xml","dlstatus",function(r){return "Downloaded rekordbox-bindig.xml: "+fmt(r.tracks)+" tracks fixed, "+(state.full.mixes||[]).length+" Gem Mixes, "+fmt(r.purge)+" Undiscovered Gems.";}); });
+  $("dlFull").addEventListener("click",function(){ dl("full","rekordbox-bindig.xml","dlstatus",function(r){ sendAfter(r); return "Downloaded rekordbox-bindig.xml: "+fmt(r.tracks)+" tracks fixed, "+(state.full.mixes||[]).length+" Gem Mixes, "+fmt(r.purge)+" Undiscovered Gems.";}); });
   $("dlLog").addEventListener("click",function(){
     var q=function(v){v=String(v==null?"":v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
     var rows=[["type","artist","title","field","was","becomes","reason","confidence","included"]];
@@ -765,6 +791,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
   function refreshTester(){ var tk=state.token||"", sidv=""; try{ sidv=JSON.parse(atob(tk.split(".")[0].replace(/-/g,"+").replace(/_/g,"/"))).sid||""; }catch(e){} $("tester").hidden=!/^(tester|friend)/.test(sidv); $("tester").firstChild.nodeValue=(/^friend/.test(sidv)?"Friend pass active ":"Tester pass active "); }
   $("testerOff").addEventListener("click",function(){ ls.set("bindig_token",""); state.token=null; location.href="/scan/"; });
   var qs=new URLSearchParams(location.search), sid=qs.get("session_id");
+  if($("shareLib")){ $("shareLib").checked=ls.get("bindig_share")==="1"; $("shareLib").addEventListener("change",function(e){ ls.set("bindig_share",e.target.checked?"1":""); }); }
   state.token=ls.get("bindig_token")||null; setTimeout(refreshTester,0);
   var lic=qs.get("licence"); if(lic){ state.token=lic; ls.set("bindig_token",lic); history.replaceState(null,"","/scan/"); restore(); status($("status"),"Tester licence active. Drop your XML to see the full results."); }
   function restore(){ return Promise.all([get("xml"),get("name")]).then(function(v){ if(v[0]) load(v[0],v[1]||"rekordbox.xml",true); }); }
