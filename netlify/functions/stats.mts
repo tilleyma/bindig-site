@@ -1,17 +1,17 @@
 // Private usage totals for the owner dashboard (/stats/). Needs ?key= matching STATS_KEY.
 import { getStore } from "@netlify/blobs";
-import { json, env } from "../../lib/http.mts";
+import { json, env, storeName } from "../../lib/http.mts";
 
 export default async (req) => {
   const key = new URL(req.url).searchParams.get("key") || "";
   const want = env("STATS_KEY");
   if (!want || key !== want) return json({ error: "Not authorised." }, 401);
-  const store = getStore({ name: "events", consistency: "strong" });
+  const store = getStore({ name: storeName("events", req), consistency: "strong" });
   if (req.method === "POST" && new URL(req.url).searchParams.get("reset") === "all") {
     // Owner-only reset: wipes usage events and friend-code counters.
     let n = 0;
     for (const name of ["events", "codes"]) {
-      const st = name === "events" ? store : getStore({ name, consistency: "strong" });
+      const st = name === "events" ? store : getStore({ name: storeName(name, req), consistency: "strong" });
       const { blobs } = await st.list();
       await Promise.all(blobs.map((b) => st.delete(b.key))); n += blobs.length;
     }

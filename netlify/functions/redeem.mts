@@ -1,7 +1,7 @@
 // Friend / beta codes: unlock for free without Stripe. Codes live in the FRIEND_CODES env var
 // as "CODE" or "CODE:limit", comma-separated. Uses are counted in Netlify Blobs.
 import { getStore } from "@netlify/blobs";
-import { json, env, signToken } from "../../lib/http.mts";
+import { json, env, signToken, storeName } from "../../lib/http.mts";
 import { record } from "../../lib/track.mts";
 
 export default async (req, context) => {
@@ -15,7 +15,7 @@ export default async (req, context) => {
   if (!secret || !codes[code]) return json({ error: "That code isn't valid." }, 404);
   let used = 0;
   try {
-    const store = getStore({ name: "codes", consistency: "strong" });
+    const store = getStore({ name: storeName("codes", req), consistency: "strong" });
     used = Number(await store.get(code)) || 0;
     if (used >= codes[code]) return json({ error: "That code has been fully used." }, 410);
     await store.set(code, String(used + 1));

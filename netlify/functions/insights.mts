@@ -7,7 +7,7 @@ import { analyse } from "../../lib/engine.mts";
 export default async (req) => {
   const u = new URL(req.url);
   if (!env("STATS_KEY") || u.searchParams.get("key") !== env("STATS_KEY")) return json({ error: "Not authorised." }, 401);
-  const keys = await listShares();
+  const keys = await listShares(req);
   const byVisitor = {};
   for (const k of keys) { const [v, f] = k.split("/"); (byVisitor[v] ||= []).push({ key: k, kind: f.endsWith("-after.json.gz") ? "after" : "before", ts: f.slice(0, 24) }); }
   const sessions = [];
@@ -18,8 +18,8 @@ export default async (req) => {
     let lastBefore = null;
     for (const item of list) {
       if (item.kind === "before") { lastBefore = item; tot.libraries++; continue; }
-      const after = await getShare(item.key); if (!after) continue;
-      const before = lastBefore ? await getShare(lastBefore.key) : null;
+      const after = await getShare(item.key, req); if (!after) continue;
+      const before = lastBefore ? await getShare(lastBefore.key, req) : null;
       tot.downloads++;
       const s = { visitor: v.slice(0, 8), at: after.at, tracks: before?.tracks?.length || after.tracks || null, played: before ? before.tracks.filter((t) => t.plays > 0).length : null };
       const acc = new Set((after.fixes || []).map((f) => `${f[0]}|${f[1]}`));

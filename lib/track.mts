@@ -1,9 +1,10 @@
 // Anonymous usage events for BINDIG. Stores totals only: never artist names, titles or file paths.
 import { getStore } from "@netlify/blobs";
+import { storeName } from "./http.mts";
 
 export async function record(kind, data, req, context) {
   try {
-    const store = getStore({ name: "events", consistency: "strong" });
+    const store = getStore({ name: storeName("events", req), consistency: "strong" });
     const now = new Date();
     const day = now.toISOString().slice(0, 10);
     const visitor = (req?.headers?.get("x-bindig-visitor") || "").replace(/[^a-z0-9-]/gi, "").slice(0, 40) || null;

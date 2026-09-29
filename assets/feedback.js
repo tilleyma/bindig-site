@@ -1,6 +1,16 @@
 /* BINDIG feedback widget: a small button on every page. Sends to /api/feedback. */
 (function(){
   if (document.getElementById("fbBtn")) return;
+  // Sandbox ribbon: Netlify deploy previews / branch deploys (host contains "--") and local dev.
+  var h = location.hostname;
+  if (h.indexOf("--") >= 0 || h === "localhost" || h === "127.0.0.1") {
+    var rb = document.createElement("div");
+    rb.setAttribute("role", "note");
+    rb.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:70;background:#F2C14E;color:#1a1300;font:700 12px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;text-align:center;padding:5px 8px";
+    rb.textContent = "Sandbox · test version · Stripe test mode (card 4242 4242 4242 4242) · separate stats";
+    document.body.appendChild(rb); document.body.style.paddingTop = "26px";
+    var m = document.createElement("meta"); m.name = "robots"; m.content = "noindex"; document.head.appendChild(m);
+  }
   var css = "#fbBtn{position:fixed;right:16px;bottom:16px;z-index:60;background:#0A0F0C;color:#78F09A;border:1px solid #78F09A;font:700 12px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;padding:10px 14px;cursor:pointer;box-shadow:0 0 24px -6px rgba(120,240,154,.45)}"+
     "#fbBtn:hover{background:#78F09A;color:#04130A}"+
     

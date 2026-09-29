@@ -47,3 +47,11 @@ export function verifyToken(token, secret) {
 }
 
 export const env = (k) => (globalThis.Netlify?.env?.get?.(k)) ?? process.env[k];
+
+// Sandbox = any Netlify deploy preview or branch deploy (host contains "--"), or local dev.
+// Sandbox uses Stripe test mode and separate storage, so testing never touches production data or payments.
+export function isSandbox(req) {
+  try { const h = new URL(req.url).hostname; return h.includes("--") || h === "localhost" || h === "127.0.0.1"; } catch { return false; }
+}
+export const storeName = (name, req) => (isSandbox(req) ? `${name}-sandbox` : name);
+export const stripeKey = (req) => (isSandbox(req) ? env("STRIPE_TEST_SECRET_KEY") || "" : env("STRIPE_SECRET_KEY"));

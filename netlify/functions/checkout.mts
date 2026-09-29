@@ -1,10 +1,10 @@
 // Creates a Stripe Checkout session for the one-off unlock.
-import { json, env } from "../../lib/http.mts";
+import { json, env, stripeKey } from "../../lib/http.mts";
 import { record } from "../../lib/track.mts";
 
 export default async (req, context) => {
   if (req.method !== "POST") return json({ error: "Use POST." }, 405);
-  const key = env("STRIPE_SECRET_KEY");
+  const key = stripeKey(req);
   let email = "";
   try { const b = await req.json(); email = typeof b?.email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(b.email) ? b.email.trim().slice(0, 200) : ""; } catch {}
   await record("checkout", { enabled: !!key, gaveEmail: !!email }, req, context);

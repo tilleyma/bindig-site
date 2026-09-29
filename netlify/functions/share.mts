@@ -6,11 +6,11 @@ import { saveShare, listShares, getShare, clearShares, optedIn } from "../../lib
 export default async (req, context) => {
   const u = new URL(req.url);
   const owner = env("STATS_KEY") && u.searchParams.get("key") === env("STATS_KEY");
-  if (owner && req.method === "POST" && u.searchParams.get("clear") === "all") return json({ deleted: await clearShares() });
+  if (owner && req.method === "POST" && u.searchParams.get("clear") === "all") return json({ deleted: await clearShares(req) });
   if (owner && req.method === "GET") {
     const k = u.searchParams.get("get");
-    if (k) { const d = await getShare(k); return d ? json(d) : json({ error: "Not found." }, 404); }
-    return json({ shares: await listShares() });
+    if (k) { const d = await getShare(k, req); return d ? json(d) : json({ error: "Not found." }, 404); }
+    return json({ shares: await listShares(req) });
   }
   if (req.method !== "POST") return json({ error: "Use POST." }, 405);
   if (!optedIn(req)) return json({ saved: false });

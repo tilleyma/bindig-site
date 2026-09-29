@@ -1,15 +1,15 @@
 // Site feedback. POST: store one message (type idea/issue/praise, message, optional email, page context).
 // GET ?key=STATS_KEY: owner list, newest first.
 import { getStore } from "@netlify/blobs";
-import { json, env } from "../../lib/http.mts";
+import { json, env, storeName } from "../../lib/http.mts";
 
-const store = () => getStore({ name: "feedback", consistency: "strong" });
+const store = (req) => getStore({ name: storeName("feedback", req), consistency: "strong" });
 
 export default async (req, context) => {
   const u = new URL(req.url);
   if (req.method === "GET") {
     if (!env("STATS_KEY") || u.searchParams.get("key") !== env("STATS_KEY")) return json({ error: "Not authorised." }, 401);
-    const s = store(); const { blobs } = await s.list();
+    const s = store(req); const { blobs } = await s.list();
     const items = (await Promise.all(blobs.map((b) => s.get(b.key, { type: "json" })))).filter(Boolean).sort((a, b) => (a.at < b.at ? 1 : -1));
     return json({ count: items.length, items });
   }
@@ -24,7 +24,7 @@ export default async (req, context) => {
   const now = new Date();
   const item = { type, message, email, ...ctx, at: now.toISOString(), country: context?.geo?.country?.code || null,
     visitor: (req.headers.get("x-bindig-visitor") || "").replace(/[^a-z0-9-]/gi, "").slice(0, 40) || null };
-  try { await store().setJSON(`${now.toISOString().replace(/[:.]/g, "-")}-${Math.random().toString(36).slice(2, 7)}`, item); }
+  try { await store(req).setJSON(`${now.toISOString().replace(/[:.]/g, "-")}-${Math.random().toString(36).slice(2, 7)}`, item); }
   catch (e) { console.error("feedback save failed", e?.message); return json({ error: "Couldn't send right now." }, 500); }
   return json({ ok: true });
 };
