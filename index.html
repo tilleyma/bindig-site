@@ -28,6 +28,7 @@ p{margin:0}
 
 .center{min-height:calc(100vh - 80px);display:grid;place-items:center;text-align:center}
 .stack{display:grid;gap:22px;justify-items:center;max-width:720px}
+.wordrow{display:flex;align-items:flex-start;gap:12px}.ver{font:700 13px var(--mono);letter-spacing:.1em;color:var(--signal);border:1px solid var(--signal);padding:3px 8px;margin-top:10px;box-shadow:0 0 16px -4px rgba(120,240,154,.5)}
 .word{font:900 clamp(64px,13vw,148px)/1 var(--display);letter-spacing:.06em;color:var(--signal);text-shadow:0 0 40px rgba(120,240,154,.45)}
 .what{font-size:clamp(16px,2.2vw,20px);color:var(--ink)}
 .tag{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:clamp(20px,3vw,30px);line-height:1.15}
@@ -38,13 +39,14 @@ p{margin:0}
 <body>
 <main class="center">
   <div class="stack">
-    <div class="word" aria-label="BINDIG">BINDIG</div>
+    <div class="wordrow"><div class="word" aria-label="BINDIG">BINDIG</div><span class="ver" title="Beta version">v0.2</span></div>
     <p class="tag">The best crate to dig<br><span class="sig">is your own.</span><span class="caret"></span></p>
     <p class="what">The AI agent that finds the gems you've never played.<br><span class="sig" style="font-weight:700">BINDIG digs. You DJ.</span></p>
     <a class="btn" href="/meet/">&gt; Start</a>
     <p class="small">For Rekordbox DJs · Free to try · Your library stays untouched · <a href="/guide/">How it works</a></p>
   </div>
 </main>
-<footer class="foot"><span>BINDIG · beta</span><a href="mailto:bindig.dj@gmail.com?subject=BINDIG%20feedback">Email: bindig.dj@gmail.com</a><a href="https://www.instagram.com/bindig.dj/" target="_blank" rel="noopener">Instagram @bindig.dj</a><span>Not affiliated with AlphaTheta or Pioneer DJ.</span></footer>
+<footer class="foot"><span>BINDIG · beta</span><a href="mailto:bindig.dj@gmail.com?subject=BINDIG%20feedback">Email: bindig.dj@gmail.com</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://www.instagram.com/bindig.dj/" target="_blank" rel="noopener">Instagram @bindig.dj</a><span>Not affiliated with AlphaTheta or Pioneer DJ.</span></footer>
+<script src="/assets/feedback.js" defer></script>
 </body>
 </html>

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BINDIG Privacy</title><meta name="description" content="How BINDIG handles your Rekordbox library details, email and payments.">
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" href="/favicon-32.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><meta name="theme-color" content="#050706">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Doto:wght@900&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<style>
+:root{--bg:#050706;--panel:#0A0F0C;--line:#1C2A21;--ink:#E6EEE8;--muted:#8A968E;--signal:#78F09A;--display:"Doto","JetBrains Mono",monospace;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace;color-scheme:dark}
+*{box-sizing:border-box}html{background:var(--bg)}
+body{margin:0;background:var(--bg);background-image:linear-gradient(rgba(120,240,154,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(120,240,154,.03) 1px,transparent 1px);background-size:32px 32px;color:var(--ink);font:15px/1.7 var(--mono);padding-inline:20px}
+a{color:var(--signal)}:focus-visible{outline:2px solid var(--signal);outline-offset:3px}
+.wrap{max-width:820px;margin:0 auto}
+nav{display:flex;justify-content:space-between;align-items:center;padding-block:20px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--display);font-weight:900;font-size:26px;letter-spacing:.06em;color:var(--ink);text-decoration:none}
+h1,h2{font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:1.1;margin:0}
+h1{font-size:clamp(30px,5vw,46px);margin-top:36px}h2{font-size:20px;margin-top:34px;margin-bottom:10px;color:var(--signal)}
+p,li{color:#C9D3CC}p{margin:10px 0}ul{padding-left:20px;margin:8px 0}li{margin:4px 0}b{color:var(--ink)}
+.muted{color:var(--muted);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{color:var(--muted);font-weight:600;background:var(--panel)}
+@media (max-width:620px){table,tbody,tr,td,th{display:block;width:100%}tr:first-child{display:none}tr{border:1px solid var(--line);margin-bottom:10px}td{border:0;border-top:1px solid var(--line)}td:first-child{border-top:0}td:nth-child(2)::before{content:"Why: ";color:var(--muted)}td:nth-child(3)::before{content:"Kept? ";color:var(--muted)}}
+.tldr{border:1px solid var(--signal);background:var(--panel);padding:14px 16px;margin-top:20px}
+footer{margin-top:60px;border-top:1px solid var(--line);padding-block:24px;font-size:12px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap}
+footer a{color:var(--muted)}
+</style></head><body><div class="wrap">
+<nav><a class="brand" href="/">BINDIG</a><a href="/scan/" style="font-size:13px">Free scan →</a></nav>
+
+<h1>Privacy</h1>
+<p class="muted">Last updated 29 September 2026 · BINDIG is in beta</p>
+<div class="tldr"><b>In short:</b> your audio and file paths never leave your computer. Your library details are used to build your results and then thrown away, unless you choose to share them with us during the beta. We never sell or share your data.</div>
+
+<h2>What we use, and why</h2>
+<table>
+<tr><th>What</th><th>Why</th><th>Kept?</th></tr>
+<tr><td><b>Library details</b> from the file you drop in: track names, artists, albums, genres, keys, BPM, play counts, ratings, dates added, bitrate, and how many cue points and playlists each track has</td><td>To find your gems, fill your Gem Crates and suggest tag fixes</td><td>No. Used for the scan, then discarded. File paths and audio are never sent.</td></tr>
+<tr><td><b>Beta sharing</b> (only if you say yes): a copy of those library details and the changes you pick when you download</td><td>To check BINDIG is helping and improve it</td><td>Yes, until the beta ends, then deleted. You can ask us to delete it any time.</td></tr>
+<tr><td><b>Usage counts</b>: library size, number of fixes and gems, genre totals, country (from our host), a random browser ID</td><td>To see how BINDIG is used</td><td>Yes. No track names or file details.</td></tr>
+<tr><td><b>Email</b> you enter when unlocking</td><td>Your receipt and help with your purchase</td><td>Yes. Never sold or shared. No marketing unless you ask for it.</td></tr>
+<tr><td><b>Payment</b></td><td>Handled entirely by Stripe</td><td>We never see your card details.</td></tr>
+<tr><td><b>Feedback</b> you send: your message, optional email, and the page you were on</td><td>To improve BINDIG and reply if you asked</td><td>Yes</td></tr>
+<tr><td><b>Browser storage</b> on your device: your unlock pass, progress and preferences</td><td>So the site remembers where you were</td><td>On your device only. No advertising cookies or trackers.</td></tr>
+</table>
+
+<h2>Who helps us run BINDIG</h2>
+<ul>
+<li><b>Netlify</b>: hosting, the scan engine and private storage</li>
+<li><b>Stripe</b>: payments and receipts</li>
+<li><b>Google Fonts</b>: the fonts on the site</li>
+</ul>
+
+<h2>Your rights</h2>
+<p>You can ask what we hold about you, ask us to correct it, or ask us to delete it, including any library you shared during the beta. Email <a href="mailto:bindig.dj@gmail.com">bindig.dj@gmail.com</a> and we'll reply within 30 days. If you're in the EU or UK you can also complain to your data protection authority.</p>
+
+<h2>Contact</h2>
+<p>BINDIG · <a href="mailto:bindig.dj@gmail.com">bindig.dj@gmail.com</a></p>
+<footer><span>BINDIG · beta</span><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="mailto:bindig.dj@gmail.com">Email: bindig.dj@gmail.com</a><a href="https://www.instagram.com/bindig.dj/" target="_blank" rel="noopener">Instagram @bindig.dj</a><span>Not affiliated with AlphaTheta, Pioneer DJ or Mixed In Key.</span></footer>
+</div><script src="/assets/feedback.js" defer></script></body></html>

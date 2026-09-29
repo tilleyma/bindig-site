@@ -169,6 +169,10 @@ footer{margin-top:60px;border-top:1px solid var(--line);padding-block:24px;font-
 <section><div class="sh"><h2>Scans per day</h2></div><div class="cols" id="days"></div><div class="axis" id="daysaxis"></div></section>
 <section class="two"><div><div class="sh"><h2>Genres scanned</h2></div><div class="hbars" id="genres"></div></div><div><div class="sh"><h2>Fixes found, by type</h2></div><div class="hbars" id="rules"></div></div></section>
 <section><div class="sh"><h2>Countries</h2></div><div class="hbars" id="countries"></div></section>
+<section id="insSec"><div class="sh"><h2>Beta insights</h2><span class="note">From testers who chose to share their library</span></div><div class="tiles" id="insTiles"></div>
+<div class="two" style="margin-top:22px"><div><div class="lbl" style="margin-bottom:10px">Fixes kept, by field and confidence</div><div class="hbars" id="insFields"></div></div>
+<div><div class="lbl" style="margin-bottom:10px">Recent downloads</div><div class="hbars" id="insSessions"></div></div></div></section>
+<section id="fbSec"><div class="sh"><h2>Feedback</h2><span class="note" id="fbCount"></span></div><div id="fbList" style="display:grid;gap:10px"></div></section>
 </div></div>
 <script>
 (function(){
@@ -189,5 +193,26 @@ fetch("/api/stats?key="+encodeURIComponent(key)).then(function(r){return r.json(
  $("daysaxis").innerHTML=days.length?'<span>'+days[0][0]+'</span><span>'+days[days.length-1][0]+'</span>':"";
  bars($("genres"),d.genres); bars($("rules"),d.rules); bars($("countries"),d.countries);
 }).catch(function(e){$("msg").textContent=e.message;});
+})();
+</script>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i);},fmt=function(n){return n==null?"–":Number(n).toLocaleString("en-US");};
+var esc=function(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});};
+var key=(location.hash||"").slice(1)||new URLSearchParams(location.search).get("key")||"";
+fetch("/api/insights?key="+encodeURIComponent(key)).then(function(r){return r.json();}).then(function(d){
+  if(!d||!d.totals){ $("insSec").hidden=true; return; }
+  var t=d.totals;
+  $("insTiles").innerHTML=[[t.libraries,"libraries shared"],[t.downloads,"downloads"],[t.fixAcceptRate==null?"–":t.fixAcceptRate+"%","fixes kept"],[t.gemKeepRate==null?"–":t.gemKeepRate+"%","gems kept"]].map(function(x){return '<div class="tile"><b>'+esc(x[0])+'</b><span>'+x[1]+'</span></div>';}).join("");
+  $("insFields").innerHTML=(d.byField||[]).length?d.byField.map(function(f){return '<div class="hb"><span class="l">'+esc(f.field)+' · '+esc(f.confidence)+'</span><span class="t"><span class="f" style="display:block;width:'+(f.rate||0)+'%"></span></span><span>'+(f.rate==null?"–":f.rate+"%")+' of '+fmt(f.offered)+'</span></div>';}).join(""):'<p class="note">No downloads from sharing testers yet.</p>';
+  $("insSessions").innerHTML=(d.sessions||[]).length?d.sessions.slice(0,12).map(function(x){return '<div class="hb"><span class="l">'+esc((x.at||"").slice(0,10))+' · '+fmt(x.tracks)+' tracks</span><span class="note">'+fmt(x.fixesAccepted)+'/'+fmt(x.fixesOffered)+' fixes · '+fmt(x.gemsKept)+'/'+fmt(x.gemsListed)+' gems · '+fmt(x.crates)+' crates</span><span></span></div>';}).join(""):'<p class="note">None yet.</p>';
+}).catch(function(){ $("insSec").hidden=true; });
+fetch("/api/feedback?key="+encodeURIComponent(key)).then(function(r){return r.json();}).then(function(d){
+  if(!d||!d.items){ $("fbSec").hidden=true; return; }
+  var ic={idea:"💡",issue:"🐞",praise:"🙌"};
+  var c={idea:0,issue:0,praise:0}; d.items.forEach(function(x){c[x.type]=(c[x.type]||0)+1;});
+  $("fbCount").textContent=d.count+" total · 💡 "+c.idea+" · 🐞 "+c.issue+" · 🙌 "+c.praise;
+  $("fbList").innerHTML=d.items.length?d.items.slice(0,100).map(function(x){return '<div style="border:1px solid var(--line);background:var(--panel);padding:12px 14px;display:grid;gap:6px"><div class="note">'+ic[x.type]+' '+esc(x.type)+' · '+esc((x.at||"").slice(0,16).replace("T"," "))+' · '+esc(x.page)+(x.step?' · '+esc(x.step):'')+(x.tab?' · tab '+esc(x.tab):'')+(x.tracks?' · '+fmt(x.tracks)+' tracks':'')+(x.country?' · '+esc(x.country):'')+(x.email?' · <a href="mailto:'+esc(x.email)+'">'+esc(x.email)+'</a>':'')+'</div><div style="white-space:pre-wrap">'+esc(x.message)+'</div></div>';}).join(""):'<p class="note">No feedback yet.</p>';
+}).catch(function(){ $("fbSec").hidden=true; });
 })();
 </script></body></html>
