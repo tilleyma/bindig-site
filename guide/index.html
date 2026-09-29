@@ -157,11 +157,12 @@ footer{margin-top:60px;border-top:1px solid var(--line);padding-block:24px;font-
   .grid4{grid-template-columns:1fr 1fr}
   .cell:nth-child(3){border-left:0}.cell:nth-child(n+3){border-top:1px solid var(--line)}
 }
+.vbadge{font:700 11px "JetBrains Mono",ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#78F09A;border:1px solid #78F09A;padding:2px 7px;white-space:nowrap;line-height:1.4}
 </style>
 </head>
 <body>
 <div class="wrap">
-<nav><a class="brand" href="/">BINDIG</a><a class="navcta" href="/scan/">Free scan</a></nav>
+<nav><span style="display:inline-flex;align-items:center;gap:10px"><a class="brand" href="/">BINDIG</a><span class="vbadge">v0.2 beta</span></span><a class="navcta" href="/scan/">Free scan</a></nav>
 <header class="intro"><div class="prompt">$ ./bindig guide</div><h1>From Rekordbox to BINDIG <span class="sig">and back</span></h1><p class="lede">Two minutes, start to finish. Export your collection, scan it, then import only what you want. Your music files are never uploaded or changed.</p></header>
 <section style="padding-top:8px"><div style="border-left:3px solid var(--signal);padding:14px 18px;background:var(--panel);max-width:80ch;display:grid;gap:8px;font-size:14px;color:var(--muted)">
   <b style="color:var(--ink);font-weight:500">Safe by design</b>

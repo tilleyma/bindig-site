@@ -321,11 +321,12 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
 .tabs button:focus-visible{outline:2px solid var(--signal);outline-offset:-2px}
 .panel{padding-top:22px}
 @media (max-width:760px){.tiles,.paycard,.report{grid-template-columns:1fr}.tile{border-left:0}.paycard>div+div{border-left:0;border-top:1px solid var(--line)}.sticky .msg{font-size:12px}}
+.vbadge{font:700 11px "JetBrains Mono",ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#78F09A;border:1px solid #78F09A;padding:2px 7px;white-space:nowrap;line-height:1.4}
 </style>
 </head>
 <body>
 <div class="wrap">
-<nav><a class="brand" href="/">BINDIG</a><div class="row" style="gap:10px"><span class="tester" id="tester" hidden>Tester pass active <button type="button" id="testerOff">switch off</button></span><a class="navcta" href="/guide/">Guide</a></div></nav>
+<nav><span style="display:inline-flex;align-items:center;gap:10px"><a class="brand" href="/">BINDIG</a><span class="vbadge">v0.2 beta</span></span><div class="row" style="gap:10px"><span class="tester" id="tester" hidden>Tester pass active <button type="button" id="testerOff">switch off</button></span><a class="navcta" href="/guide/">Guide</a></div></nav>
 <div class="stepbar" id="stepbar" aria-label="Progress"><span data-s="1">1 · Export</span><span data-s="2">2 · Scan</span><span data-s="3">3 · Results</span><span data-s="4">4 · Unlock</span><span data-s="5">5 · Import</span></div>
 
 <section id="stageDrop">

@@ -68,11 +68,12 @@ html{scroll-behavior:smooth}.beat{scroll-margin-top:12px}
 
 @media (prefers-reduced-motion:reduce){.js .reveal.pending{opacity:1;transform:none}}
 
+.vbadge{font:700 11px "JetBrains Mono",ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#78F09A;border:1px solid #78F09A;padding:2px 7px;white-space:nowrap;line-height:1.4}
 </style>
 </head>
 <body>
 <div class="wrap">
-<nav><a class="brand" href="/">BINDIG</a><a class="skip" href="/scan/" style="font-size:13px">Skip to the free scan →</a></nav>
+<nav><span style="display:inline-flex;align-items:center;gap:10px"><a class="brand" href="/">BINDIG</a><span class="vbadge">v0.2 beta</span></span><a class="skip" href="/scan/" style="font-size:13px">Skip to the free scan →</a></nav>
 <header class="intro">
   <p class="sig" style="font-weight:700;font-size:14px">$ ./bindig scan --demo</p>
   <h1>Here's what it found in <span class="sig">my crate.</span></h1>
