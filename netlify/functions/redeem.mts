@@ -7,12 +7,16 @@ import { record } from "../../lib/track.mts";
 export default async (req, context) => {
   if (req.method !== "POST") return json({ error: "Use POST." }, 405);
   let body = {}; try { body = await req.json(); } catch {}
-  const code = String(body.code || "").trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 40);
-  if (!code) return json({ error: "Enter your code." }, 400);
+  // Forgiving match: case, spaces and dashes don't matter ("dig f6umwf" = "DIG-F6UMWF").
+  const squash = (s) => String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 40);
+  const typed = squash(body.code);
+  if (!typed) return json({ error: "Enter your code." }, 400);
   const codes = Object.fromEntries(String(env("FRIEND_CODES") || "").split(",").map((c) => c.trim()).filter(Boolean)
-    .map((c) => { const [k, n] = c.split(":"); return [k.toUpperCase(), Number(n) || 25]; }));
+    .map((c) => { const [k, n] = c.split(":"); return [k.trim().toUpperCase(), Number(n) || 25]; }));
+  const code = Object.keys(codes).find((k) => squash(k) === typed);
   const secret = env("UNLOCK_SECRET");
-  if (!secret || !codes[code]) return json({ error: "That code isn't valid." }, 404);
+  if (!secret) return json({ error: "Codes aren't switched on right now. Email bindig.dj@gmail.com and we'll sort it." }, 503);
+  if (!code) return json({ error: "That code isn't valid. Check the spelling (e.g. DIG-XXXXXX). Friend codes go here, not on the Stripe payment page." }, 404);
   let used = 0;
   try {
     const store = getStore({ name: storeName("codes", req), consistency: "strong" });

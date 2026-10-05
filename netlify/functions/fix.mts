@@ -8,11 +8,11 @@ export default async (req, context) => {
   const token = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
   const licence = verifyToken(token, env("UNLOCK_SECRET"));
   if (!licence) return json({ error: "This library isn't unlocked yet." }, 402);
-  const { tracks, error } = await readTracks(req);
+  const { tracks, prefs, error } = await readTracks(req);
   if (error) return json({ error }, 400);
-  const r = analyse(tracks);
+  const r = analyse(tracks, { prefs });
   await record("fix", { tracks: r.health.tracks, fixes: r.health.fixes, gems: r.health.gems, tester: String(licence.sid || "").startsWith("tester") }, req, context);
-  return json({ health: r.health, taste: r.taste, fixes: r.fixes, gems: r.gems, tidy: r.tidy, mixes: r.mixes, gaps: r.gaps });
+  return json({ health: r.health, taste: r.taste, fixes: r.fixes, gems: r.gems, because: r.because, tidy: r.tidy, tidyQuality: r.tidyQuality, mixes: r.mixes, gaps: r.gaps, tags: r.tags });
 };
 
 export const config = { path: "/api/fix" };

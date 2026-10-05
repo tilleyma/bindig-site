@@ -11,7 +11,7 @@ export default async (req) => {
   const byVisitor = {};
   for (const k of keys) { const [v, f] = k.split("/"); (byVisitor[v] ||= []).push({ key: k, kind: f.endsWith("-after.json.gz") ? "after" : "before", ts: f.slice(0, 24) }); }
   const sessions = [];
-  const tot = { libraries: 0, downloads: 0, fixesOffered: 0, fixesAccepted: 0, gemsOffered: 0, gemsKept: 0, crates: 0, tidyOffered: 0, tidyTicked: 0 };
+  const tot = { libraries: 0, downloads: 0, fixesOffered: 0, fixesAccepted: 0, gemsOffered: 0, gemsKept: 0, crates: 0, tidyOffered: 0, tidyTicked: 0, gemsLoved: 0, gemsSkipped: 0 };
   const byField = {}; // field|confidence -> {offered, accepted}
   for (const [v, list] of Object.entries(byVisitor)) {
     list.sort((a, b) => (a.ts < b.ts ? -1 : 1));
@@ -31,6 +31,8 @@ export default async (req) => {
       }
       s.fixesAccepted = (after.fixes || []).length;
       s.gemsKept = (after.gems || []).filter((g) => g[3]).length; s.gemsListed = (after.gems || []).length;
+      s.gemsLoved = (after.gems || []).filter((g) => g[4] === 1).length; s.gemsSkipped = (after.gems || []).filter((g) => g[4] === -1).length;
+      tot.gemsLoved += s.gemsLoved; tot.gemsSkipped += s.gemsSkipped;
       s.crates = (after.mixes || []).length; s.tidyTicked = (after.tidy || []).length;
       tot.fixesAccepted += s.fixesAccepted; tot.gemsOffered += s.gemsListed; tot.gemsKept += s.gemsKept; tot.crates += s.crates; tot.tidyTicked += s.tidyTicked;
       sessions.push(s);

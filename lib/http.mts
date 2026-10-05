@@ -21,7 +21,11 @@ export async function readTracks(req) {
     for (const c of COLS) { const v = idx[c] !== undefined ? r[idx[c]] : undefined; t[c] = num.has(c) ? Number(v) || 0 : v == null ? "" : String(v).slice(0, 500); }
     return t;
   });
-  return { tracks };
+  const ids = (a) => (Array.isArray(a) ? a.slice(0, 20000).map((x) => String(x).slice(0, 40)) : []);
+  const prefs = { love: ids(body?.prefs?.love), skip: ids(body?.prefs?.skip) };
+  const f = body?.focus;
+  const focus = f && typeof f === "object" ? { genres: Array.isArray(f.genres) ? f.genres.slice(0, 20).map((g) => String(g).slice(0, 80)) : [], bpmLo: Number(f.bpmLo) || 0, bpmHi: Number(f.bpmHi) || 0, minutes: Number(f.minutes) || 60, vibe: ["warm", "peak", "any"].includes(f.vibe) ? f.vibe : "any", seed: Number(f.seed) || 1 } : null;
+  return { tracks, prefs, focus };
 }
 
 const b64u = (b) => Buffer.from(b).toString("base64url");

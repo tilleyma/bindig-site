@@ -6,10 +6,10 @@ import { saveShare, optedIn } from "../../lib/share.mts";
 
 export default async (req, context) => {
   if (req.method !== "POST") return json({ error: "Use POST." }, 405);
-  const { tracks, error } = await readTracks(req);
+  const { tracks, prefs, error } = await readTracks(req);
   if (error) return json({ error }, 400);
   const before = optedIn(req) ? tracks.map((t) => ({ ...t })) : null;
-  const r = analyse(tracks);
+  const r = analyse(tracks, { prefs });
   await record("scan", scanSummary(r, tracks), req, context);
   if (before) await saveShare("before", { tracks: before }, req, context);
   return json(preview(r));
