@@ -11,7 +11,7 @@ export default async (req) => {
   const byVisitor = {};
   for (const k of keys) { const [v, f] = k.split("/"); (byVisitor[v] ||= []).push({ key: k, kind: f.endsWith("-after.json.gz") ? "after" : "before", ts: f.slice(0, 24) }); }
   const sessions = [];
-  const tot = { libraries: 0, downloads: 0, fixesOffered: 0, fixesAccepted: 0, gemsOffered: 0, gemsKept: 0, crates: 0, tidyOffered: 0, tidyTicked: 0, gemsLoved: 0, gemsSkipped: 0 };
+  const tot = { libraries: 0, downloads: 0, fixesOffered: 0, fixesAccepted: 0, gemsOffered: 0, gemsKept: 0, crates: 0, tidyOffered: 0, tidyTicked: 0, gemsLoved: 0, gemsSkipped: 0, gemsKnew: 0 };
   const byField = {}; // field|confidence -> {offered, accepted}
   for (const [v, list] of Object.entries(byVisitor)) {
     list.sort((a, b) => (a.ts < b.ts ? -1 : 1));
@@ -31,8 +31,9 @@ export default async (req) => {
       }
       s.fixesAccepted = (after.fixes || []).length;
       s.gemsKept = (after.gems || []).filter((g) => g[3]).length; s.gemsListed = (after.gems || []).length;
-      s.gemsLoved = (after.gems || []).filter((g) => g[4] === 1).length; s.gemsSkipped = (after.gems || []).filter((g) => g[4] === -1).length;
-      tot.gemsLoved += s.gemsLoved; tot.gemsSkipped += s.gemsSkipped;
+      s.gemsLoved = (after.gems || []).filter((g) => g[4] === 1).length; s.gemsSkipped = (after.gems || []).filter((g) => g[4] === -1).length; s.gemsKnew = (after.gems || []).filter((g) => g[4] === 2).length;
+      tot.gemsLoved += s.gemsLoved; tot.gemsSkipped += s.gemsSkipped; tot.gemsKnew += s.gemsKnew;
+      const marked = s.gemsLoved + s.gemsSkipped + s.gemsKnew; s.hitRate = marked ? Math.round((100 * s.gemsLoved) / marked) : null;
       s.crates = (after.mixes || []).length; s.tidyTicked = (after.tidy || []).length;
       tot.fixesAccepted += s.fixesAccepted; tot.gemsOffered += s.gemsListed; tot.gemsKept += s.gemsKept; tot.crates += s.crates; tot.tidyTicked += s.tidyTicked;
       sessions.push(s);
@@ -40,7 +41,7 @@ export default async (req) => {
   }
   const rate = (a, b) => (b ? Math.round((100 * a) / b) : null);
   return json({
-    generatedAt: new Date().toISOString(), totals: { ...tot, fixAcceptRate: rate(tot.fixesAccepted, tot.fixesOffered), gemKeepRate: rate(tot.gemsKept, tot.gemsOffered) },
+    generatedAt: new Date().toISOString(), totals: { ...tot, fixAcceptRate: rate(tot.fixesAccepted, tot.fixesOffered), gemKeepRate: rate(tot.gemsKept, tot.gemsOffered), gemHitRate: rate(tot.gemsLoved, tot.gemsLoved + tot.gemsSkipped + tot.gemsKnew) },
     byField: Object.entries(byField).map(([k, v]) => { const [field, confidence] = k.split("|"); return { field, confidence, ...v, rate: rate(v.accepted, v.offered) }; }).sort((a, b) => b.offered - a.offered),
     sessions: sessions.sort((a, b) => (a.at < b.at ? 1 : -1)).slice(0, 100),
     librariesWithoutDownload: tot.libraries - tot.downloads > 0 ? tot.libraries - tot.downloads : 0,

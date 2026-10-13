@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Free Rekordbox scan: find the undiscovered gems in your library, get Gem Crates and clean tags. Your library stays untouched.">
+<meta name="description" content="Free Rekordbox scan: a read of your taste, 20 unplayed gems from your own library and clean tags. Your library stays untouched.">
 <title>BINDIG Scan</title>
 <link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" href="/favicon-32.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><meta name="theme-color" content="#050706">
-<meta property="og:type" content="website"><meta property="og:site_name" content="BINDIG"><meta property="og:url" content="https://bindig.netlify.app/scan/"><meta property="og:title" content="BINDIG Scan"><meta property="og:description" content="Free Rekordbox scan: find the undiscovered gems in your library, get Gem Crates and clean tags. Your library stays untouched."><meta property="og:image" content="https://bindig.netlify.app/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://bindig.netlify.app/og.png">
+<meta property="og:type" content="website"><meta property="og:site_name" content="BINDIG"><meta property="og:url" content="https://bindig.netlify.app/scan/"><meta property="og:title" content="BINDIG Scan"><meta property="og:description" content="Free Rekordbox scan: a read of your taste, 20 unplayed gems from your own library and clean tags. Your library stays untouched."><meta property="og:image" content="https://bindig.netlify.app/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://bindig.netlify.app/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Doto:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap">
@@ -299,7 +299,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
 .paidhead{padding-top:36px;display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap}
 .paidhead h2{font-size:clamp(26px,3.4vw,40px)}
 .rv{margin:18px 0 30px;display:grid;gap:16px}
-.rv-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.rv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .rv-card{border:1px solid var(--line);background:var(--panel);padding:18px;display:grid;gap:10px;align-content:start;animation:rvIn .6s ease both}
 .rv-card:nth-child(2){animation-delay:.12s}.rv-card:nth-child(3){animation-delay:.24s}
 @keyframes rvIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
@@ -323,7 +323,14 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
 @media (max-width:760px){.tiles,.paycard,.report{grid-template-columns:1fr}.tile{border-left:0}.paycard>div+div{border-left:0;border-top:1px solid var(--line)}.sticky .msg{font-size:12px}}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.chips button{all:unset;cursor:pointer;font-size:12px;padding:5px 10px;border:1px solid var(--line);color:var(--muted)}.chips button[aria-pressed=true]{border-color:var(--signal);color:var(--signal-ink);background:var(--signal);font-weight:700}
 .gtype{font-size:10px;padding:1px 6px;border:1px solid #2a5a3a;color:var(--signal);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
-.fb{display:inline-flex;gap:4px;margin-top:4px}.fb button{all:unset;cursor:pointer;font-size:11px;padding:2px 8px;border:1px solid var(--line);color:var(--muted)}.fb button.on.love{border-color:var(--signal);color:var(--signal)}.fb button.on.skip{border-color:var(--warn);color:var(--warn)}
+.fb{display:inline-flex;gap:4px;margin-top:4px}.fb button{all:unset;cursor:pointer;font-size:11px;padding:2px 8px;border:1px solid var(--line);color:var(--muted)}.fb button.on.love{border-color:var(--signal);color:var(--signal)}.fb button.on.knew{border-color:var(--amber);color:var(--amber)}.fb button.on.skip{border-color:var(--warn);color:var(--warn)}
+.read{border:1px solid var(--signal);background:var(--panel);padding:22px 24px;margin:6px 0 20px;display:grid;gap:12px;box-shadow:0 0 40px -18px rgba(120,240,154,.35)}
+.read .rtext{font-size:clamp(16px,1.6vw,19px);line-height:1.55;color:var(--ink);max-width:70ch}
+.read .rchips2{display:flex;flex-wrap:wrap;gap:8px}.read .rchips2 span{font-size:11px;border:1px solid var(--line);padding:3px 8px;color:var(--muted)}.read .rchips2 b{color:var(--signal);font-weight:500}
+.pv{all:unset;cursor:pointer;font:700 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border:1px solid var(--signal);color:var(--signal);margin-right:6px;white-space:nowrap}.pv.on{background:var(--signal);color:var(--signal-ink)}.pv.nf{border-color:var(--line);color:var(--muted);cursor:default}
+.gemrow{display:grid;gap:3px}.gemrow .gl{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:2px}
+.gshelf{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:12px 14px 4px;border-top:1px solid var(--line)}.gshelf:first-child{border-top:0}
+details.more{margin-top:26px;border:1px dashed var(--line);padding:0}details.more>summary{cursor:pointer;padding:12px 14px;font-size:13px;color:var(--muted)}details.more[open]>summary{color:var(--ink)}
 .links{font-size:11px;display:inline-flex;gap:8px;flex-wrap:wrap}.links a{color:var(--muted)}.links a:hover{color:var(--signal)}
 .because{border:1px solid var(--line);background:var(--panel);margin-top:22px}.because>h3{font-size:18px;padding:14px 16px 4px}.because>p{padding:0 16px 10px}
 .bc{padding:10px 16px;border-top:1px dashed var(--line);display:grid;gap:6px;font-size:13px}.bc .fav{color:var(--ink)}.bc ul{list-style:none;margin:0;padding:0 0 0 14px;display:grid;gap:4px}.bc li i{display:block;font-style:normal;color:var(--muted);font-size:12px}
@@ -338,14 +345,14 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
 </head>
 <body>
 <div class="wrap">
-<nav><span style="display:inline-flex;align-items:center;gap:10px"><a class="brand" href="/">BINDIG</a><span class="vbadge">v0.3 beta</span></span><div class="row" style="gap:10px"><span class="tester" id="tester" hidden>Tester pass active <button type="button" id="testerOff">switch off</button></span><a class="navcta" href="/guide/">Guide</a></div></nav>
+<nav><span style="display:inline-flex;align-items:center;gap:10px"><a class="brand" href="/">BINDIG</a><span class="vbadge">v0.4 beta</span></span><div class="row" style="gap:10px"><span class="tester" id="tester" hidden>Tester pass active <button type="button" id="testerOff">switch off</button></span><a class="navcta" href="/guide/">Guide</a></div></nav>
 <div class="stepbar" id="stepbar" aria-label="Progress"><span data-s="1">1 · Export</span><span data-s="2">2 · Scan</span><span data-s="3">3 · Results</span><span data-s="4">4 · Unlock</span><span data-s="5">5 · Import</span></div>
 
 <section id="stageDrop">
   <header class="hero2">
     <div class="prompt">$ ./bindig try --free</div>
     <h1>Try it on your crate. <span class="sig">Free.</span></h1>
-    <p class="lede">Export your library from Rekordbox, drop it in, and in about 10 seconds you'll see your tag problems, the undiscovered gems already sitting in your library, and Gem Crates of favourites and gems to dig into tonight. Your audio never leaves your computer.</p>
+    <p class="lede">Export your library from Rekordbox, drop it in, and in about 10 seconds BINDIG reads your taste, finds 20 unplayed tracks in your own crate that fit it (press play to hear them), and cleans up your tags. Your audio never leaves your computer.</p>
   </header>
   <div class="exporthead"><h2>1 · Export from Rekordbox</h2><span class="note">Illustrations. Menus may look slightly different in your version.</span></div>
   <p class="safeline" style="margin-bottom:12px">Exporting makes a copy of your library's details. It doesn't change anything in Rekordbox.</p>
@@ -376,12 +383,13 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
       <p class="safeline" style="margin-top:8px">Nothing in your Rekordbox library has changed. These are suggestions for you to review.</p>
     </div>
   </section>
+  <section class="read" id="read" aria-label="Your taste, read" hidden></section>
   <section class="ready" id="ready" aria-label="Your library's readiness"></section>
 
   <div id="freeView">
     <div class="tiles">
       <article class="tile" id="tileGems"></article>
-      <article class="tile" id="tileMixes"></article>
+      <article class="tile" id="tileMixes" hidden></article>
       <article class="tile wide" id="tileFix"></article>
     </div>
 
@@ -414,40 +422,40 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
       <p class="note rv-lede">Here's everything BINDIG found. Explore each part, then import it into Rekordbox when you're happy. Nothing changes until you do.</p>
       <div class="rv-grid">
         <div class="rv-card" id="rvGems"></div>
-        <div class="rv-card" id="rvMixes"></div>
+        <div class="rv-card" id="rvMixes" hidden></div>
         <div class="rv-card" id="rvTags"></div>
       </div>
       <div class="rv-foot"><button type="button" class="btn" id="rvImport">&gt; Happy with it? Import to Rekordbox</button><button type="button" class="rv-toggle" id="rvToggle">Hide summary</button></div>
     </section>
     <div class="tabs" role="tablist" id="tabs">
-      <button role="tab" data-tab="gems" aria-selected="true">1 · Undiscovered gems</button>
-      <button role="tab" data-tab="mixes" aria-selected="false">2 · Gem Crates</button>
-      <button role="tab" data-tab="review" aria-selected="false">3 · Clean tags</button>
-      <button role="tab" data-tab="import" aria-selected="false">4 · Import to Rekordbox</button>
+      <button role="tab" data-tab="gems" aria-selected="true">1 · Your gems</button>
+      <button role="tab" data-tab="review" aria-selected="false">2 · Clean tags</button>
+      <button role="tab" data-tab="import" aria-selected="false">3 · Import to Rekordbox</button>
     </div>
     <section class="panel" data-panel="review">
-      <p class="note" style="margin-bottom:12px">Tick what you want changed. Nothing is applied to Rekordbox until you import it yourself in tab 4.</p>
+      <p class="note" style="margin-bottom:12px">Tick what you want changed. Nothing is applied to Rekordbox until you import it yourself in tab 3.</p>
       <div id="fixreview">
       <div class="reviewbar"><span><b id="okcount">0</b> of <span id="allcount">0</span> fixes approved</span><button class="linkbtn" type="button" id="approveHigh">Approve all high-confidence</button><button class="linkbtn" type="button" id="approveNone">Clear all</button><span>Medium-confidence fixes start unticked. Open a group to check them.</span></div>
       <div id="groups"></div>
     </div>
   
-          <details class="grp" id="tidybox" style="margin-top:22px"><summary><input type="checkbox" id="tidyAll" aria-label="Include all duplicates"><span>Tidy-up (optional): duplicate copies <span class="conf medium">optional</span></span><span class="cnt" id="tidycnt">0</span><span class="chev">›</span></summary><div class="inner"><p class="note" style="padding:10px 14px">The same track appears twice. BINDIG keeps the copy with your cue points, playlists and plays (✓ Keep) and suggests the other one (Spare). Ticked spares go into a Tidy-up playlist so you can check them in Rekordbox and remove them yourself. ⚠ means the spare also has cues or is in a playlist. BINDIG never deletes anything.</p><label class="chk" style="padding:0 14px 10px"><input type="checkbox" id="tidyQ"> Keep the better-quality copy (higher bitrate or lossless) instead of the one with your cues and plays</label><ul class="plist" id="tidylist"></ul></div></details>
+          <details class="more" id="moretools"><summary>More tools (optional): duplicate copies and playlist health</summary><div style="padding:0 14px 14px">
+          <details class="grp" id="tidybox" style="margin-top:12px"><summary><input type="checkbox" id="tidyAll" aria-label="Include all duplicates"><span>Tidy-up (optional): duplicate copies <span class="conf medium">optional</span></span><span class="cnt" id="tidycnt">0</span><span class="chev">›</span></summary><div class="inner"><p class="note" style="padding:10px 14px">The same track appears twice. BINDIG keeps the copy with your cue points, playlists and plays (✓ Keep) and suggests the other one (Spare). Ticked spares go into a Tidy-up playlist so you can check them in Rekordbox and remove them yourself. ⚠ means the spare also has cues or is in a playlist. BINDIG never deletes anything.</p><label class="chk" style="padding:0 14px 10px"><input type="checkbox" id="tidyQ"> Keep the better-quality copy (higher bitrate or lossless) instead of the one with your cues and plays</label><ul class="plist" id="tidylist"></ul></div></details>
           <details class="grp" id="plhealth" style="margin-top:22px" hidden><summary><input type="checkbox" id="plAll" aria-label="Include fixed copies of all playlists"><span>Playlist health: duplicates and spare copies inside your playlists <span class="conf medium">optional</span></span><span class="cnt" id="plcnt">0</span><span class="chev">›</span></summary><div class="inner"><p class="note" style="padding:10px 14px">BINDIG checked every playlist. Ticked playlists get a fixed copy (duplicates removed, spare copies swapped for the copy you keep) under BINDIG → Playlist fixes. Your own playlists are never changed. Empty playlists are listed so you can remove them yourself.</p><ul class="plist" id="pllist"></ul></div></details>
+          </div></details>
 </section>
     <section class="panel" data-panel="gems" hidden>
-      <p class="note" style="margin-bottom:12px">Tracks you've barely played that fit your taste, ranked best first. Each one lands in an Undiscovered Gems playlist for its genre. Untick anything you don't want included.</p>
-      <div class="reviewbar"><span><b id="gemcount">0</b> gems included</span><span>♥ love = more like this next scan · ✕ skip = never suggest again</span></div>
-      <div class="chips" id="gemtypes" role="group" aria-label="Filter by gem type"></div>
+      <p class="note" style="margin-bottom:12px">Unplayed tracks from your own crate that fit what you play now. Grouped by genre (most played first), then around the Camelot wheel so neighbours sit together. Press ▶ to hear 30 seconds. Untick anything you don't want in your download.</p>
+      <div class="reviewbar"><span><b id="gemcount">0</b> gems included</span><span>♥ love = a real find · ✓ knew it = you already know it · ✕ skip = not for you. Your marks teach the next scan.</span></div>
+      <div class="chips" id="gemtypes" role="group" aria-label="Filter by gem type" hidden></div>
       <div id="pgroups"></div>
       <section class="because" id="because" hidden><h3>Because you play…</h3><p class="note">For your favourites, the closest tracks you barely know: same artist or label, compatible key, same tempo.</p><div id="bclist"></div></section>
     </section>
-    <section class="panel" data-panel="mixes" hidden><p class="note" style="margin-bottom:12px">Your favourites and your undiscovered gems (about one in three), grouped so they sit together: key-compatible, close in BPM, and sorted so they're easy to audition. Tracks marked <span class="newtag">new to you</span> are the gems.</p><p class="note tipbox" style="margin-bottom:14px"><b>BINDIG digs. You DJ.</b> Open a Gem Crate in Rekordbox, audition with headphones and pull your picks into your own set. BINDIG can't hear the music; you can. Warm-up and peak shaping only appears when your tracks have Mixed In Key energy.</p><div class="focus" id="focus"><h3>Dig a crate for a gig</h3><p class="note">Pick a genre, BPM range, length and vibe. BINDIG builds a crate of your favourites and gems for it. Shuffle for another take.</p><div class="frow"><label>Genres <span style="text-transform:none">(none = all · ⌘/Ctrl-click for more)</span><select id="fGenre" multiple size="3" style="min-width:220px"></select></label><label>BPM from<input type="number" id="fLo" min="60" max="200"></label><label>to<input type="number" id="fHi" min="60" max="200"></label><label>Length<select id="fMin"><option value="30">30 min</option><option value="45">45 min</option><option value="60" selected>60 min</option><option value="90">90 min</option><option value="120">2 hours</option></select></label><label>Vibe<select id="fVibe"><option value="any">Any</option><option value="warm">Warm-up</option><option value="peak">Peak</option></select></label><button class="btn" type="button" id="fGo">&gt; Dig it</button><button class="linkbtn" type="button" id="fShuffle" hidden>Shuffle again</button></div><p class="status" id="fStatus" role="status" aria-live="polite"></p></div><div id="sets"></div></section>
     <section class="panel" data-panel="import" hidden id="unlocked">
       <div class="explain"><b>How this works, and why it's safe.</b> BINDIG never touches your Rekordbox library. You'll download a separate file, and Rekordbox shows it as a read-only list next to your library, like browsing a friend's USB stick. Nothing changes until you choose to import something, and you decide exactly what.</div>
       <p class="note">Six short steps. Your progress is saved on this device. Prefer to watch first? The video shows every step.</p><div class="vid" role="button" tabindex="0" aria-label="Play the 2-minute BINDIG walkthrough video" data-yt="h6VV8PSpHtY"><div class="play">&#9654;</div><span>Watch the 2-minute walkthrough</span></div>
       <div class="progress" aria-hidden="true"><div id="prog" style="width:0%"></div></div>
-      <ol class="steps" id="steps" style="list-style:none;margin:0;padding:0"><li class="st" data-i="0"><button class="sh2" type="button"><span class="num">01</span><span class="ttl">Back up your library</span><span class="tag">optional, 1 minute</span></button><div class="body"><p>Nothing in the next steps changes your library by itself, but a backup is good practice. In Rekordbox: <b>File → Library → Backup Library</b>.</p><div class="gwin" role="img" aria-label="Back up first. File → Library → Backup Library. If anything looks wrong you can restore it."><div class="gbar"><i></i><i></i><i></i><span>rekordbox</span></div><div class="gbody"><div class="gmenus"><div class="gmenu"><div class="gmh">File</div><ul><li class="">Import</li><li class="hi">Library<b>›</b></li><li class="">Export</li></ul></div><div class="gmenu gsub"><ul><li class="hi">Backup Library</li><li>Restore Library</li></ul></div></div></div></div><div class="row"><button class="btn ghost" type="button" data-next="0">&gt; Done, next</button></div></div></li><li class="st" data-i="1"><button class="sh2" type="button"><span class="num">02</span><span class="ttl">Download your file</span><span class="tag">safe</span></button><div class="body"><p>This is a separate file with your Gem Crates, Undiscovered Gems and approved tag fixes. Downloading it changes nothing in Rekordbox.</p><label class="chk"><input type="checkbox" id="incTags" checked> Include tag playlists (4 · Tags)</label><div class="row"><button class="btn" type="button" id="dlFull">&gt; Download rekordbox-bindig.xml</button><button class="btn ghost" type="button" id="dlLog">&gt; Change log (CSV)</button></div><p class="status" id="dlstatus" role="status" aria-live="polite"></p><div class="row"><button class="btn ghost" type="button" data-next="1">&gt; Done, next</button></div></div></li><li class="st" data-i="2"><button class="sh2" type="button"><span class="num">03</span><span class="ttl">Let Rekordbox read the file</span><span class="tag">read-only</span></button><div class="body"><div class="safe">✓ Safe: this only lets Rekordbox <b>show</b> the file as a separate list in the sidebar. Your library, playlists and tags stay exactly as they are.</div><div class="warn">Don't use File → Import. That menu only takes music files, so the XML will be greyed out.</div><p>Open <b>Rekordbox → Preferences → Advanced → Database</b>. Under <b>rekordbox xml</b>, click <b>Browse</b> and pick <b>rekordbox-bindig.xml</b> (usually in Downloads).</p><div class="gwin" role="img" aria-label="Preferences → Advanced → Database. Next to rekordbox xml, click Browse and pick rekordbox-bindig.xml."><div class="gbar"><i></i><i></i><i></i><span>Preferences</span></div><div class="gbody"><div class="gtabs"><span>View</span><span>Audio</span><span class="on">Advanced</span></div><div class="gtabs"><span class="on">Database</span><span>Recording</span></div><div class="gfield"><span>rekordbox xml · Imported Library</span><div class="row2"><span class="inp">~/Downloads/rekordbox-bindig.xml</span><span class="b">Browse</span></div></div></div></div><div class="row"><button class="btn ghost" type="button" data-next="2">&gt; Done, next</button></div></div></li><li class="st" data-i="3"><button class="sh2" type="button"><span class="num">04</span><span class="ttl">Show it in the sidebar</span><span class="tag">one-time setting</span></button><div class="body"><p>Still in Preferences: <b>View → Layout</b>, tick <b>rekordbox xml</b>. Close Preferences. A blue <span class="xmlicon" aria-label="rekordbox xml icon"><svg width="14" height="14" viewBox="0 0 22 22" aria-hidden="true"><path d="M9 6 L4 11 L9 16 M13 6 L18 11 L13 16" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> <b>rekordbox xml</b> icon now appears in the left sidebar. Open it and you'll see <b>BINDIG</b> with folders: <b>1 · Gem Crates</b>, <b>2 · Undiscovered Gems</b>, <b>3 · Fixed tracks</b> and <b>4 · Tags</b> (plus <b>Playlist fixes</b> and <b>Tidy-up</b> if you ticked any). Browse freely: it's a preview, not your library.</p><div class="gwin" role="img" aria-label="Preferences → View → Layout. Tick rekordbox xml. The  icon then appears in the left sidebar."><div class="gbar"><i></i><i></i><i></i><span>Preferences</span></div><div class="gbody"><div class="gtabs"><span class="on">View</span><span>Audio</span><span>Advanced</span></div><div class="gtabs"><span class="on">Layout</span><span>Browse</span></div><div><span class="gchk"></span>rekordbox xml<br><span class="gchk off"></span>iTunes<br><span class="gchk off"></span>Explorer</div></div></div><div class="row"><button class="btn ghost" type="button" data-next="3">&gt; Done, next</button></div></div></li><li class="st" data-i="4"><button class="sh2" type="button"><span class="num">05</span><span class="ttl">Add your Gem Crates and Undiscovered Gems</span><span class="tag">adds playlists only</span></button><div class="body"><div class="safe">✓ This adds new playlists. It doesn't change or remove any track.</div><p>Click the <span class="xmlicon" aria-label="rekordbox xml icon"><svg width="14" height="14" viewBox="0 0 22 22" aria-hidden="true"><path d="M9 6 L4 11 L9 16 M13 6 L18 11 L13 16" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> icon, then right-click <b>BINDIG → 1 · Gem Crates</b> → <b>Import Playlist</b>. Do the same for <b>2 · Undiscovered Gems</b>. They appear under your own Playlists, ready to dig into. If you ticked any duplicates, <b>Tidy-up</b> is there for you to check.</p><p><b>Tags as My Tags (optional):</b> open <b>4 · Tags</b>, pick a playlist (e.g. <b>Vocal</b>), import it, select all its tracks and click the matching My Tag in Rekordbox's My Tag panel. BINDIG only suggests; your own tags are never changed. Rekordbox's XML can't carry My Tags directly, so this one step is yours.</p><div class="gwin" role="img" aria-label="Right-click BINDIG → 1 · Gem Crates → Import Playlist, then the same for 2 · Undiscovered Gems. Your new playlists appear under your own Playlists, ready to dig into."><div class="gbar"><i></i><i></i><i></i><span>rekordbox</span></div><div class="gbody"><div class="gsplit"><div class="grail"><span class="ri"></span><span class="ri"></span><span class="ri"></span><span class="ri on"><svg width="14" height="14" viewBox="0 0 22 22" aria-hidden="true"><path d="M9 6 L4 11 L9 16 M13 6 L18 11 L13 16" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div><ul class="gtree"><li>rekordbox xml</li><li class="in1">Playlists</li><li class="in2">BINDIG</li><li class="in3 hi">1 · Gem Crates</li><li class="in3">2 · Undiscovered Gems</li><li class="in3">3 · Fixed tracks</li></ul></div><div class="gctx"><ul><li class="hi">Import Playlist</li><li>Import To Collection</li></ul></div></div></div><div class="row"><button class="btn ghost" type="button" data-next="4">&gt; Done, next</button></div></div></li><li class="st" data-i="5"><button class="sh2" type="button"><span class="num">06</span><span class="ttl">Apply your tag fixes</span><span class="tag">the only step that changes tags</span></button><div class="body"><div class="safe">This is the one step that updates your tags, and only for the tracks you select. Your music files, cue points, beat grids and My Tags are never touched.</div><p>Under the <span class="xmlicon" aria-label="rekordbox xml icon"><svg width="14" height="14" viewBox="0 0 22 22" aria-hidden="true"><path d="M9 6 L4 11 L9 16 M13 6 L18 11 L13 16" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> icon, open <b>BINDIG → 3 · Fixed tracks</b>. Click in the <b>track list</b> and select the tracks you want (<b>⌘A</b> for all, or start with a few). Right-click the <b>highlighted tracks</b> → <b>Import To Collection</b>.</p><div class="warn">Right-click the tracks, not the playlist name. The playlist menu only offers Import Playlist, which leaves your tags unchanged.</div><p>If a track doesn't update, run <b>Import To Collection</b> once more. Rekordbox sometimes needs a second pass. Changed your mind? Use the undo file below.</p><div class="gwin" role="img" aria-label="Click the  rekordbox xml icon, open BINDIG → 3 · Fixed tracks, click the track list, ⌘A, then right-click the tracks → Import To Collection. (Right-clicking the playlist name only offers Import Playlist, which doesn't update tags.)"><div class="gbar"><i></i><i></i><i></i><span>rekordbox</span></div><div class="gbody"><div class="gsplit"><div class="grail"><span class="ri"></span><span class="ri"></span><span class="ri"></span><span class="ri on"><svg width="14" height="14" viewBox="0 0 22 22" aria-hidden="true"><path d="M9 6 L4 11 L9 16 M13 6 L18 11 L13 16" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div><ul class="gtree" style="flex:0 0 42%"><li>rekordbox xml</li><li class="in1">Playlists</li><li class="in2">BINDIG</li><li class="in3">1 · Gem Crates</li><li class="in3">2 · Undiscovered Gems</li><li class="in3 hi">3 · Fixed tracks</li></ul><div class="gtracks"><div class="gth">Track title · Artist</div><div class="gtr sel">Use of Weapons · South L…</div><div class="gtr sel">Dodge · Monkey Safari</div><div class="gtr sel">Soul For Sale · Fiberroot</div><div class="gtr sel">Midnight River · Vaults</div></div></div><div class="gctx" style="top:auto;bottom:10px"><ul><li class="hi">Import To Collection</li><li>Add to Playlist</li></ul></div></div></div><div class="row"><button class="btn ghost" type="button" data-next="5">&gt; All done</button></div></div></li></ol>
+      <ol class="steps" id="steps" style="list-style:none;margin:0;padding:0"><li class="st" data-i="0"><button class="sh2" type="button"><span class="num">01</span><span class="ttl">Back up your library</span><span class="tag">optional, 1 minute</span></button><div class="body"><p>Nothing in the next steps changes your library by itself, but a backup is good practice. In Rekordbox: <b>File → Library → Backup Library</b>.</p><div class="gwin" role="img" aria-label="Back up first. File → Library → Backup Library. If anything looks wrong you can restore it."><div class="gbar"><i></i><i></i><i></i><span>rekordbox</span></div><div class="gbody"><div class="gmenus"><div class="gmenu"><div class="gmh">File</div><ul><li class="">Import</li><li class="hi">Library<b>›</b></li><li class="">Export</li></ul></div><div class="gmenu gsub"><ul><li class="hi">Backup Library</li><li>Restore Library</li></ul></div></div></div></div><div class="row"><button class="btn ghost" type="button" data-next="0">&gt; Done, next</button></div></div></li><li class="st" data-i="1"><button class="sh2" type="button"><span class="num">02</span><span class="ttl">Download your file</span><span class="tag">safe</span></button><div class="body"><p>This is a separate file with your Undiscovered Gems and approved tag fixes. Downloading it changes nothing in Rekordbox.</p><label class="chk"><input type="checkbox" id="incTags" checked> Include tag playlists (3 · Tags)</label><div class="row"><button class="btn" type="button" id="dlFull">&gt; Download rekordbox-bindig.xml</button><button class="btn ghost" type="button" id="dlLog">&gt; Change log (CSV)</button></div><p class="status" id="dlstatus" role="status" aria-live="polite"></p><div class="row"><button class="btn ghost" type="button" data-next="1">&gt; Done, next</button></div></div></li><li class="st" data-i="2"><button class="sh2" type="button"><span class="num">03</span><span class="ttl">Let Rekordbox read the file</span><span class="tag">read-only</span></button><div class="body"><div class="safe">✓ Safe: this only lets Rekordbox <b>show</b> the file as a separate list in the sidebar. Your library, playlists and tags stay exactly as they are.</div><div class="warn">Don't use File → Import. That menu only takes music files, so the XML will be greyed out.</div><p>Open <b>Rekordbox → Preferences → Advanced → Database</b>. Under <b>rekordbox xml</b>, click <b>Browse</b> and pick <b>rekordbox-bindig.xml</b> (usually in Downloads).</p><div class="gwin" role="img" aria-label="Preferences → Advanced → Database. Next to rekordbox xml, click Browse and pick rekordbox-bindig.xml."><div class="gbar"><i></i><i></i><i></i><span>Preferences</span></div><div class="gbody"><div class="gtabs"><span>View</span><span>Audio</span><span class="on">Advanced</span></div><div class="gtabs"><span class="on">Database</span><span>Recording</span></div><div class="gfield"><span>rekordbox xml · Imported Library</span><div class="row2"><span class="inp">~/Downloads/rekordbox-bindig.xml</span><span class="b">Browse</span></div></div></div></div><div class="row"><button class="btn ghost" type="button" data-next="2">&gt; Done, next</button></div></div></li><li class="st" data-i="3"><button class="sh2" type="button"><span class="num">04</span><span class="ttl">Show it in the sidebar</span><span class="tag">one-time setting</span></button><div class="body"><p>Still in Preferences: <b>View → Layout</b>, tick <b>rekordbox xml</b>. Close Preferences. A blue <span class="xmlicon" aria-label="rekordbox xml icon"><svg width="14" height="14" viewBox="0 0 22 22" aria-hidden="true"><path d="M9 6 L4 11 L9 16 M13 6 L18 11 L13 16" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> <b>rekordbox xml</b> icon now appears in the left sidebar. Open it and you'll see <b>BINDIG</b> with folders: <b>1 · Undiscovered Gems</b>, <b>2 · Fixed tracks</b> and <b>3 · Tags</b> (plus <b>Playlist fixes</b> and <b>Tidy-up</b> if you ticked any). Browse freely: it's a preview, not your library.</p><div class="gwin" role="img" aria-label="Preferences → View → Layout. Tick rekordbox xml. The  icon then appears in the left sidebar."><div class="gbar"><i></i><i></i><i></i><span>Preferences</span></div><div class="gbody"><div class="gtabs"><span class="on">View</span><span>Audio</span><span>Advanced</span></div><div class="gtabs"><span class="on">Layout</span><span>Browse</span></div><div><span class="gchk"></span>rekordbox xml<br><span class="gchk off"></span>iTunes<br><span class="gchk off"></span>Explorer</div></div></div><div class="row"><button class="btn ghost" type="button" data-next="3">&gt; Done, next</button></div></div></li><li class="st" data-i="4"><button class="sh2" type="button"><span class="num">05</span><span class="ttl">Add your Undiscovered Gems</span><span class="tag">adds playlists only</span></button><div class="body"><div class="safe">✓ This adds new playlists. It doesn't change or remove any track.</div><p>Click the <span class="xmlicon" aria-label="rekordbox xml icon"><svg width="14" height="14" viewBox="0 0 22 22" aria-hidden="true"><path d="M9 6 L4 11 L9 16 M13 6 L18 11 L13 16" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> icon, then right-click <b>BINDIG → 1 · Undiscovered Gems</b> → <b>Import Playlist</b>. The gems appear under your own Playlists, ready to dig into. If you ticked any duplicates, <b>Tidy-up</b> is there for you to check.</p><p><b>Tags as My Tags (optional):</b> open <b>3 · Tags</b>, pick a playlist (e.g. <b>Vocal</b>), import it, select all its tracks and click the matching My Tag in Rekordbox's My Tag panel. BINDIG only suggests; your own tags are never changed. Rekordbox's XML can't carry My Tags directly, so this one step is yours.</p><div class="gwin" role="img" aria-label="Right-click BINDIG → 1 · Undiscovered Gems → Import Playlist. Your new playlists appear under your own Playlists, ready to dig into."><div class="gbar"><i></i><i></i><i></i><span>rekordbox</span></div><div class="gbody"><div class="gsplit"><div class="grail"><span class="ri"></span><span class="ri"></span><span class="ri"></span><span class="ri on"><svg width="14" height="14" viewBox="0 0 22 22" aria-hidden="true"><path d="M9 6 L4 11 L9 16 M13 6 L18 11 L13 16" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div><ul class="gtree"><li>rekordbox xml</li><li class="in1">Playlists</li><li class="in2">BINDIG</li><li class="in3 hi">1 · Undiscovered Gems</li><li class="in3">2 · Fixed tracks</li><li class="in3">3 · Tags</li></ul></div><div class="gctx"><ul><li class="hi">Import Playlist</li><li>Import To Collection</li></ul></div></div></div><div class="row"><button class="btn ghost" type="button" data-next="4">&gt; Done, next</button></div></div></li><li class="st" data-i="5"><button class="sh2" type="button"><span class="num">06</span><span class="ttl">Apply your tag fixes</span><span class="tag">the only step that changes tags</span></button><div class="body"><div class="safe">This is the one step that updates your tags, and only for the tracks you select. Your music files, cue points, beat grids and My Tags are never touched.</div><p>Under the <span class="xmlicon" aria-label="rekordbox xml icon"><svg width="14" height="14" viewBox="0 0 22 22" aria-hidden="true"><path d="M9 6 L4 11 L9 16 M13 6 L18 11 L13 16" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> icon, open <b>BINDIG → 2 · Fixed tracks</b>. Click in the <b>track list</b> and select the tracks you want (<b>⌘A</b> for all, or start with a few). Right-click the <b>highlighted tracks</b> → <b>Import To Collection</b>.</p><div class="warn">Right-click the tracks, not the playlist name. The playlist menu only offers Import Playlist, which leaves your tags unchanged.</div><p>If a track doesn't update, run <b>Import To Collection</b> once more. Rekordbox sometimes needs a second pass. Changed your mind? Use the undo file below.</p><div class="gwin" role="img" aria-label="Click the  rekordbox xml icon, open BINDIG → 2 · Fixed tracks, click the track list, ⌘A, then right-click the tracks → Import To Collection. (Right-clicking the playlist name only offers Import Playlist, which doesn't update tags.)"><div class="gbar"><i></i><i></i><i></i><span>rekordbox</span></div><div class="gbody"><div class="gsplit"><div class="grail"><span class="ri"></span><span class="ri"></span><span class="ri"></span><span class="ri on"><svg width="14" height="14" viewBox="0 0 22 22" aria-hidden="true"><path d="M9 6 L4 11 L9 16 M13 6 L18 11 L13 16" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div><ul class="gtree" style="flex:0 0 42%"><li>rekordbox xml</li><li class="in1">Playlists</li><li class="in2">BINDIG</li><li class="in3">1 · Undiscovered Gems</li><li class="in3 hi">2 · Fixed tracks</li></ul><div class="gtracks"><div class="gth">Track title · Artist</div><div class="gtr sel">Use of Weapons · South L…</div><div class="gtr sel">Dodge · Monkey Safari</div><div class="gtr sel">Soul For Sale · Fiberroot</div><div class="gtr sel">Midnight River · Vaults</div></div></div><div class="gctx" style="top:auto;bottom:10px"><ul><li class="hi">Import To Collection</li><li>Add to Playlist</li></ul></div></div></div><div class="row"><button class="btn ghost" type="button" data-next="5">&gt; All done</button></div></div></li></ol>
       <p class="status" id="alldone" role="status" aria-live="polite"></p>
       <p class="note" style="margin-top:14px">How did it go? We're in beta and read everything: <a href="mailto:bindig.dj@gmail.com?subject=BINDIG%20feedback">bindig.dj@gmail.com</a> or DM <a href="https://www.instagram.com/bindig.dj/" target="_blank" rel="noopener">@bindig.dj</a> on Instagram.</p>
       <div class="undo">
@@ -502,7 +510,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
 <script>
 (function(){
   "use strict";
-  var COLS=["id","artist","title","album","genre","year","comments","label","bpm","key","plays","rating","added","bitrate","time","kind","tn","cues","lists"];
+  var COLS=["id","artist","title","album","genre","year","comments","label","bpm","key","plays","rating","added","bitrate","time","kind","tn","cues","lists","remixer","sets","hist","stream","pld"];
   var $=function(id){return document.getElementById(id);};
   var state={xmlText:null,fileName:null,rows:null,preview:null,full:null,token:null};
   var fmt=function(n){return Number(n||0).toLocaleString("en-US");};
@@ -520,17 +528,50 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
     if(!sharing()||!state.full) return;
     try{
       var F=state.full.fixes, fx=[]; F.forEach(function(f,k){ if(state.ok[k]) fx.push([f.id,f.field,f.from,f.to,f.confidence]); });
-      var gm=[]; Object.keys(state.full.gems).forEach(function(g){ state.full.gems[g].forEach(function(x){ var pf=prefOf(x.id); gm.push([x.id,g,x.score,state.cut[x.id]?1:0,pf==="love"?1:pf==="skip"?-1:0]); }); });
-      var mx=(state.full.mixes||[]).map(function(m){return {name:m.name,ids:m.tracks.map(function(t){return t.id;}),gems:m.gems};});
+      var gm=[]; Object.keys(state.full.gems).forEach(function(g){ state.full.gems[g].forEach(function(x){ var pf=prefOf(x.id); gm.push([x.id,g,x.score,state.cut[x.id]?1:0,pf==="love"?1:pf==="skip"?-1:pf==="knew"?2:0]); }); });
+      var mx=[];
       fetch("/api/share",{method:"POST",headers:{"content-type":"application/json","x-bindig-visitor":visitor(),"x-bindig-share":"1"},body:JSON.stringify({tracks:r.tracks,fixes:fx,gems:gm,mixes:mx,tidy:Object.keys(state.tidyOn||{})})}).catch(function(){});
     }catch(e){}
   }
   function status(el,msg,err){el.textContent=msg||"";el.className="status"+(err?" err":"");}
   // Love / skip on gems: remembered on this device and sent with each scan, so the next scan learns from them.
-  function prefs(){ try{ var p=JSON.parse(ls.get("bindig_prefs")||"{}"); return {love:p.love||[],skip:p.skip||[]}; }catch(e){ return {love:[],skip:[]}; } }
-  function setPref(id,kind){ var p=prefs(); id=String(id); p.love=p.love.filter(function(x){return x!==id;}); p.skip=p.skip.filter(function(x){return x!==id;}); if(kind) p[kind].push(id); ls.set("bindig_prefs",JSON.stringify(p)); }
-  function prefOf(id){ var p=prefs(); id=String(id); return p.love.indexOf(id)>=0?"love":p.skip.indexOf(id)>=0?"skip":""; }
-  function links(a,t){ var q=encodeURIComponent((a||"")+" "+(t||"")); return '<span class="links"><a target="_blank" rel="noopener" href="https://www.beatport.com/search?q='+q+'">Beatport</a><a target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query='+q+'">YouTube</a><a target="_blank" rel="noopener" href="https://bandcamp.com/search?q='+q+'">Bandcamp</a><a target="_blank" rel="noopener" href="https://soundcloud.com/search?q='+q+'">SoundCloud</a></span>'; }
+  function prefs(){ try{ var p=JSON.parse(ls.get("bindig_prefs")||"{}"); return {love:p.love||[],skip:p.skip||[],knew:p.knew||[]}; }catch(e){ return {love:[],skip:[],knew:[]}; } }
+  function setPref(id,kind){ var p=prefs(); id=String(id); ["love","skip","knew"].forEach(function(k){ p[k]=p[k].filter(function(x){return x!==id;}); }); if(kind) p[kind].push(id); ls.set("bindig_prefs",JSON.stringify(p)); }
+  function prefOf(id){ var p=prefs(); id=String(id); return p.love.indexOf(id)>=0?"love":p.knew.indexOf(id)>=0?"knew":p.skip.indexOf(id)>=0?"skip":""; }
+  function links(a,t){ var q=encodeURIComponent((a||"")+" "+(t||"")); return '<span class="links"><a target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query='+q+'">YouTube</a><a target="_blank" rel="noopener" href="https://open.spotify.com/search/'+q+'">Spotify</a><a target="_blank" rel="noopener" href="https://www.beatport.com/search?q='+q+'">Beatport</a><a target="_blank" rel="noopener" href="https://bandcamp.com/search?q='+q+'">Bandcamp</a></span>'; }
+
+  // ---- 30-second previews: iTunes first, Deezer as backup. Only the artist and title are sent, and only when you press play.
+  var audio=null, playing=null, pvCache={}, jpN=0;
+  function jsonp(url,ms){ return new Promise(function(res){ var cb="bdgjp"+(++jpN)+"_"+Date.now(), sc=document.createElement("script"), done=false;
+    var fin=function(v){ if(done) return; done=true; try{ delete window[cb]; }catch(e){ window[cb]=undefined; } sc.remove(); res(v); };
+    window[cb]=function(d){ fin(d); }; sc.onerror=function(){ fin(null); }; setTimeout(function(){ fin(null); },ms||6000);
+    sc.src=url+(url.indexOf("?")>=0?"&":"?")+"callback="+cb; document.head.appendChild(sc); }); }
+  var clean=function(x){ return String(x||"").toLowerCase().replace(/\((original|extended)( mix)?\)|- original mix|\b(feat|ft)\b\.?.*$/g,"").replace(/[^a-z0-9]+/g," ").trim(); };
+  function bestHit(list,a,t,get){ var A=clean(a).split(" ")[0]||"", T=clean(t), best=null, bs=-1;
+    (list||[]).forEach(function(x){ var g=get(x); if(!g.url) return; var sc=0, gt=clean(g.title), ga=clean(g.artist);
+      if(A&&ga.indexOf(A)>=0) sc+=2; if(gt===T) sc+=3; else if(T&&(gt.indexOf(T)>=0||T.indexOf(gt)>=0)) sc+=2; else if(T.split(" ")[0]&&gt.indexOf(T.split(" ")[0])>=0) sc+=1;
+      if(sc>bs){ bs=sc; best=g; } });
+    return bs>=3?best:null; }
+  function findPreview(a,t){ var k=a+"|"+t; if(pvCache[k]!==undefined) return Promise.resolve(pvCache[k]);
+    var q=encodeURIComponent((String(a||"").split(/,|&| feat/i)[0])+" "+String(t||"").replace(/\((original|extended) mix\)/i,""));
+    return jsonp("https://itunes.apple.com/search?media=music&entity=song&limit=10&term="+q).then(function(d){
+      var h=d&&bestHit(d.results,a,t,function(x){return {url:x.previewUrl,title:x.trackName,artist:x.artistName,src:"Apple Music"};});
+      if(h) return h;
+      return jsonp("https://api.deezer.com/search?output=jsonp&limit=10&q="+q).then(function(z){ return z&&bestHit(z.data,a,t,function(x){return {url:x.preview,title:x.title,artist:x.artist&&x.artist.name,src:"Deezer"};}); });
+    }).then(function(h){ pvCache[k]=h||null; return pvCache[k]; }); }
+  function pvBtn(x){ return '<button type="button" class="pv" data-pv="'+esc(x.id)+'" data-a="'+esc(x.artist)+'" data-t="'+esc(x.title)+'" aria-label="Preview '+esc(x.artist)+' – '+esc(x.title)+'">▶ Preview</button>'; }
+  function stopPv(){ if(audio){ audio.pause(); } if(playing){ playing.classList.remove("on"); playing.textContent="▶ Preview"; } playing=null; }
+  document.addEventListener("click",function(e){
+    var b=e.target.closest("[data-pv]"); if(!b||b.classList.contains("nf")) return;
+    if(playing===b){ stopPv(); return; } stopPv();
+    b.textContent="… finding"; playing=b;
+    findPreview(b.dataset.a,b.dataset.t).then(function(h){
+      if(playing!==b) return;
+      if(!h){ b.classList.add("nf"); b.textContent="No preview"; b.title="Not in Apple Music or Deezer (vinyl-only or unreleased?). Try the links."; playing=null; return; }
+      audio=audio||new Audio(); audio.src=h.url; audio.onended=stopPv;
+      audio.play().then(function(){ b.classList.add("on"); b.textContent="■ Stop"; b.title="30-second preview from "+h.src; }).catch(function(){ b.textContent="▶ Preview"; playing=null; });
+    });
+  });
 
   // ---- parse Rekordbox XML in the browser
   function parse(text){
@@ -541,8 +582,13 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
     var ts=col.getElementsByTagName("TRACK"), rows=[], inLists={}, pls=doc.getElementsByTagName("PLAYLISTS")[0], locToId={};
     for(var q=0;q<ts.length;q++){ locToId[ts[q].getAttribute("Location")||""]=ts[q].getAttribute("TrackID"); }
     state.playlists=[];
+    var inSets={}, inHist={}, plDate={};
     function walk(node,path){ for(var c=node.firstElementChild;c;c=c.nextElementSibling){ if(c.tagName!=="NODE") continue; var nm=c.getAttribute("Name")||"";
-      if(c.getAttribute("Type")==="1"){ var kt=c.getAttribute("KeyType"), ids=[]; for(var tr=c.firstElementChild;tr;tr=tr.nextElementSibling){ if(tr.tagName!=="TRACK") continue; var k=tr.getAttribute("Key"); var id=kt==="1"?locToId[k]:k; if(id){ ids.push(id); inLists[id]=(inLists[id]||0)+1; } } state.playlists.push({name:path.concat(nm).join(" / "),ids:ids}); }
+      if(c.getAttribute("Type")==="1"){ var kt=c.getAttribute("KeyType"), ids=[]; for(var tr=c.firstElementChild;tr;tr=tr.nextElementSibling){ if(tr.tagName!=="TRACK") continue; var k=tr.getAttribute("Key"); var id=kt==="1"?locToId[k]:k; if(id){ ids.push(id); inLists[id]=(inLists[id]||0)+1; } }
+        var full=path.concat(nm).join(" / "); state.playlists.push({name:full,ids:ids});
+        // Your playlists as history: History playlists = played; set-sized playlists (≤80) = tracks you know. BINDIG's own playlists don't count.
+        if(!/^BINDIG( \/|$)/.test(full)){ var isH=/histor/i.test(full), dm=/(20\d\d)[-._ ]?(\d\d)?/.exec(full), d=dm?dm[1]+"-"+(dm[2]&&+dm[2]>=1&&+dm[2]<=12?dm[2]:"06")+"-01":"";
+          ids.forEach(function(id){ if(isH) inHist[id]=(inHist[id]||0)+1; else if(ids.length<=80) inSets[id]=(inSets[id]||0)+1; if(d&&d>(plDate[id]||"")) plDate[id]=d; }); } }
       else walk(c,nm==="ROOT"?path:path.concat(nm)); } }
     if(pls) walk(pls,[]);
     state.meta={};
@@ -550,7 +596,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
       var t=ts[i], g=function(a){return t.getAttribute(a)||"";};
       var raw=(g("Location")||"").replace(/^file:\/\/localhost/,""), dec; try{dec=decodeURIComponent(raw);}catch(e){dec=raw;} var loc=dec.split("/"), cues=t.getElementsByTagName("POSITION_MARK").length;
       state.meta[g("TrackID")]={file:loc.pop()||"",folder:loc.pop()||"",cues:cues,lists:inLists[g("TrackID")]||0};
-      rows.push([g("TrackID"),g("Artist"),g("Name"),g("Album"),g("Genre"),g("Year"),g("Comments"),g("Label"),+g("AverageBpm")||0,g("Tonality"),+g("PlayCount")||0,+g("Rating")||0,g("DateAdded"),+g("BitRate")||0,+g("TotalTime")||0,g("Kind"),+g("TrackNumber")||0,cues,inLists[g("TrackID")]||0]);
+      rows.push([g("TrackID"),g("Artist"),g("Name"),g("Album"),g("Genre"),g("Year"),g("Comments"),g("Label"),+g("AverageBpm")||0,g("Tonality"),+g("PlayCount")||0,+g("Rating")||0,g("DateAdded"),+g("BitRate")||0,+g("TotalTime")||0,g("Kind"),+g("TrackNumber")||0,cues,inLists[g("TrackID")]||0,g("Remixer"),inSets[g("TrackID")]||0,inHist[g("TrackID")]||0,/^file:/i.test(g("Location"))?0:1,plDate[g("TrackID")]||""]);
     }
     if(!rows.length) throw new Error("No tracks found in that file.");
     return rows;
@@ -577,10 +623,9 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
       req.then(function(p){
         var h=p.health, steps=[
           ["> "+fmt(h.fixes)+" tag problems found across "+fmt(h.fixable)+" tracks","ok"],
-          ["> learning your taste from "+fmt(p.taste.playedTracks)+" played tracks"],
-          ["> "+fmt(h.unplayed)+" tracks you've never played. looking for gems…"],
-          ["> "+fmt(h.gems)+" undiscovered gems that fit your sound","ok"],
-          ["> weaving them into "+(h.mixes||0)+" Gem Crates with your favourites","ok"],
+          ["> reading your taste from "+fmt(p.taste.playedTracks)+" tracks you play"],
+          ["> "+fmt(h.candidates||h.unplayed)+" tracks you've never played or playlisted. digging…"],
+          ["> "+fmt(h.gems)+" gems that fit what you play now","ok"],
           ["> done. library health "+h.score+"/100","ok"]];
         var wait=quiet?0:Math.max(0,1200-(Date.now()-t0)), chain=sleep(wait);
         steps.forEach(function(s){ chain=chain.then(function(){ L.push(s); term(L); return sleep(quiet?0:520); }); });
@@ -591,23 +636,25 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
 
   function lockRows(n){ var s=""; for(var i=0;i<n;i++) s+='<div>Artist name hidden – track title hidden · xxxxxxx → xxxxxxxxx</div>'; return '<div class="lock" aria-hidden="true">'+s+'</div>'; }
   function unl(label){ return '<button class="btn ghost unl" type="button" data-unlock>&gt; '+label+'</button>'; }
+  function gemLine(x,full){ return '<div class="gemrow"><b style="font-weight:500">'+esc(x.artist)+' – '+esc(x.title)+'</b><span class="note" style="font-size:12px">'+esc([x.genre,x.key,x.bpm?x.bpm+" BPM":""].filter(Boolean).join(" · "))+(x.reasons&&x.reasons.length?' · '+esc(x.reasons.slice(0,2).join(" · ")):'')+'</span><span class="gl">'+pvBtn(x)+(full?'':links(x.artist,x.title))+'</span></div>'; }
+  function renderRead(p){
+    var R=p.read; if(!R||!R.text){ $("read").hidden=true; return; } $("read").hidden=false;
+    var chips=[]; if(R.then&&R.then.length&&R.now&&R.now.length) chips.push('Then <b>'+esc(R.then.slice(0,2).join(", "))+'</b> → now <b>'+esc(R.now.slice(0,2).join(", "))+'</b>');
+    if(R.bpm&&R.bpm[0]) chips.push('Sweet spot <b>'+R.bpm[0]+'–'+R.bpm[1]+' BPM</b>'); if(R.labels&&R.labels.length) chips.push('Labels <b>'+esc(R.labels.slice(0,3).join(", "))+'</b>');
+    if(R.window) chips.push('Reading what you added or playlisted since <b>'+esc(R.window.slice(0,7))+'</b>');
+    $("read").innerHTML='<div class="prompt">$ ./bindig read --taste</div><p class="rtext">'+esc(R.text)+'</p>'+(chips.length?'<div class="rchips2">'+chips.map(function(c){return '<span>'+c+'</span>';}).join("")+'</div>':'');
+  }
   function renderTiles(p){
-    var h=p.health, fx=p.fixSample.slice(0,2), mp=p.mixesPreview||[], gg=p.gemsByGenre||[], gp=p.gapsPreview||{releases:[],totalReleases:0};
+    var h=p.health, fx=p.fixSample.slice(0,2), free=p.freeGems||[], gg=p.gemsByGenre||[];
     $("tileFix").innerHTML='<div class="n">'+fmt(h.fixes)+'<small>tag fixes</small></div><h3>Clean tags</h3>'+
       fx.map(function(f){return '<div class="ex"><b>'+esc(f.artist)+' – '+esc(f.title)+'</b><span>'+f.field+': <span class="was">'+(esc(f.from)||"(blank)")+'</span> → <span class="now">'+(esc(f.to)||"(blank)")+'</span></span></div>';}).join("")+lockRows(3)+unl("Unlock all "+fmt(h.fixes)+" fixes");
-    var mx=Math.max.apply(null,gg.map(function(g){return g.count;}).concat([1])), g0=gg[0]&&gg[0].sample[0];
-    $("tileGems").innerHTML='<div class="n">'+fmt(h.gems)+'<small>undiscovered gems</small></div><h3>Turn your 0s into 1s</h3>'+
-      '<p class="note">Out of '+fmt(h.unplayed)+' tracks you\'ve never played, these fit your sound best.</p>'+
-      gg.slice(0,4).map(function(g){return '<div class="mbar"><span>'+esc(g.genre)+'</span><span class="t"><span class="f" style="display:block;background:var(--signal);width:'+(100*g.count/mx)+'%"></span></span><span>'+fmt(g.count)+'</span></div>';}).join("")+
-      (g0?'<div class="ex"><b>'+esc(g0.artist)+' – '+esc(g0.title)+' <span class="newtag">new to you</span>'+(g0.type?' <span class="gtype">'+esc(g0.type)+'</span>':'')+'</b><span class="note">'+esc(g0.reasons.join(" · "))+'</span></div>':'')+
-      (h.gemTypes?'<p class="note" style="font-size:12px">'+Object.keys(h.gemTypes).sort(function(a,b){return h.gemTypes[b]-h.gemTypes[a];}).map(function(k){return fmt(h.gemTypes[k])+' '+esc(k.toLowerCase());}).join(" · ")+'</p>':'')+
-      ((p.becausePreview||[])[0]&&p.becausePreview[0].picks[0]?'<div class="ex"><b>Because you play '+esc(p.becausePreview[0].fav.artist)+' – '+esc(p.becausePreview[0].fav.title)+'</b><span>try '+esc(p.becausePreview[0].picks[0].artist)+' – '+esc(p.becausePreview[0].picks[0].title)+' <span class="note">('+esc(p.becausePreview[0].picks[0].why)+')</span></span></div>':'')+lockRows(2)+unl("Unlock all "+fmt(h.gems)+" gems");
-    var keys=function(m){return '<div class="keys">'+m.keys.map(function(k,i){return '<span'+(m.news[i]?' class="new"':'')+'>'+esc(k)+'</span>';}).join("")+'</div>';};
-    $("tileMixes").innerHTML='<div class="n">'+mp.length+'<small>Gem Crates</small></div><h3>Favourites meet gems</h3>'+
-      (mp[0]?'<div class="ex"><b>'+esc(mp[0].name)+' · '+mp[0].count+' tracks · '+mp[0].gems+' new to you</b>'+keys(mp[0])+mp[0].tracks.slice(0,2).map(function(t){return '<span>'+esc(t.artist)+' – '+esc(t.title)+' · '+esc(t.key)+' · '+t.bpm+' BPM'+(t.isNew?' <span class="newtag">new to you</span>':'')+'</span>';}).join("")+'</div>':'<p class="note">'+esc(h.mixNote||"No Gem Crates this time.")+'</p>')+
-      mp.slice(1).map(function(m){return '<div class="ex"><b>🔒 '+esc(m.name)+'</b><span class="note">'+m.count+' tracks · '+m.gems+' new to you</span></div>';}).join("")+unl("Unlock all "+mp.length+" Gem Crates");
-    $("stack").innerHTML=[fmt(h.gems)+" undiscovered gems, ranked and grouped by genre",mp.length+" Gem Crates: your favourites grouped with gems by key and BPM",fmt(h.fixes)+" tag fixes, each with its reason",(p.tagsPreview&&p.tagsPreview.length?p.tagsPreview.length+" tag playlists (Vocal, Dub, Era, Role…) to turn into My Tags":"Tag ideas for My Tags"),(p.becauseCount?p.becauseCount+" \"Because you play…\" picks":"\"Because you play…\" picks")+" and a crate builder for your next gig","A Rekordbox file you import on your terms, plus an undo file and change log"].map(function(x){return '<li><span>'+x+'</span></li>';}).join("");
-    $("stickymsg").innerHTML='Your crate is ready · <b>'+fmt(h.gems)+'</b> gems · <b>'+mp.length+'</b> Gem Crates · <b>'+fmt(h.fixes)+'</b> fixes';
+    $("tileGems").innerHTML='<div class="n">'+fmt(h.gems)+'<small>gems in your crate</small></div><h3>Never played. Should be.</h3>'+
+      '<p class="note">Unplayed tracks you already own that fit what you play now. Here are '+free.length+' on the house. Press play.</p>'+
+      free.map(function(x){return '<div class="ex">'+gemLine(x,false)+'</div>';}).join("")+
+      (gg.length?'<p class="note" style="font-size:12px">The rest: '+gg.map(function(g){return fmt(g.count)+' '+esc(g.genre);}).join(" · ")+'</p>':'')+
+      (h.gems>free.length?lockRows(3)+unl("Unlock all "+fmt(h.gems)+" gems"):'');
+    $("stack").innerHTML=["Your taste, read: how it's moved and what you lean on",fmt(h.gems)+" unplayed gems from your own crate, with 30-second previews",fmt(h.fixes)+" tag fixes, each with its reason",(p.tagsPreview&&p.tagsPreview.length?p.tagsPreview.length+" tag playlists (Vocal, Dub, Era, Role…) to turn into My Tags":"Tag ideas for My Tags"),"A Rekordbox file you import on your terms, plus an undo file and change log"].map(function(x){return '<li><span>'+x+'</span></li>';}).join("");
+    $("stickymsg").innerHTML='Your crate is ready · <b>'+fmt(h.gems)+'</b> gems · <b>'+fmt(h.fixes)+'</b> fixes';
   }
   function setStage(n){ Array.prototype.forEach.call(document.querySelectorAll("#stepbar span"),function(x){ var k=+x.dataset.s; x.className=k<n?"done":k===n?"on":""; }); }
   setStage(1);
@@ -621,28 +668,23 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
     var bars=[["Tracks with fixable tags",h.fixable,""],["Genre missing, needs lookup",h.genreNeedsLookup,"f-amber"],["Year missing",h.yearMissing,"f-amber"],["Duplicates",h.duplicates,"f-red"],["Never played",h.unplayed,""]];
     $("bars").innerHTML=bars.map(function(b){var pct=Math.min(100,100*b[1]/Math.max(1,h.tracks));return '<div class="bar"><span>'+esc(b[0])+'</span><span>'+fmt(b[1])+' · '+pct.toFixed(1)+'%</span><div class="track"><div class="fill '+b[2]+'" style="width:'+pct+'%"></div></div></div>';}).join("");
     $("cells").innerHTML=[["Tracks",h.tracks],["Played",h.played],["Fixes found",h.fixes],["Label missing",h.labelMissing]].map(function(c){return '<div class="cell"><b>'+fmt(c[1])+'</b><span>'+c[0]+'</span></div>';}).join("");
-    renderReady(h);
+    renderReady(h); renderRead(p);
     $("freeView").hidden=!!full; $("paidView").hidden=!full; $("sticky").hidden=!!full;
     if(!full){ $("stepbar").querySelector('[data-s="4"]').textContent="4 · Unlock"; renderTiles(p); setStage(3); return; }
     setStage(4); $("stepbar").querySelector('[data-s="4"]').textContent="4 · Unlocked";
-    renderReview(); renderGems(); renderBecause(); renderTidy(); renderPlaylists(); renderSetsGaps(p,true); initFocus(p); renderSteps(); renderReveal(p);
-    $("unlocknote").textContent=fmt(Object.values(p.gems).reduce(function(a,b){return a+b.length;},0))+" gems · "+(p.mixes||[]).length+" Gem Crates · "+fmt(p.fixes.length)+" fixes";
+    renderReview(); renderGems(); renderTidy(); renderPlaylists(); renderSteps(); renderReveal(p);
+    $("unlocknote").textContent=fmt(Object.values(p.gems).reduce(function(a,b){return a+b.length;},0))+" gems · "+fmt(p.fixes.length)+" fixes";
     if(state.fresh){ state.fresh=false; $("reveal").classList.remove("compact"); showTab("gems"); window.scrollTo(0,0); countUpAll(); }
-    else { var tb=ls.get("bindig_tab"); showTab(["gems","mixes","review","import"].indexOf(tb)>=0?tb:"gems"); if(ls.get("bindig_rv")==="compact") $("reveal").classList.add("compact"); }
+    else { var tb=ls.get("bindig_tab"); showTab(["gems","review","import"].indexOf(tb)>=0?tb:"gems"); if(ls.get("bindig_rv")==="compact") $("reveal").classList.add("compact"); }
     syncToggle();
   }
   function renderReveal(p){
     var P=p.gems||{}, shelves=Object.keys(P).map(function(g){return [g,P[g].length];}).sort(function(a,b){return b[1]-a[1];}), nG=shelves.reduce(function(a,b){return a+b[1];},0), mx=Math.max.apply(null,shelves.map(function(x){return x[1];}).concat([1]));
     var top=[]; Object.keys(P).forEach(function(g){P[g].forEach(function(x){top.push(x);});}); top.sort(function(a,b){return b.score-a.score;});
-    $("rvGems").innerHTML='<div class="rv-n a" data-to="'+nG+'">'+fmt(nG)+'</div><h3>Undiscovered gems</h3>'+
+    $("rvGems").innerHTML='<div class="rv-n a" data-to="'+nG+'">'+fmt(nG)+'</div><h3>Your gems</h3>'+
       '<div class="rv-detail" style="display:grid;gap:6px">'+shelves.slice(0,5).map(function(x){return '<div class="rv-bar"><span>'+esc(x[0])+'</span><span class="t"><span class="f" style="display:block;width:'+(100*x[1]/mx)+'%"></span></span><span>'+x[1]+'</span></div>';}).join("")+'</div>'+
-      '<ul class="rv-list rv-detail">'+top.slice(0,4).map(function(x){return '<li><span>'+esc(x.artist)+' – '+esc(x.title)+' <span class="newtag">new to you</span></span><i>'+esc((x.reasons||[]).slice(0,2).join(" · "))+'</i></li>';}).join("")+'</ul>'+
+      '<ul class="rv-list rv-detail">'+top.slice(0,4).map(function(x){return '<li><span>'+esc(x.artist)+' – '+esc(x.title)+' '+pvBtn(x)+'</span><i>'+esc((x.reasons||[]).slice(0,2).join(" · "))+'</i></li>';}).join("")+'</ul>'+
       '<button type="button" class="rv-go" data-go="gems">Explore gems →</button>';
-    var M=p.mixes||[];
-    $("rvMixes").innerHTML='<div class="rv-n" data-to="'+M.length+'">'+M.length+'</div><h3>Gem Crates</h3>'+
-      (M.length?'<ul class="rv-list rv-detail">'+M.map(function(m){return '<li><span>'+esc(m.name)+'</span><i>'+m.minutes+' min · '+m.tracks.length+' tracks · '+m.gems+(m.gems===1?' gem':' gems')+'</i></li>';}).join("")+'</ul>'+
-      '<div class="keys rv-detail">'+M[0].tracks.map(function(t){return '<span'+(t.isNew?' class="new"':'')+'>'+esc(t.key)+'</span>';}).join("")+'</div>':'<p class="note rv-detail">'+esc((p.health&&p.health.mixNote)||"")+'</p>')+
-      '<button type="button" class="rv-go" data-go="mixes">Explore Gem Crates →</button>';
     var by=(p.health&&p.health.byRule)||{}, rules=Object.keys(by).map(function(k){return [k,by[k]];}).sort(function(a,b){return b[1]-a[1];});
     $("rvTags").innerHTML='<div class="rv-n" data-to="'+(p.fixes||[]).length+'">'+fmt((p.fixes||[]).length)+'</div><h3>Tag fixes</h3>'+
       '<ul class="rv-list rv-detail">'+rules.slice(0,5).map(function(r){return '<li><span>'+fmt(r[1])+' · '+esc(r[0])+'</span></li>';}).join("")+
@@ -664,13 +706,13 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
     var items=[
       ["Library size",fmt(h.tracks)+" tracks",grade(h.tracks,500,200),"A bigger crate gives BINDIG more to dig through."],
       ["Play history",fmt(r.played)+" played",grade(r.played,50,20),"BINDIG learns your taste from play counts. Play a few more sets in Rekordbox, export again and rescan."],
-      ["Keys",pc(r.keys)+"% analysed",grade(pc(r.keys),90,50),"Gem Crates need keys. Analyse your tracks in Rekordbox (or Mixed In Key)."],
+      ["Keys",pc(r.keys)+"% analysed",grade(pc(r.keys),90,50),"Gems are ordered around the Camelot wheel. Analyse keys in Rekordbox (or Mixed In Key)."],
       ["BPM",pc(r.bpm)+"% analysed",grade(pc(r.bpm),90,50),"Analyse your tracks in Rekordbox so BPM is set."],
-      ["Genres",pc(r.genres)+"% tagged",grade(pc(r.genres),70,40),"Fill in blank genres for better genre playlists and Gem Crates."],
-      ["Energy",pc(r.energy)>=50?pc(r.energy)+"% (Mixed In Key)":"not found",pc(r.energy)>=50?"ok":"opt","Optional: Mixed In Key energy adds warm-up and peak shaping to Gem Crates."]
+      ["Genres",pc(r.genres)+"% tagged",grade(pc(r.genres),70,40),"Fill in blank genres so BINDIG can tell what you play now."],
+      ["Energy",pc(r.energy)>=50?pc(r.energy)+"% (Mixed In Key)":"not found",pc(r.energy)>=50?"ok":"opt","Optional: Mixed In Key energy helps match gems to the energy you play at."]
     ];
     var sg=h.signals||{}, notes=[];
-    if(sg.historyThin) notes.push('<b>Only '+sg.playedPct+'% of your tracks have plays.</b> If you play from USB, your play history may not have reached your collection yet. Plug in the USB you play from, open it in Rekordbox\'s sidebar and import its histories (Rekordbox usually offers this when you connect it), then export again and rescan. Until then, some "gems" may be tracks you already know: tap ✕ to skip them.');
+    if(sg.historyThin) notes.push('<b>Only '+sg.playedPct+'% of your tracks have plays.</b> If you play from USB, your play history may not have reached your collection yet. Plug in the USB you play from, open it in Rekordbox\'s sidebar and import its histories (Rekordbox usually offers this when you connect it), then export again and rescan. BINDIG already treats tracks in your History playlists and in set-sized playlists as ones you know. Still see one you know? Tap ✓ knew it.');
     if(sg.bulkRated) notes.push('<b>'+sg.ratedPct+'% of your tracks have a star rating.</b> BINDIG treats '+sg.likeStars+'★ and up as favourites, and rated tracks you\'ve never played can still be gems.');
     if(sg.bulkCued) notes.push('<b>'+sg.cuedPct+'% of your tracks have cue points</b> (often from Mixed In Key or auto cues), so cue points aren\'t used to judge what you know.');
     if(sg.prepped>=20) notes.push('<b>'+fmt(sg.prepped)+' tracks are prepped but never played</b> (cue points or rating, 0 plays). Your best gems are often in there.');
@@ -684,7 +726,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
     Array.prototype.forEach.call(document.querySelectorAll("[data-panel]"),function(s){s.hidden=s.dataset.panel!==name;});
     ls.set("bindig_tab",name);
     if(!$("paidView").hidden) setStage(name==="import"?5:4);
-    var O=["gems","mixes","review","import"], L={gems:"Undiscovered gems",mixes:"Gem Crates",review:"Clean tags",import:"Import to Rekordbox"}, k=O.indexOf(name);
+    var O=["gems","review","import"], L={gems:"Your gems",review:"Clean tags",import:"Import to Rekordbox"}, k=O.indexOf(name);
     $("tabPrev").hidden=k<=0; $("tabNext").hidden=k>=O.length-1;
     if(k>0) $("tabPrev").textContent="‹ "+(k)+" · "+L[O[k-1]]; if(k<O.length-1) $("tabNext").textContent=(k+2)+" · "+L[O[k+1]]+" ›";
     $("tabPrev").dataset.to=O[k-1]||""; $("tabNext").dataset.to=O[k+1]||"";
@@ -757,18 +799,19 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
   $("gemtypes").addEventListener("click",function(e){ var b=e.target.closest("[data-gt]"); if(!b) return; state.gemType=b.dataset.gt; renderGems(); });
   function renderGems(){
     renderGemTypes();
-    var P=gemView(), gs=Object.keys(P).sort(function(a,b){return P[b].length-P[a].length;});
+    var P=gemView(), gs=Object.keys(P); // engine order: most-played genre first, Camelot order inside
     state.pgen=gs; state.view=P;
     $("pgroups").innerHTML=gs.map(function(g,gi){ var on=P[g].filter(function(x){return state.cut[x.id];}).length;
-      return '<details class="grp" data-pg="'+gi+'"'+(gs.length===1?' open':'')+'><summary><input type="checkbox" data-pgrp="'+gi+'" aria-label="Include all '+esc(g)+' gems"'+(on===P[g].length?" checked":"")+'><span>'+esc(g)+'</span><span class="cnt" data-pcnt="'+gi+'">'+on+' of '+P[g].length+' included</span><span class="chev">›</span></summary><div class="inner" data-pinner="'+gi+'"></div></details>';}).join("")||'<p class="note">No gems of this type.</p>';
+      return '<details class="grp" data-pg="'+gi+'" open><summary><input type="checkbox" data-pgrp="'+gi+'" aria-label="Include all '+esc(g)+' gems"'+(on===P[g].length?" checked":"")+'><span>'+esc(g)+' <span class="keys" style="display:inline-flex;margin-left:6px">'+P[g].map(function(x){return '<span>'+esc(x.key||"–")+'</span>';}).join("")+'</span></span><span class="cnt" data-pcnt="'+gi+'">'+on+' of '+P[g].length+' included</span><span class="chev">›</span></summary><div class="inner" data-pinner="'+gi+'"></div></details>';}).join("")||'<p class="note">No gems this time. Play a few more sets (or import your USB history), export again and rescan.</p>';
     Array.prototype.forEach.call(document.querySelectorAll("#pgroups input[data-pgrp]"),function(cb){ var it=P[gs[+cb.dataset.pgrp]], on=it.filter(function(x){return state.cut[x.id];}).length; cb.indeterminate=on>0&&on<it.length; });
-    if(gs.length===1) fillGems(0);
+    gs.forEach(function(_,gi){ fillGems(gi); });
     counts();
   }
-  function fbBtns(id){ var p=prefOf(id); return '<span class="fb"><button type="button" class="love'+(p==="love"?" on":"")+'" data-fb="love" data-fid="'+esc(id)+'" aria-pressed="'+(p==="love")+'" title="Love: more like this next scan">♥ love</button><button type="button" class="skip'+(p==="skip"?" on":"")+'" data-fb="skip" data-fid="'+esc(id)+'" aria-pressed="'+(p==="skip")+'" title="Skip: never suggest this again">✕ skip</button></span>'; }
+  function fbBtns(id){ var p=prefOf(id), b=function(k,label,title){ return '<button type="button" class="'+k+(p===k?" on":"")+'" data-fb="'+k+'" data-fid="'+esc(id)+'" aria-pressed="'+(p===k)+'" title="'+title+'">'+label+'</button>'; };
+    return '<span class="fb">'+b("love","♥ love","A real find: more like this next scan")+b("knew","✓ knew it","You already know it: BINDIG learns from this")+b("skip","✕ skip","Not for you: never suggest it again")+'</span>'; }
   function fillGems(gi){
     var box=document.querySelector('[data-pinner="'+gi+'"]'); if(!box||box.dataset.done) return; box.dataset.done=1;
-    box.innerHTML='<ul class="plist">'+state.view[state.pgen[gi]].map(function(x){return '<li><input type="checkbox" data-pid="'+esc(x.id)+'"'+(state.cut[x.id]?" checked":"")+' aria-label="Include"><span><b style="font-weight:500">'+esc(x.artist)+' – '+esc(x.title)+'</b> '+(x.type?'<span class="gtype">'+esc(x.type)+'</span>':'')+'<i>'+esc(x.reasons.join(" · "))+'</i>'+links(x.artist,x.title)+'<br>'+fbBtns(x.id)+'</span><span class="sc">'+(x.key?esc(x.key)+' · ':'')+(x.bpm||'')+' BPM · fit '+x.score+'/100</span></li>';}).join("")+'</ul>';
+    box.innerHTML='<ul class="plist">'+state.view[state.pgen[gi]].map(function(x){return '<li><input type="checkbox" data-pid="'+esc(x.id)+'"'+(state.cut[x.id]?" checked":"")+' aria-label="Include"><span><b style="font-weight:500">'+esc(x.artist)+' – '+esc(x.title)+'</b> '+(x.type?'<span class="gtype">'+esc(x.type)+'</span>':'')+'<i>'+esc(x.reasons.join(" · "))+(x.label&&x.reasons.join(" ").indexOf(x.label)<0?' · '+esc(x.label):'')+'</i><span class="gl" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:4px">'+pvBtn(x)+links(x.artist,x.title)+'</span>'+fbBtns(x.id)+'</span><span class="sc">'+(x.key?esc(x.key)+' · ':'')+(x.bpm||'')+' BPM</span></li>';}).join("")+'</ul>';
   }
   function syncPurge(gi){
     var it=state.view[state.pgen[gi]], on=it.filter(function(x){return state.cut[x.id];}).length, cb=document.querySelector('input[data-pgrp="'+gi+'"]');
@@ -785,7 +828,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
   document.addEventListener("click",function(e){
     var b=e.target.closest("[data-fb]"); if(!b) return;
     var id=b.dataset.fid, kind=b.dataset.fb, now=prefOf(id)===kind?"":kind; setPref(id,now);
-    if(now==="skip") delete state.cut[id]; if(now==="love") state.cut[id]=1;
+    if(now==="skip"||now==="knew") delete state.cut[id]; if(now==="love") state.cut[id]=1;
     var wrap=b.parentNode; wrap.outerHTML=fbBtns(id);
     var inner=document.querySelector('[data-pid="'+CSS.escape(id)+'"]'); if(inner){ var pi=inner.closest("[data-pinner]"); if(pi) syncPurge(+pi.dataset.pinner); } else counts();
   });
@@ -830,74 +873,6 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
   $("pllist").addEventListener("change",function(e){ var i=e.target.dataset.pl; if(i===undefined) return; if(e.target.checked) state.plOn[i]=1; else delete state.plOn[i]; renderPlaylists(); });
   $("plAll").addEventListener("change",function(e){ state.plOn={}; if(e.target.checked) (state.plIssues||[]).forEach(function(x){ if(!x.empty) state.plOn[x.i]=1; }); renderPlaylists(); });
 
-  // ---- mixes & gaps
-  function renderSetsGaps(p,full){
-    var sets=p.mixes, keys=function(arr,news){return '<div class="keys">'+arr.map(function(k,i){return '<span'+(news&&news[i]?' class="new"':'')+'>'+esc(k)+'</span>';}).join("")+'</div>';};
-    if(!sets||!sets.length){ $("sets").innerHTML='<p class="note">'+esc((p.health&&p.health.mixNote)||"No Gem Crates this time.")+'</p>'; }
-    else if(!full){
-      $("sets").innerHTML='<div class="shelves">'+sets.map(function(s,i){return '<div class="shelf"><h3>'+esc(s.name)+' <span>'+s.count+' tracks</span></h3>'+keys(s.keys)+
-        (i===0?s.tracks.map(function(t){return '<div class="item"><b>'+esc(t.artist)+' – '+esc(t.title)+'</b><i>'+esc(t.key)+' · '+t.bpm+' BPM'+(t.energy?' · energy '+t.energy:'')+'</i></div>';}).join("")+'<div class="note">+ '+(s.count-3)+' more after unlock</div>':'<div class="note">Full tracklist after unlock</div>')+'</div>';}).join("")+'</div>';
-    } else {
-      $("sets").innerHTML=sets.map(function(s,si){return '<details class="grp"><summary><span>♫</span><span>'+esc(s.name)+' · '+s.minutes+' min'+keys(s.tracks.map(function(t){return t.key;}),s.tracks.map(function(t){return t.isNew;}))+'</span><span class="cnt">'+s.gems+' new · '+s.tracks.length+' tracks</span><span class="chev">›</span></summary><div class="inner"><p style="padding:8px 14px"><button type="button" class="cardbtn" data-card="'+si+'">▣ Share card (Instagram image)</button></p><table><thead><tr><th>#</th><th>Track</th><th>Key</th><th>BPM</th><th>Energy</th></tr></thead><tbody>'+
-        s.tracks.map(function(t,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(t.artist)+' – '+esc(t.title)+(t.isNew?' <span class="newtag">new to you</span>':'')+'<br>'+links(t.artist,t.title)+'</td><td>'+esc(t.key)+'</td><td>'+t.bpm+'</td><td>'+(t.energy||"–")+'</td></tr>';}).join("")+'</tbody></table></div></details>';}).join("")+'<p class="note" style="margin-top:10px">These come in your download as playlists under BINDIG → 1 · Gem Crates.</p>';
-    }
-  }
-
-  // ---- focus panel: one crate for a chosen genre / BPM / length / vibe
-  function initFocus(p){
-    if(state.focusInit) return; state.focusInit=true;
-    var gi=COLS.indexOf("genre"), c={}; (state.rows||[]).forEach(function(r){ var g=r[gi]; if(g) c[g]=(c[g]||0)+1; });
-    var top=Object.keys(c).sort(function(a,b){return c[b]-c[a];}).slice(0,30);
-    $("fGenre").innerHTML=top.map(function(g){return '<option value="'+esc(g)+'">'+esc(g)+' ('+fmt(c[g])+')</option>';}).join("");
-    var br=(p.taste&&p.taste.bpmRange)||[118,126]; $("fLo").value=br[0]; $("fHi").value=br[1];
-    state.seed=1;
-  }
-  function dig(again){
-    if(!state.token) return; var sel=Array.prototype.filter.call($("fGenre").options,function(o){return o.selected;}).map(function(o){return o.value;});
-    state.seed=again?state.seed+1:1;
-    var focus={genres:sel,bpmLo:+$("fLo").value||0,bpmHi:+$("fHi").value||0,minutes:+$("fMin").value||60,vibe:$("fVibe").value,seed:state.seed};
-    $("fGo").disabled=true; status($("fStatus"),"Digging…");
-    post("/api/crate",{authorization:"Bearer "+state.token,focus:focus}).then(function(r){
-      $("fGo").disabled=false;
-      if(!r.mixes||!r.mixes.length){ status($("fStatus"),r.note||"Nothing fits that focus.",true); return; }
-      var m=r.mixes[0]; m.focus=true; var M=state.full.mixes||(state.full.mixes=[]);
-      if(again&&M.length&&M[M.length-1].focus) M[M.length-1]=m; else M.push(m);
-      renderSetsGaps(state.full,true); $("fShuffle").hidden=false;
-      status($("fStatus"),"Added: "+m.name+" · "+m.tracks.length+" tracks, "+m.gems+" new to you. It's in your download.");
-    }).catch(function(e){ $("fGo").disabled=false; status($("fStatus"),e.message,true); });
-  }
-  $("fGo").addEventListener("click",function(){ dig(false); });
-  $("fShuffle").addEventListener("click",function(){ dig(true); });
-
-  // ---- shareable crate card (1080x1350 PNG for Instagram)
-  function crateCard(m){
-    var W=1080,H=1350,c=document.createElement("canvas"); c.width=W; c.height=H; var x=c.getContext("2d");
-    x.fillStyle="#050706"; x.fillRect(0,0,W,H);
-    x.strokeStyle="rgba(120,240,154,0.06)"; x.lineWidth=1; for(var i=0;i<W;i+=40){x.beginPath();x.moveTo(i,0);x.lineTo(i,H);x.stroke();} for(var j=0;j<H;j+=40){x.beginPath();x.moveTo(0,j);x.lineTo(W,j);x.stroke();}
-    x.shadowColor="rgba(120,240,154,0.6)"; x.shadowBlur=30; x.fillStyle="#78F09A"; x.font="900 96px Doto, 'JetBrains Mono', monospace"; x.fillText("BINDIG",72,150); x.shadowBlur=0;
-    x.fillStyle="#8A968E"; x.font="500 26px 'JetBrains Mono', monospace"; x.fillText("GEM CRATE · DUG FROM MY OWN CRATE",72,205);
-    var nm=m.name.replace(/^Gem Crate · /,""); x.fillStyle="#E6EEE8"; x.font="800 44px 'JetBrains Mono', monospace";
-    var words=nm.split(" "), line="", y=290; words.forEach(function(w){ var t=line?line+" "+w:w; if(x.measureText(t).width>W-144){ x.fillText(line,72,y); y+=56; line=w; } else line=t; }); x.fillText(line,72,y); y+=40;
-    x.fillStyle="#8A968E"; x.font="500 24px 'JetBrains Mono', monospace"; x.fillText(m.tracks.length+" tracks · "+m.minutes+" min · "+m.gems+" new to me",72,y+20); y+=80;
-    var fit=function(t,w){ if(x.measureText(t).width<=w) return t; while(t.length&&x.measureText(t+"…").width>w) t=t.slice(0,-1); return t+"…"; };
-    m.tracks.slice(0,14).forEach(function(t,k){
-      x.fillStyle=t.isNew?"#F2C14E":"#78F09A"; x.font="700 24px 'JetBrains Mono', monospace"; x.fillText(String(k+1).padStart(2,"0"),72,y);
-      x.fillStyle=t.isNew?"#F2C14E":"#E6EEE8"; x.font="500 26px 'JetBrains Mono', monospace"; x.fillText(fit(t.artist+" – "+t.title,680),130,y);
-      x.fillStyle="#8A968E"; x.font="500 22px 'JetBrains Mono', monospace"; x.textAlign="right"; x.fillText((t.key||"")+" · "+t.bpm+(t.isNew?" · NEW":""),W-72,y); x.textAlign="left"; y+=56;
-    });
-    if(m.tracks.length>14){ x.fillStyle="#8A968E"; x.font="500 22px 'JetBrains Mono', monospace"; x.fillText("+ "+(m.tracks.length-14)+" more",130,y); }
-    x.fillStyle="#78F09A"; x.font="700 26px 'JetBrains Mono', monospace"; x.fillText("BINDIG digs. You DJ.",72,H-110);
-    x.fillStyle="#8A968E"; x.font="500 22px 'JetBrains Mono', monospace"; x.fillText("bindig.netlify.app · @bindig.dj",72,H-70);
-    return c;
-  }
-  document.addEventListener("click",function(e){
-    var b=e.target.closest("[data-card]"); if(!b||!state.full) return; var m=(state.full.mixes||[])[+b.dataset.card]; if(!m) return;
-    var go=function(){ crateCard(m).toBlob(function(blob){ var name="bindig-gem-crate.png", f=null; try{ f=new File([blob],name,{type:"image/png"}); }catch(er){}
-      if(f&&navigator.canShare&&navigator.canShare({files:[f]})) navigator.share({files:[f],title:"My Gem Crate",text:"Dug from my own crate with BINDIG"}).catch(function(){});
-      else { var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href); a.remove();},2000); } },"image/png"); };
-    if(document.fonts&&document.fonts.load) Promise.all([document.fonts.load("900 96px Doto"),document.fonts.load("500 26px 'JetBrains Mono'")]).then(go,go); else go();
-  });
-
   // ---- guided steps
   function stepNow(){ var n=parseInt(ls.get("bindig_step")||"0",10); return isNaN(n)?0:n; }
   function renderSteps(){
@@ -927,7 +902,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
     var saved=ls.get("bindig_email"); if(saved&&!f.email.value) f.email.value=saved;
     var fcode=ls.get("bindig_code"); if(fcode&&!f.friend_code.value){ f.friend_code.value=fcode; $("friendBox").open=true; $("intentGo").innerHTML="&gt; Unlock with code"; }
     status($("intentStatus"),""); $("intentGo").disabled=false;
-    var sp=(state.preview&&state.preview.mixesPreview)||[]; $("intentLede").textContent="You're unlocking "+fmt(h.gems)+" undiscovered gems, "+sp.length+" Gem Crates and "+fmt(h.fixes)+" tag fixes for $9. Stripe emails your receipt. Your results open right here, ready to download.";
+    $("intentLede").textContent="You're unlocking your taste read, "+fmt(h.gems)+" gems with previews and "+fmt(h.fixes)+" tag fixes for $9. Stripe emails your receipt. Your results open right here, ready to download.";
     if(d.showModal) d.showModal(); else d.setAttribute("open",""); setStage(4);
     setTimeout(function(){f.email.focus();},50);
   }
@@ -987,14 +962,12 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
     else if(mode==="undo"){ playlist(folder,"Undo",ids); folder.setAttribute("Count","1"); }
     else {
       var nFolders=0, num=1;
-      var mf=doc.createElement("NODE"); mf.setAttribute("Type","0"); mf.setAttribute("Name",(num++)+" · Gem Crates"); folder.appendChild(mf);
-      (state.full.mixes||[]).forEach(function(m){ playlist(mf,m.name,m.tracks.map(function(t){return t.id;})); }); mf.setAttribute("Count",String((state.full.mixes||[]).length)); nFolders++;
       var uf=doc.createElement("NODE"); uf.setAttribute("Type","0"); uf.setAttribute("Name",(num++)+" · Undiscovered Gems"); folder.appendChild(uf);
-      var P=state.full.gems, gs=Object.keys(P).sort(function(a,b){return P[b].length-P[a].length;}).filter(function(g){return P[g].some(function(x){return state.cut[x.id];});});
-      gs.forEach(function(g){ var sel=P[g].filter(function(x){return state.cut[x.id];}).map(function(x){return x.id;}); nPurge+=sel.length; playlist(uf,"Undiscovered Gems · "+g,sel); });
-      var byType={}; gs.forEach(function(g){ P[g].forEach(function(x){ if(state.cut[x.id]&&x.type) (byType[x.type]=byType[x.type]||[]).push(x.id); }); });
-      var tks=Object.keys(byType); tks.forEach(function(t){ playlist(uf,"By type · "+t,byType[t]); });
-      uf.setAttribute("Count",String(gs.length+tks.length)); nFolders++;
+      var P=state.full.gems, gs=Object.keys(P).filter(function(g){return P[g].some(function(x){return state.cut[x.id];});}), all=[];
+      gs.forEach(function(g){ P[g].forEach(function(x){ if(state.cut[x.id]) all.push(x.id); }); });
+      nPurge=all.length; playlist(uf,"Undiscovered Gems · All "+all.length+" (by genre, Camelot order)",all);
+      gs.forEach(function(g){ var sel=P[g].filter(function(x){return state.cut[x.id];}).map(function(x){return x.id;}); playlist(uf,"Undiscovered Gems · "+g,sel); });
+      uf.setAttribute("Count",String(gs.length+1)); nFolders++;
       playlist(folder,(num++)+" · Fixed tracks",ids); nFolders++;
       if($("incTags")&&$("incTags").checked&&(state.full.tags||[]).length){ var tf=doc.createElement("NODE"); tf.setAttribute("Type","0"); tf.setAttribute("Name",(num++)+" · Tags"); folder.appendChild(tf);
         state.full.tags.forEach(function(t){ playlist(tf,"Tag · "+t.name,t.ids); }); tf.setAttribute("Count",String(state.full.tags.length)); nFolders++; }
@@ -1009,7 +982,7 @@ details.health .inner2{padding:16px;display:grid;gap:16px}
   function save(name,text){ var blob=new Blob([text],{type:"application/xml"}), a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href); a.remove();},2000); }
   function dl(mode,name,el,msg){ try{ var r=buildXml(mode); if(!r.tracks&&mode!=="full"){ status($(el),"No approved fixes yet. Tick some fixes above first.",true); return; } save(name,r.xml); status($(el),msg(r)); }catch(e){ status($(el),"Couldn't build the file: "+e.message,true); } }
   if($("dlTrial")) $("dlTrial").addEventListener("click",function(){ dl("trial","rekordbox-bindig-trial.xml","trialstatus",function(r){return "Downloaded rekordbox-bindig-trial.xml: "+r.tracks+" tracks.";}); });
-  $("dlFull").addEventListener("click",function(){ dl("full","rekordbox-bindig.xml","dlstatus",function(r){ sendAfter(r); return "Downloaded rekordbox-bindig.xml: "+fmt(r.tracks)+" tracks fixed, "+(state.full.mixes||[]).length+" Gem Crates, "+fmt(r.purge)+" Undiscovered Gems.";}); });
+  $("dlFull").addEventListener("click",function(){ dl("full","rekordbox-bindig.xml","dlstatus",function(r){ sendAfter(r); return "Downloaded rekordbox-bindig.xml: "+fmt(r.tracks)+" tracks fixed, "+fmt(r.purge)+" Undiscovered Gems.";}); });
   $("dlLog").addEventListener("click",function(){
     var q=function(v){v=String(v==null?"":v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
     var rows=[["type","artist","title","field","was","becomes","reason","confidence","included"]];
