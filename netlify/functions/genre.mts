@@ -16,7 +16,7 @@ async function lookup(p: Pair, token: string, cache: any, state: { limited: bool
   const artist = firstArtist(p.artist).slice(0, 80), title = bareTitle(p.title).slice(0, 120);
   if (!artist || !title) return { found: false };
   const key = `v1/${clean(artist)}|${clean(title)}`.slice(0, 200);
-  try { const c = await cache?.get(key, { type: "json" }); if (c) return c; } catch {}
+  try { const c = await cache?.get(key, { type: "json" }); if (c && c.found) return c; } catch {}
   if (state.limited) return { found: false, limited: true };
   const u = new URL("https://api.discogs.com/database/search");
   u.searchParams.set("type", "release"); u.searchParams.set("artist", artist); u.searchParams.set("track", title); u.searchParams.set("per_page", "5");
