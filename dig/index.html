@@ -765,8 +765,10 @@ async function genreCheck(crate, cands, ticket) {
 function fitOf(fp, dc) {
   if (!fp || !dc || !dc.found || !dc.styles || !dc.styles.length) return null;
   if (dc.genres && dc.genres.length && !dc.genres.includes("Electronic")) return false;
-  const w = dc.styles.map(st => fp[st] || 0), best = Math.max(...w), avg = w.reduce((a, b) => a + b, 0) / w.length;
-  return best >= .25 && avg >= .15;
+  // strict lock: any distinctive style that's (nearly) absent from the DJ's own tracks rejects the pick
+  const GENERIC = new Set(["House", "Electronic"]);
+  if (dc.styles.some(st => !GENERIC.has(st) && (fp[st] || 0) < .1)) return false;
+  return Math.max(...dc.styles.map(st => fp[st] || 0)) >= .25;
 }
 
 function moreCrates(last) {

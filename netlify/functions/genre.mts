@@ -15,18 +15,29 @@ const bareTitle = (t: string) => String(t || "").replace(/\s*[\(\[][^\)\]]*[\)\]
 async function lookup(p: Pair, token: string, cache: any, state: { limited: boolean; logged?: boolean; diag: string[] }): Promise<Hit> {
   const artist = firstArtist(p.artist).slice(0, 80), title = bareTitle(p.title).slice(0, 120);
   if (!artist || !title) return { found: false };
-  const key = `v1/${clean(artist)}|${clean(title)}`.slice(0, 200);
+  const key = `v2/${clean(artist)}|${clean(title)}`.slice(0, 200);
   try { const c = await cache?.get(key, { type: "json" }); if (c && c.found) return c; } catch {}
   if (state.limited) return { found: false, limited: true };
-  const u = new URL("https://api.discogs.com/database/search");
-  u.searchParams.set("type", "release"); u.searchParams.set("artist", artist); u.searchParams.set("track", title); u.searchParams.set("per_page", "5");
-  const r = await fetch(u, { headers: { "user-agent": "BINDIG/0.5 +https://bindig.netlify.app", authorization: `Discogs token=${token}` } });
-  if (r.status === 429) { state.limited = true; return { found: false, limited: true }; }
-  if (!r.ok) { if (state.diag.length < 3) state.diag.push(`http ${r.status}: ${(await r.text()).slice(0, 120)}`); return { found: false }; }
-  const d = await r.json();
+  const search = async (params: Record<string, string>) => {
+    const u = new URL("https://api.discogs.com/database/search");
+    u.searchParams.set("type", "release"); u.searchParams.set("per_page", "10");
+    for (const [k, v] of Object.entries(params)) u.searchParams.set(k, v);
+    const r = await fetch(u, { headers: { "user-agent": "BINDIG/0.5 +https://bindig.netlify.app", authorization: `Discogs token=${token}` } });
+    if (r.status === 429) { state.limited = true; return null; }
+    if (!r.ok) { if (state.diag.length < 3) state.diag.push(`http ${r.status}: ${(await r.text()).slice(0, 120)}`); return null; }
+    return (await r.json()).results || [];
+  };
+  // exact track search first; digital-only EPs are often only found by a looser search
+  let results = await search({ artist, track: title });
+  if (results && !results.length && !state.limited) results = await search({ q: `${artist} ${title}` });
+  if (!results) return { found: false, limited: state.limited } as Hit;
   const A = clean(artist).split(" ")[0];
-  const res = (d.results || []).find((x: any) => clean(x.title).includes(A)) || null;
-  if (!res && state.diag.length < 3) state.diag.push(`no match: ${(d.results || []).length} results`);
+  const BOOT = /\b(bootleg|rawstyle|hardstyle|unofficial|flip|mashup)\b/i;
+  const ok = results.filter((x: any) => { const tt = clean(x.title); return tt.includes(A) && !BOOT.test(x.title || ""); });
+  // prefer the real release: most owned + wanted, and not a self-released "Not On Label" upload
+  const res = ok.sort((a: any, b: any) => ((b.community?.have || 0) + (b.community?.want || 0) - (/^not on label/i.test((b.label || [])[0] || "") ? 1e6 : 0))
+    - ((a.community?.have || 0) + (a.community?.want || 0) - (/^not on label/i.test((a.label || [])[0] || "") ? 1e6 : 0)))[0] || null;
+  if (!res && state.diag.length < 3) state.diag.push(`no match: ${results.length} results`);
   const hit: Hit = res
     ? { found: true, styles: (res.style || []).slice(0, 8), genres: (res.genre || []).slice(0, 4), have: res.community?.have || 0, want: res.community?.want || 0,
         year: Number(res.year) || 0, label: (res.label || [])[0] || "", url: res.uri ? `https://www.discogs.com${res.uri}` : "" }
