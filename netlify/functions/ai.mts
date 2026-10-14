@@ -35,7 +35,7 @@ function streamClaude(model: string, prompt: string, maxTokens: number, extra: R
   });
 }
 
-// Crate: two half-size digs run side by side (fresh+classic, deep cuts) so the whole thing finishes well inside
+// Crate: three 8-pick digs run side by side (fresh, deep, classic = 24 candidates) so the whole thing finishes well inside
 // the function limit. Spaces trickle out while Claude thinks, so the CDN never sees a silent connection.
 function crateStream(model: string, prompts: string[], effort: string, onFail: () => Promise<void>) {
   const enc = new TextEncoder();
@@ -103,7 +103,7 @@ export default async (req: Request, context: any) => {
   const owned = (Array.isArray(body?.owned) ? body.owned : []).slice(0, 300).map((x: unknown) => String(x).slice(0, 80));
   const already = (Array.isArray(body?.already) ? body.already : []).slice(0, 60).map((x: unknown) => String(x).slice(0, 120));
   const args = [crate, body?.reading, owned, already, Number(body?.recentWindowMonths) || 18] as const;
-  const prompts = [cratePrompt(...args, "A"), cratePrompt(...args, "B")];
+  const prompts = (["fresh", "deep", "classic"] as const).map((part) => cratePrompt(...args, part));
   context.waitUntil?.(record("crate", { crate: crate.name, paid: t.kind === "crate-paid" }, req, context));
   // A failed dig gives the pass back so the DJ can try again.
   return new Response(crateStream(MODEL_CRATE(), prompts, env("BINDIG_CRATE_EFFORT") || "low", async () => { await used?.delete(t.jti); }), { headers: textHeaders() });

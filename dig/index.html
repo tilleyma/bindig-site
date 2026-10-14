@@ -151,13 +151,14 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
 .pv.on{background:var(--phos);color:var(--ink)}.pv.nf{border-color:var(--line);color:var(--muted);cursor:default}
 .pv:focus-visible{outline:2px solid var(--phos);outline-offset:2px}
 .pick .links{align-items:center}
+.styles{display:flex;flex-wrap:wrap;gap:4px 6px;margin-top:4px}.styles .st{font-size:10px;letter-spacing:.06em;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:0 7px}.styles .st.on{color:var(--c-green);border-color:var(--c-green)}.styles .gk{font-size:10px;color:var(--c-green)}
 .unv{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--warn);margin-left:8px}
 .mark a{color:inherit;text-decoration:none}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header><p class="mark"><a href="/">BINDIG</a></p><span class="badge">v0.5 beta</span></header>
+  <header><p class="mark"><a href="/">BINDIG</a></p><span class="badge">v0.5.1 beta</span></header>
 
   <div class="dividers" id="dividers" aria-hidden="true">
     <span class="dv" style="--i:0"><i class="rec"></i><b>House</b></span><span class="dv" style="--i:1"><i class="rec"></i><b>Disco</b></span><span class="dv" style="--i:2"><i class="rec"></i><b>Techno</b></span><span class="dv" style="--i:3"><i class="rec"></i><b>Minimal</b></span><span class="dv" style="--i:4"><i class="rec"></i><b>Afro</b></span><span class="dv" style="--i:5"><i class="rec"></i><b>Breaks</b></span><span class="dv" style="--i:6"><i class="rec"></i><b>Melodic</b></span><span class="dv" style="--i:7"><i class="rec"></i><b>Edits</b></span>
@@ -198,7 +199,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
 
   <section class="thread" id="thread" aria-live="polite"></section>
 
-  <footer>BINDIG digs. You DJ. · v0.5 beta · Track picks are AI suggestions, checked against Apple Music and Deezer. Hear them before you buy. · <a href="/privacy/" style="color:inherit">Privacy</a> · <a href="/terms/" style="color:inherit">Terms</a></footer>
+  <footer>BINDIG digs. You DJ. · v0.5 beta · Track picks are AI suggestions, genre-checked on Discogs and Apple Music / Deezer. Hear them before you buy. · <a href="/privacy/" style="color:inherit">Privacy</a> · <a href="/terms/" style="color:inherit">Terms</a></footer>
 </div>
 
 <script>
@@ -406,6 +407,7 @@ const BROAD = [["House", /house|garage/], ["Techno", /techno/], ["House", /deep 
 const SUB = [["Melodic House & Techno", /melodic|progressive/], ["Afro House", /afro/], ["Organic House", /organic|downtempo|balearic/], ["Tech House", /tech house/],
   ["Deep House", /deep house/], ["Minimal / Deep Tech", /minimal|deep tech|micro/], ["Disco & Edits", /disco|edit|boogie/], ["Techno", /techno/],
   ["Breaks", /break/], ["Drum & Bass", /drum|dnb|jungle/], ["House", /house|garage/]];
+const STD_NEIGHBOURS = ["Afro House", "Melodic House & Techno", "Organic House", "Deep House", "Tech House", "Minimal / Deep Tech", "Progressive House", "Disco & Edits", "Techno"];
 const family = (map, g) => { if (!g || /^untagged$/i.test(g)) return null; const l = g.toLowerCase(); for (const [n, re] of map) if (re.test(l)) return n; return g.trim(); };
 function buildCrates(tracks, recent, early, weight, genreOf) {
   const recentSet = new Set(recent), earlySet = new Set(early);
@@ -420,16 +422,17 @@ function buildCrates(tracks, recent, early, weight, genreOf) {
     const q = x => bp.length ? Math.round(bp[Math.min(bp.length - 1, Math.floor(x * bp.length))]) : 0;
     return { name, tracks: all.length, score, recentPct: Math.round(100 * rec.length / (recentSet.size || 1)), startPct: Math.round(100 * all.filter(t => earlySet.has(t)).length / (earlySet.size || 1)),
       subMix: [...subs].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([st, c]) => ({ style: st, pct: Math.round(100 * c / subTot) })).filter((x, i) => i === 0 || x.pct >= 8),
-      artists: pick(t => t.artist, 10), labels: pick(t => t.label, 6), bpm: [q(.15), q(.85)] };
+      artists: pick(t => t.artist, 10), labels: pick(t => t.label, 6), bpm: [q(.15), q(.85)],
+      // the DJ's own most-loved tracks in this genre: what the AI digs next to, and what Discogs fingerprints
+      ...(() => { const top = [...all].filter(t => t.artist && t.name).sort((a, b) => (weight(b) + (recentSet.has(b) ? .5 : 0)) - (weight(a) + (recentSet.has(a) ? .5 : 0))).slice(0, 25);
+        return { seeds: top.map(t => `${t.artist} – ${t.name}${t.label ? ` [${t.label}${t.year ? ", " + t.year : ""}]` : ""}`), seedPairs: top.slice(0, 12).map(t => ({ artist: t.artist, title: t.name })) }; })() };
   };
-  const broadNames = [...new Set(tracks.map(t => family(BROAD, genreOf(t))).filter(Boolean))];
-  const broad = broadNames.map(n => stat(n, t => family(BROAD, genreOf(t)) === n)).filter(Boolean).sort((a, b) => b.score - a.score);
-  const lead = broad[0] || null;
+  // v0.5.1: one store-style genre per crate (Organic House, Minimal / Deep Tech…), never a broad family like "House"
   const subNames = [...new Set(tracks.map(t => family(SUB, genreOf(t))).filter(Boolean))];
-  const subs = subNames.filter(n => !lead || n !== lead.name).map(n => stat(n, t => family(SUB, genreOf(t)) === n)).filter(c => c && c.tracks >= Math.max(10, tracks.length * .03));
-  const seen = new Set(lead ? [lead.name] : []); const options = [];
-  for (const c of [...subs, ...broad.slice(1)].sort((a, b) => b.score - a.score)) { if (seen.has(c.name)) continue; seen.add(c.name); options.push(c); if (options.length >= 5) break; }
-  return { lead, options };
+  const subs = subNames.map(n => stat(n, t => family(SUB, genreOf(t)) === n)).filter(c => c && c.tracks >= Math.max(10, tracks.length * .02)).sort((a, b) => b.score - a.score);
+  const names = subs.map(c => c.name);
+  for (const c of subs) c.neighbours = [...new Set([...names, ...STD_NEIGHBOURS])].filter(n => n !== c.name).slice(0, 9);
+  return { lead: subs[0] || null, options: subs.slice(1, 6) };
 }
 const publicProfile = p => { const o = {}; for (const [k, v] of Object.entries(p)) if (!k.startsWith("_")) o[k] = v; return o; };
 const genreColour = (p, g) => { const i = p._topGenres.indexOf(g); return i < 0 ? OTHER : GENRE[i]; };
@@ -698,12 +701,18 @@ async function dig(crate, ticket, free) {
   const seen = new Set(p._suggested);
   const cands = picks.filter(x => x && x.artist && x.title)
     .filter(x => { const k = norm(x.artist) + "|" + baseTitle(x.title); if (ownsAnyVersion(p._owned, x) || seen.has(k)) return false; seen.add(k); return true; });
-  line(`Checking ${cands.length} tracks against Apple Music and Deezer`);
-  const hits = await pool(cands, 4, x => findPreview(x.artist, x.title));
-  cands.forEach((x, i) => { x._found = !!hits[i]; });
-  const found = cands.filter(x => x._found), missing = cands.filter(x => !x._found);
-  const byConf = (a, b) => (+b.confidence || 0) - (+a.confidence || 0);
-  const clean = [...found.sort(byConf), ...missing.sort(byConf)].slice(0, 10);
+  line(`Checking ${cands.length} picks against Discogs styles and your own ${crate.name} tracks`);
+  const fp = await genreCheck(crate, cands, ticket);
+  let dropped = 0;
+  for (const x of cands) { const f = fitOf(fp, x._dc); x._genre = f == null ? "unknown" : f ? "pass" : "fail"; if (x._genre === "fail") dropped++; }
+  const keep = cands.filter(x => x._genre !== "fail");
+  line(`Checking ${keep.length} tracks against Apple Music and Deezer`);
+  const hits = await pool(keep, 4, x => findPreview(x.artist, x.title));
+  keep.forEach((x, i) => { x._found = !!hits[i]; });
+  const anthem = x => ((x._dc && x._dc.have) || 0) > 2500 ? 1 : 0;
+  const rank = x => [x._genre === "pass" ? 0 : 1, anthem(x), x._found ? 0 : 1, -(+x.confidence || 0)];
+  const cmp = (a, b) => { const A = rank(a), B = rank(b); for (let i = 0; i < A.length; i++) if (A[i] !== B[i]) return A[i] - B[i]; return 0; };
+  const clean = keep.sort(cmp).slice(0, 10);
   m.remove();
   for (const x of clean) p._suggested.push(norm(x.artist) + "|" + baseTitle(x.title));
   saveState();
@@ -726,15 +735,38 @@ async function dig(crate, ticket, free) {
         el("div", { class: "title", text: `${x.artist} — ${x.title}${ver}` }),
         el("div", { class: "meta" }, `${[x.label, x.year].filter(Boolean).join(" · ")}`, x.kind ? el("span", { class: "kind k-" + String(x.kind).toLowerCase(), text: x.kind }) : null,
           x._found ? null : el("span", { class: "unv", text: "not found online", title: "Not on Apple Music or Deezer. It may be vinyl-only, or the AI may have it wrong. Check the links." })),
+        x._dc && x._dc.found && x._dc.styles.length ? el("div", { class: "styles" }, ...x._dc.styles.slice(0, 3).map(st => el("span", { class: "st" + (fp && fp[st] >= .25 ? " on" : ""), text: st })), x._genre === "pass" ? el("span", { class: "gk", text: "✓ genre match" }) : null) : el("div", { class: "styles" }, el("span", { class: "st", text: "genre not checked" })),
         el("p", { class: "why", text: x.why || "" }), links), react));
   });
   const score = el("p", { class: "note" });
   function tallyUp() { const v = [...list.querySelectorAll('[aria-pressed="true"]')].map(b => b.dataset.v); const c = k => v.filter(x => x === k).length; score.textContent = v.length ? `${c("want")} wanted · ${c("have")} already owned · ${c("no")} not for you` : ""; }
   const verified = clean.filter(x => x._found).length;
   addMsg(">", el("div", { class: "crate-head" }, el("span", { class: "crate-tag", text: "Crate" }), el("h3", { text: `Your ${crate.name} crate` })),
-    el("p", { class: "note", text: `${clean.length} tracks · ${crate.subMix.slice(0, 3).map(x => x.style).join(", ")} · ${crate.bpm[0]}–${crate.bpm[1]} BPM · ${newArtists} artists new to you · ${verified} of ${clean.length} found on Apple Music or Deezer.` }),
+    el("p", { class: "note", text: `${clean.length} tracks · ${crate.subMix.slice(0, 3).map(x => x.style).join(", ")} · ${crate.bpm[0]}–${crate.bpm[1]} BPM · ${newArtists} artists new to you · ${clean.filter(x => x._genre === "pass").length} genre-checked on Discogs · ${verified} on Apple Music or Deezer.${dropped ? ` Dropped ${dropped} picks that Discogs files outside your ${crate.name}.` : ""}` }),
     list, score);
   moreCrates(crate);
+}
+
+/* ---------- genre lock: Discogs styles of your own tracks vs. the picks ---------- */
+async function genreCheck(crate, cands, ticket) {
+  try {
+    const needSeeds = !crate._fp;
+    const r = await fetch("/api/genre-check", { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + ticket },
+      body: JSON.stringify({ seeds: needSeeds ? (crate.seedPairs || []) : [], candidates: cands.map(x => ({ artist: x.artist, title: x.title })) }) });
+    if (!r.ok) return crate._fp || null;
+    const d = await r.json();
+    if (needSeeds) { const found = (d.seeds || []).filter(x => x && x.found && x.styles.length);
+      if (found.length >= 3) { const fp = {}; for (const x of found) for (const st of x.styles) fp[st] = (fp[st] || 0) + 1 / found.length; crate._fp = fp; } }
+    cands.forEach((x, i) => { x._dc = (d.candidates || [])[i] || null; });
+    return crate._fp || null;
+  } catch { return crate._fp || null; }
+}
+// true = fits the DJ's own style fingerprint, false = filed elsewhere, null = can't tell
+function fitOf(fp, dc) {
+  if (!fp || !dc || !dc.found || !dc.styles || !dc.styles.length) return null;
+  if (dc.genres && dc.genres.length && !dc.genres.includes("Electronic")) return false;
+  const w = dc.styles.map(st => fp[st] || 0), best = Math.max(...w), avg = w.reduce((a, b) => a + b, 0) / w.length;
+  return best >= .25 && avg >= .15;
 }
 
 function moreCrates(last) {
