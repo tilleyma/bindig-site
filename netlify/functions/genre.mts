@@ -64,7 +64,7 @@ ${crate.seeds.map((x) => `- ${x}`).join("\n") || "- (none listed)"}
 
 For each candidate below, decide where Beatport would file it: "${crate.name}" or one of these neighbours: ${neighbours.join(", ") || "other"}. Use "other" for anything else.
 Judge the track itself, not the artist's usual genre. Be strict: if it would sound out of place next to the tracks above in a ${crate.name} set, it is not ${crate.name}.
-If you don't know the track, say "unknown". Never guess.
+If you don't know the exact track, judge from what that artist and label were releasing around that year, and set confidence 0.5-0.65. Use "unknown" only if you know neither the artist nor the label.
 
 Candidates:
 ${picks.map((p, i) => `${i}. ${p.artist} – ${p.title}${p.label ? ` [${p.label}${p.year ? ", " + p.year : ""}]` : ""}${p.styles?.length ? ` (Discogs: ${p.styles.join("/")})` : ""}`).join("\n")}
