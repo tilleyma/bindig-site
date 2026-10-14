@@ -42,7 +42,7 @@ async function pool<T, R>(items: T[], n: number, fn: (x: T) => Promise<R>): Prom
 
 export default async (req: Request) => {
   if (req.method !== "POST") return json({ error: "Use POST." }, 405);
-  const token = env("DISCOGS_TOKEN");
+  const token = env("DISCOGS_TOKEN") || env("DISCOGS_KEY");
   if (!token) return json({ error: "Genre check isn't switched on.", code: "off" }, 503);
   const t = verifyToken((req.headers.get("authorization") || "").replace(/^Bearer\s+/i, ""), env("UNLOCK_SECRET"));
   if (!t || !["crate-free", "crate-paid"].includes(t.kind)) return json({ error: "This crate isn't unlocked.", code: "locked" }, 402);
