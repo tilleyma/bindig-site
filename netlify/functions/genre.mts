@@ -12,7 +12,7 @@ const clean = (x: string) => String(x || "").toLowerCase().normalize("NFKD").rep
 const firstArtist = (a: string) => String(a || "").split(/\s*(?:,|&|\bfeat\.?|\bft\.?|\bx\b|\bvs\.?)\s*/i)[0].trim();
 const bareTitle = (t: string) => String(t || "").replace(/\s*[\(\[][^\)\]]*[\)\]]/g, " ").replace(/\s+-\s+.*$/, "").trim();
 
-async function lookup(p: Pair, token: string, cache: any, state: { limited: boolean }): Promise<Hit> {
+async function lookup(p: Pair, token: string, cache: any, state: { limited: boolean; logged?: boolean }): Promise<Hit> {
   const artist = firstArtist(p.artist).slice(0, 80), title = bareTitle(p.title).slice(0, 120);
   if (!artist || !title) return { found: false };
   const key = `v1/${clean(artist)}|${clean(title)}`.slice(0, 200);
@@ -22,10 +22,11 @@ async function lookup(p: Pair, token: string, cache: any, state: { limited: bool
   u.searchParams.set("type", "release"); u.searchParams.set("artist", artist); u.searchParams.set("track", title); u.searchParams.set("per_page", "5");
   const r = await fetch(u, { headers: { "user-agent": "BINDIG/0.5 +https://bindig.netlify.app", authorization: `Discogs token=${token}` } });
   if (r.status === 429) { state.limited = true; return { found: false, limited: true }; }
-  if (!r.ok) return { found: false };
+  if (!r.ok) { if (!state.logged) { state.logged = true; console.error("discogs search failed", r.status, (await r.text()).slice(0, 200)); } return { found: false }; }
   const d = await r.json();
   const A = clean(artist).split(" ")[0];
   const res = (d.results || []).find((x: any) => clean(x.title).includes(A)) || null;
+  if (!res && !state.logged) { state.logged = true; console.log("discogs no match", artist, "|", title, "| results:", (d.results || []).length, (d.results || []).slice(0, 2).map((x: any) => x.title)); }
   const hit: Hit = res
     ? { found: true, styles: (res.style || []).slice(0, 8), genres: (res.genre || []).slice(0, 4), have: res.community?.have || 0, want: res.community?.want || 0,
         year: Number(res.year) || 0, label: (res.label || [])[0] || "", url: res.uri ? `https://www.discogs.com${res.uri}` : "" }
