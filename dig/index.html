@@ -632,6 +632,20 @@ function findPreview(a, t) { const k = a + "|" + t; if (pvCache[k] !== undefined
     if (h) return h;
     return jsonp("https://api.deezer.com/search?output=jsonp&limit=10&q=" + q).then(z => z && bestHit(z.data, a, t, x => ({ url: x.preview, title: x.title, artist: x.artist && x.artist.name, src: "Deezer" })));
   }).then(h => (pvCache[k] = h || null)); }
+// A real, not-owned track by the same artist from Deezer's catalogue (skips the biggest hits and anything already listed).
+async function swapIn(x, taken) {
+  const a = String(x.artist || "").split(/,|&| feat| x /i)[0].trim(); if (!a) return null;
+  const d = await jsonp("https://api.deezer.com/search?output=jsonp&limit=40&q=" + encodeURIComponent(`artist:"${a}"`));
+  const A = pclean(a);
+  const list = ((d && d.data) || []).filter(t => t && t.preview && pclean(t.artist && t.artist.name) === A)
+    .filter(t => { const k = norm(x.artist) + "|" + baseTitle(t.title); if (taken.has(k) || ownsAnyVersion(current._owned, { artist: x.artist, title: t.title })) return false; return true; });
+  if (!list.length) return null;
+  list.sort((p, q) => (p.rank || 0) - (q.rank || 0));               // least-played first...
+  const pick = list[Math.floor(list.length * .35)] || list[0];      // ...but not the most obscure filler
+  taken.add(norm(x.artist) + "|" + baseTitle(pick.title));
+  pvCache[x.artist + "|" + pick.title] = { url: pick.preview, title: pick.title, artist: pick.artist.name, src: "Deezer" };
+  return { title: pick.title, artist: pick.artist.name, year: 0 };
+}
 function stopPv() { if (audio) audio.pause(); if (playing) { playing.classList.remove("on"); playing.textContent = "▶ Preview"; } playing = null; }
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-pv]"); if (!b || b.classList.contains("nf")) return;
@@ -705,23 +719,35 @@ async function dig(crate, ticket, free) {
   const seen = new Set(p._suggested);
   const cands = picks.filter(x => x && x.artist && x.title)
     .filter(x => { const k = norm(x.artist) + "|" + baseTitle(x.title); if (ownsAnyVersion(p._owned, x) || seen.has(k)) return false; seen.add(k); return true; });
-  line(`Genre-checking ${cands.length} picks against Discogs and your own ${crate.name} tracks`);
-  const fp = await genreCheck(crate, cands, ticket);
+  // 1) Existence first: a pick only counts if Apple Music or Deezer has that exact artist + title.
+  line(`Checking ${cands.length} picks really exist (Apple Music, Deezer)`);
+  const hits = await pool(cands, 4, x => findPreview(x.artist, x.title));
+  cands.forEach((x, i) => { x._found = !!hits[i]; });
+  const missing = cands.filter(x => !x._found);
+  // 2) The AI's artists are usually right even when a title is made up: swap in a real track by the same artist.
+  let swapped = 0;
+  if (missing.length) {
+    line(`${missing.length} picks couldn't be found. Swapping in real tracks by the same artists`);
+    const taken = new Set(cands.filter(x => x._found).map(x => norm(x.artist) + "|" + baseTitle(x.title)));
+    const subs = await pool(missing, 3, x => swapIn(x, taken));
+    missing.forEach((x, i) => { const r = subs[i]; if (!r) return; x._orig = x.title; x.title = r.title; x.version = ""; x._found = true; x._swapped = true;
+      x.year = r.year || x.year; x.why = `A real ${r.artist} track in place of a title the AI got wrong. ${x.why || ""}`.trim(); swapped++; });
+  }
+  const real = cands.filter(x => x._found && !ownsAnyVersion(p._owned, x));
+  const fakes = cands.length - real.length;
+  // 3) Genre lock on what's left: Discogs styles + the AI genre judge
+  line(`Genre-checking ${real.length} real tracks against Discogs and your own ${crate.name} tracks`);
+  const fp = await genreCheck(crate, real, ticket);
   let dropped = 0;
-  // verdict = Discogs style lock (coarse) + AI genre judge (sub-genre); either one can reject
-  for (const x of cands) {
+  for (const x of real) {
     const f = fitOf(fp, x._dc), j = x._judge, same = j && norm(j.genre) === norm(crate.name);
     const judgedOut = j && !same && !/^(unknown|unsure)$/i.test(j.genre) && j.confidence >= .5;
     x._genre = f === false || judgedOut ? "fail" : (same && j.confidence >= .5) || f === true ? "pass" : "unknown";
-    x._why = judgedOut ? `filed as ${j.genre}` : f === false ? "Discogs styles outside your crate" : "";
     if (x._genre === "fail") dropped++;
   }
-  const keep = cands.filter(x => x._genre !== "fail");
-  line(`Checking ${keep.length} tracks against Apple Music and Deezer`);
-  const hits = await pool(keep, 4, x => findPreview(x.artist, x.title));
-  keep.forEach((x, i) => { x._found = !!hits[i]; });
+  const keep = real.filter(x => x._genre !== "fail");
   const anthem = x => ((x._dc && x._dc.have) || 0) > 2500 ? 1 : 0;
-  const rank = x => [x._genre === "pass" ? 0 : 1, anthem(x), x._found ? 0 : 1, -(+x.confidence || 0)];
+  const rank = x => [x._genre === "pass" ? 0 : 1, anthem(x), x._swapped ? 1 : 0, -(+x.confidence || 0)];
   const cmp = (a, b) => { const A = rank(a), B = rank(b); for (let i = 0; i < A.length; i++) if (A[i] !== B[i]) return A[i] - B[i]; return 0; };
   const clean = keep.sort(cmp).slice(0, 10);
   m.remove();
@@ -745,7 +771,7 @@ async function dig(crate, ticket, free) {
       el("div", { class: "t" },
         el("div", { class: "title", text: `${x.artist} — ${x.title}${ver}` }),
         el("div", { class: "meta" }, `${[x.label, x.year].filter(Boolean).join(" · ")}`, x.kind ? el("span", { class: "kind k-" + String(x.kind).toLowerCase(), text: x.kind }) : null,
-          x._found ? null : el("span", { class: "unv", text: "not found online", title: "Not on Apple Music or Deezer. It may be vinyl-only, or the AI may have it wrong. Check the links." })),
+          x._swapped ? el("span", { class: "unv", text: "swapped in", title: "The AI's original title for this artist couldn't be found, so this is a real track by them instead." }) : null),
         x._dc && x._dc.found && x._dc.styles.length ? el("div", { class: "styles" }, ...x._dc.styles.slice(0, 3).map(st => el("span", { class: "st" + (fp && fp[st] >= .25 ? " on" : ""), text: st })), x._genre === "pass" ? el("span", { class: "gk", text: `✓ ${crate.name}` }) : null) : el("div", { class: "styles" }, x._genre === "pass" ? el("span", { class: "gk", text: `✓ ${crate.name}` }) : el("span", { class: "st", text: "genre not checked" })),
         el("p", { class: "why", text: x.why || "" }), links), react));
   });
@@ -753,7 +779,7 @@ async function dig(crate, ticket, free) {
   function tallyUp() { const v = [...list.querySelectorAll('[aria-pressed="true"]')].map(b => b.dataset.v); const c = k => v.filter(x => x === k).length; score.textContent = v.length ? `${c("want")} wanted · ${c("have")} already owned · ${c("no")} not for you` : ""; }
   const verified = clean.filter(x => x._found).length;
   addMsg(">", el("div", { class: "crate-head" }, el("span", { class: "crate-tag", text: "Crate" }), el("h3", { text: `Your ${crate.name} crate` })),
-    el("p", { class: "note", text: `${clean.length} tracks · ${crate.subMix.slice(0, 3).map(x => x.style).join(", ")} · ${crate.bpm[0]}–${crate.bpm[1]} BPM · ${newArtists} artists new to you · ${clean.filter(x => x._genre === "pass").length} genre-checked on Discogs · ${verified} on Apple Music or Deezer.${dropped ? ` Dropped ${dropped} picks that belong in a different genre.` : ""}` }),
+    el("p", { class: "note", text: `${clean.length} tracks · ${crate.subMix.slice(0, 3).map(x => x.style).join(", ")} · ${crate.bpm[0]}–${crate.bpm[1]} BPM · ${newArtists} artists new to you · every track checked on Apple Music or Deezer · ${clean.filter(x => x._genre === "pass").length} genre-matched.${fakes ? ` Threw out ${fakes} picks that don't exist.` : ""}${swapped ? ` Swapped ${swapped} for real tracks by the same artist.` : ""}${dropped ? ` Dropped ${dropped} from a different genre.` : ""}` }),
     list, score);
   moreCrates(crate);
 }

@@ -75,7 +75,7 @@ Genre lock (most important rule):
 - If a track is borderline, leave it out. Eight right picks beat eight interesting ones.
 
 Other rules:
-- Real, commercially released tracks only. Exact artist, exact title, exact version/mix name as released. If you are not certain it exists exactly as written, leave it out.
+- Real, commercially released tracks only, available on Beatport and streaming services. Every pick is checked against Apple Music and Deezer and made-up titles are thrown out, so only name titles you are certain of. If you know an artist fits but aren't sure of a title, pick their track you are most certain exists. Never invent or approximate a title. Exact artist, exact title, exact version/mix name as released.
 - No big anthems: nothing that went Top 10 on Beatport overall, became a festival or Ibiza anthem, or that any DJ in this genre already owns. Dig deeper.
 - Never suggest any version (original, remix, edit, dub) of a track they already own.
 - At least 4 picks by artists not in their owned-artist list.
