@@ -40,7 +40,7 @@ header{display:flex;align-items:baseline;gap:12px}
 .mark{font-family:var(--f-display);font-weight:900;font-size:30px;letter-spacing:.06em;color:var(--phos);margin:0}
 .badge{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);background:var(--phos);padding:1px 7px;border-radius:3px}
 .hero h1{font-family:var(--f-display);font-weight:800;font-size:clamp(28px,6vw,44px);line-height:1.1;margin:0;color:var(--text);text-wrap:balance}
-.hero p{margin:10px 0 0;color:var(--muted);max-width:52ch}
+.hero p{margin:10px 0 0;color:var(--muted);max-width:none}
 .hl{background:linear-gradient(90deg,var(--c-orange) 0 20%,var(--c-purple) 20% 40%,var(--c-yellow) 40% 60%,var(--c-green) 60% 80%,var(--c-pink) 80%) left bottom/100% 5px no-repeat;padding-bottom:4px}
 
 /* crate dividers: genres are how BINDIG reads a collection */
@@ -172,7 +172,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
   </div>
   <section class="hero">
     <h1>Let's <span class="hl">dig</span> your tracks.</h1>
-    <p>BINDIG reads your rekordbox, then digs out new music you should own but don't.</p>
+    <p>BINDIG reads your rekordbox, then suggests new music.</p>
   </section>
 
   <div class="steps" id="steps">
@@ -182,12 +182,9 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
   </div>
   <section id="start">
     <div class="composer" id="drop" tabindex="0" aria-label="Drop your rekordbox XML file here">
-      <div class="hint" id="hint"><b>Drop your rekordbox.xml</b> or choose the file</div>
-      <label class="btn" for="file">Choose</label>
+      <div class="hint" id="hint"><b>Drop your rekordbox.xml</b> or select it</div>
+      <label class="btn primary" for="file" tabindex="0" id="pick">Select file</label>
       <input id="file" type="file" accept=".xml,text/xml" hidden>
-      <button class="btn primary send" id="go" aria-label="Read my crate" disabled>
-        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
     </div>
   </section>
   <div class="under">
@@ -571,7 +568,7 @@ let current = null, digCtl = null;
 function addMsg(who, ...kids) { const m = el("div", { class: "msg" }, el("div", { class: "who", text: who }), el("div", { class: "body" }, ...kids)); thread.append(m); return m; }
 
 async function run(text, fname) {
-  thread.replaceChildren(); $("#steps").hidden = true; $("#go").disabled = true;
+  thread.replaceChildren(); $("#steps").hidden = true;
   const log = el("div", { class: "log" }); addMsg(">", log);
   const line = async (s, ms = 380) => { log.querySelectorAll(".now").forEach(n => n.classList.remove("now", "cursor")); log.append(el("div", { class: "now cursor", text: s })); await sleep(ms); };
   let p;
@@ -582,7 +579,7 @@ async function run(text, fname) {
     p = analyse(parsed); current = p;
     await line(`${ageText(p)} of digging, ${p.totalPlays.toLocaleString()} plays, ${p.playedPct}% of the crate played`);
     await line(`Following you from ${p.genresAtStart[0]?.genre || "the start"} to ${p.genresNow[0]?.genre || "now"} (last ${p.recentWindowMonths} months)`);
-  } catch (e) { log.lastChild?.classList.remove("cursor"); addMsg("!", el("p", { class: "err", text: e.message || String(e) })); $("#go").disabled = false; return; }
+  } catch (e) { log.lastChild?.classList.remove("cursor"); addMsg("!", el("p", { class: "err", text: e.message || String(e) })); return; }
 
   let reading = null, note = null;
   await line("Writing your profile", 50);
@@ -833,7 +830,6 @@ function take(file) {
   if (!file) return;
   if (!/\.xml$/i.test(file.name)) { $("#hint").replaceChildren(el("span", { class: "err", text: "That's not an .xml file. Export one from rekordbox first." })); return; }
   pending = file; $("#hint").replaceChildren(el("span", { class: "file", text: file.name }), el("span", { text: `${(file.size / 1048576).toFixed(1)} MB · reading…` }));
-  $("#go").disabled = false;
   file.text().then(t => run(t, file.name));   // no extra click: dropping or choosing the file starts the read
 }
 $("#file").addEventListener("change", e => { take(e.target.files[0]); e.target.value = ""; });
@@ -841,8 +837,7 @@ const drop = $("#drop");
 ["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("drag"); }));
 ["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("drag"); }));
 drop.addEventListener("drop", e => take(e.dataTransfer.files[0]));
-drop.addEventListener("keydown", e => { if (e.key === "Enter" && e.target === drop) $("#file").click(); });
-$("#go").addEventListener("click", async () => { if (!pending) return; run(await pending.text(), pending.name); });
+drop.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && (e.target === drop || e.target.id === "pick")) { e.preventDefault(); $("#file").click(); } });
 $("#howBtn").addEventListener("click", e => { const h = $("#how"); h.hidden = !h.hidden; e.target.setAttribute("aria-expanded", String(!h.hidden)); });
 $("#demoBtn").addEventListener("click", () => run(demoXML(), "sample-crate.xml"));
 
