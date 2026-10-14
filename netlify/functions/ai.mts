@@ -82,7 +82,9 @@ export default async (req: Request, context: any) => {
     const profile = cleanProfile(body?.profile);
     if (!profile) return json({ error: "That profile is missing or too big." }, 400);
     const lead = String(profile?.leadCrate?.name || "").slice(0, 60);
-    const ticket = lead ? signToken({ kind: "crate-free", crate: lead, jti: `free-${crypto.randomUUID()}`, exp: Date.now() + 12 * 3600 * 1000 }, secret) : "";
+    const crates = (Array.isArray(profile?.crateChoices) ? profile.crateChoices : [lead]).slice(0, 4).map((x: unknown) => String(x).slice(0, 60)).filter(Boolean);
+    // one free crate, in whichever of the offered lanes the DJ picks
+    const ticket = lead ? signToken({ kind: "crate-free", crate: lead, crates, jti: `free-${crypto.randomUUID()}`, exp: Date.now() + 12 * 3600 * 1000 }, secret) : "";
     context.waitUntil?.(record("profile", { tracks: Number(profile.tracks) || 0, ageMonths: Number(profile.collectionAgeMonths) || 0, lead }, req, context));
     return new Response(// Profile: no up-front thinking (between_tools is Sonnet 5.5's lowest setting) so it answers fast.
     streamClaude(MODEL_PROFILE(), profilePrompt(profile), 4000, { thinking: { type: "between_tools" } }), { headers: textHeaders(ticket ? { "x-bindig-ticket": ticket } : {}) });
@@ -93,7 +95,7 @@ export default async (req: Request, context: any) => {
   if (!crate) return json({ error: "Pick a crate first." }, 400);
   const t = verifyToken((req.headers.get("authorization") || "").replace(/^Bearer\s+/i, ""), secret);
   if (!t || !["crate-free", "crate-paid"].includes(t.kind) || !t.jti) return json({ error: "This crate isn't unlocked yet.", code: "locked" }, 402);
-  if (t.crate !== crate.name) return json({ error: `That pass is for a ${t.crate} crate.`, code: "wrong_crate" }, 403);
+  if (t.crate !== crate.name && !(Array.isArray(t.crates) && t.crates.includes(crate.name))) return json({ error: `That pass is for a ${t.crate} crate.`, code: "wrong_crate" }, 403);
   let used: any = null;
   try {
     used = getStore({ name: storeName("crate-tickets", req), consistency: "strong" });

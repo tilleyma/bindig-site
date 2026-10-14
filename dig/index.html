@@ -139,6 +139,10 @@ td.n{text-align:right;color:var(--muted);padding-left:10px;white-space:nowrap}
 .chip-btn[aria-pressed="true"]{border-color:var(--phos);color:var(--phos)}
 .note{font-size:12px;color:var(--muted)}
 .err{color:var(--warn);font-size:14px}
+.lanes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.lane{font:inherit;text-align:left;display:flex;flex-direction:column;gap:2px;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:10px;padding:10px 12px;cursor:pointer}
+.lane b{font-weight:600;font-size:14px}.lane span{font-size:11px;color:var(--muted)}
+.lane[aria-checked="true"]{border-color:var(--phos);box-shadow:inset 0 0 0 1px var(--phos)}.lane:focus-visible{outline:2px solid var(--phos);outline-offset:2px}
 .crate-head{display:flex;align-items:center;gap:10px;margin-bottom:4px}.crate-head h3{margin:0}
 .crate-tag{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);background:var(--c-orange);border-radius:3px;padding:1px 6px}
 .crate-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
@@ -395,6 +399,7 @@ function analyse({ tracks: all, playlists }) {
     genresMostPlayed: [...genrePlays.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([g, p]) => ({ genre: g, plays: p })),
     ownedButIgnored: ignored,
     recentArtists,
+    crateChoices: [crates.lead, ...crates.options.slice(0, 3)].filter(Boolean).map(c => c.name),
     leadCrate: crates.lead && { name: crates.lead.name, recentSharePct: crates.lead.recentPct, startSharePct: crates.lead.startPct, styles: crates.lead.subMix },
     bpm: { heart: Math.round(wq(bpmPlayed, .5)), low: Math.round(wq(bpmPlayed, .2)), high: Math.round(wq(bpmPlayed, .8)), atStart: bpmOf(early), now: bpmOf(recent) },
     keys: homeKeys, minorKeyPct: Math.round(100 * minorish),
@@ -408,7 +413,7 @@ function analyse({ tracks: all, playlists }) {
 /* ---------- crates: the lane a DJ is playing now ---------- */
 const BROAD = [["House", /house|garage/], ["Techno", /techno/], ["House", /deep tech|minimal|micro/], ["Disco & Edits", /disco|edit|boogie|funk/],
   ["Breaks", /break|electro\b/], ["Drum & Bass", /drum|dnb|jungle/], ["Afro & Amapiano", /amapiano|afro/], ["Downtempo", /downtempo|ambient|chill|balearic|electronica|idm/]];
-const SUB = [["Melodic House & Techno", /melodic|progressive/], ["Afro House", /afro/], ["Organic House", /organic|downtempo|balearic/], ["Tech House", /tech house/],
+const SUB = [["Melodic House & Techno", /melodic/], ["Progressive House", /progressive/], ["Afro House", /afro/], ["Organic House", /organic|downtempo|balearic/], ["Tech House", /tech house/],
   ["Deep House", /deep house/], ["Minimal / Deep Tech", /minimal|deep tech|micro/], ["Disco & Edits", /disco|edit|boogie/], ["Techno", /techno/],
   ["Breaks", /break/], ["Drum & Bass", /drum|dnb|jungle/], ["House", /house|garage/]];
 const STD_NEIGHBOURS = ["Afro House", "Melodic House & Techno", "Organic House", "Deep House", "Tech House", "Minimal / Deep Tech", "Progressive House", "Disco & Edits", "Techno"];
@@ -418,13 +423,14 @@ function buildCrates(tracks, recent, early, weight, genreOf) {
   const stat = (name, test) => {
     const all = tracks.filter(test); if (all.length < 10) return null;
     const rec = all.filter(t => recentSet.has(t)), pl = all.filter(t => t.plays > 0);
-    const score = rec.reduce((s, t) => s + .5 + weight(t), 0) + .25 * all.reduce((s, t) => s + weight(t), 0);
+    const score = rec.reduce((s, t) => s + weight(t) + (t.plays > 0 ? .3 : .05), 0) + .35 * all.reduce((s, t) => s + weight(t), 0);
+    const recPlay = rec.reduce((s, t) => s + weight(t), 0);
     const pick = (fn, k) => { const m = new Map(); for (const t of all) { const v = fn(t); if (v) m.set(v, (m.get(v) || 0) + weight(t) + (recentSet.has(t) ? .5 : 0)); } return [...m].sort((a, b) => b[1] - a[1]).slice(0, k).map(x => x[0]); };
     const subs = new Map(); for (const t of (rec.length >= 10 ? rec : all)) { const sname = family(SUB, genreOf(t)); if (sname) subs.set(sname, (subs.get(sname) || 0) + 1); }
     const subTot = [...subs.values()].reduce((a, b) => a + b, 0) || 1;
     const bp = pl.filter(t => t.bpm > 60).map(t => t.bpm).sort((a, b) => a - b);
     const q = x => bp.length ? Math.round(bp[Math.min(bp.length - 1, Math.floor(x * bp.length))]) : 0;
-    return { name, tracks: all.length, score, recentPct: Math.round(100 * rec.length / (recentSet.size || 1)), startPct: Math.round(100 * all.filter(t => earlySet.has(t)).length / (earlySet.size || 1)),
+    return { name, tracks: all.length, score, recPlay, recentPct: Math.round(100 * rec.length / (recentSet.size || 1)), startPct: Math.round(100 * all.filter(t => earlySet.has(t)).length / (earlySet.size || 1)),
       subMix: [...subs].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([st, c]) => ({ style: st, pct: Math.round(100 * c / subTot) })).filter((x, i) => i === 0 || x.pct >= 8),
       artists: pick(t => t.artist, 10), labels: pick(t => t.label, 6), bpm: [q(.15), q(.85)],
       // the DJ's own most-loved tracks in this genre: what the AI digs next to, and what Discogs fingerprints
@@ -436,6 +442,8 @@ function buildCrates(tracks, recent, early, weight, genreOf) {
   const subs = subNames.map(n => stat(n, t => family(SUB, genreOf(t)) === n)).filter(c => c && c.tracks >= Math.max(10, tracks.length * .02)).sort((a, b) => b.score - a.score);
   const names = subs.map(c => c.name);
   for (const c of subs) c.neighbours = [...new Set([...names, ...STD_NEIGHBOURS])].filter(n => n !== c.name).slice(0, 9);
+  const playTot = subs.reduce((a, c) => a + c.recPlay, 0) || 1;
+  for (const c of subs) c.playPct = Math.round(100 * c.recPlay / playTot);
   return { lead: subs[0] || null, options: subs.slice(1, 6) };
 }
 const publicProfile = p => { const o = {}; for (const [k, v] of Object.entries(p)) if (!k.startsWith("_")) o[k] = v; return o; };
@@ -676,22 +684,28 @@ function loadState() {
 function crateWhy(p, c) {
   const st = c.subMix.slice(0, 2).map(x => x.style).filter(x => x !== c.name).join(" and ");
   const trend = c.recentPct > c.startPct + 5 ? `, up from ${c.startPct}% at the start` : "";
-  return `${c.name} is ${c.recentPct}% of what you've added in the last ${p.recentWindowMonths} months${trend}.${st ? ` Mostly ${st}.` : ""}`;
+  return `${c.playPct}% of what you've been playing lately (tracks added in the last ${p.recentWindowMonths} months)${c.recentPct > c.startPct + 5 ? `, and growing` : ""}.${st ? ` Mostly ${st}.` : ""}`;
 }
 function askDig() {
   const p = current, lead = p._crates.lead;
   if (!lead) { addMsg("!", el("p", { class: "err", text: "Not enough tagged genres to build a crate. Tag a few genres in rekordbox and try again." })); return; }
   if (!p._ticket) { addMsg("!", el("p", { class: "err", text: "Your free crate needs the AI, and it didn't answer this time. Drop the file again in a minute." })); return; }
+  const choices = [lead, ...p._crates.options.slice(0, 3)];
+  let chosen = lead;
+  const why = el("p", { class: "note", text: crateWhy(p, lead) });
   const yes = el("button", { class: "btn primary", text: `Dig my ${lead.name} crate` });
-  const no = el("button", { class: "btn", text: "Not now" });
+  const lanes = el("div", { class: "lanes", role: "radiogroup", "aria-label": "Pick your lane" });
+  choices.forEach((c, i) => {
+    const b = el("button", { class: "lane", role: "radio", "aria-checked": i === 0 ? "true" : "false", type: "button" }, el("b", { text: c.name }), el("span", { text: `${c.playPct}% of recent plays` }));
+    b.onclick = () => { chosen = c; lanes.querySelectorAll(".lane").forEach(o => o.setAttribute("aria-checked", o === b ? "true" : "false")); why.textContent = crateWhy(p, c); yes.textContent = `Dig my ${c.name} crate`; };
+    lanes.append(b);
+  });
   const box = el("div", { class: "ask" },
-    el("p", { class: "q", text: `Want me to dig you a ${lead.name} crate? Ten tracks you don't own yet, but should.` }),
-    el("p", { class: "note", text: crateWhy(p, lead) + " This one's on the house." }),
-    el("div", { class: "row" }, yes, no));
+    el("p", { class: "q", text: "Pick your lane. Ten tracks you don't own yet, but should." }),
+    el("p", { class: "note", text: "Ranked by what you've been playing lately. Your first crate's on the house." }),
+    lanes, why, el("div", { class: "row" }, yes));
   const m = addMsg("?", box);
-  const go = () => { m.remove(); dig(lead, p._ticket, true); };
-  no.onclick = () => { box.replaceChildren(el("p", { class: "note", text: "Fair. The crate will keep." }), el("button", { class: "btn", text: `Dig my ${lead.name} crate`, onclick: go })); };
-  yes.onclick = go;
+  yes.onclick = () => { m.remove(); dig(chosen, p._ticket, true); };
 }
 
 async function dig(crate, ticket, free) {
