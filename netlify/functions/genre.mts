@@ -12,7 +12,7 @@ const clean = (x: string) => String(x || "").toLowerCase().normalize("NFKD").rep
 const firstArtist = (a: string) => String(a || "").split(/\s*(?:,|&|\bfeat\.?|\bft\.?|\bx\b|\bvs\.?)\s*/i)[0].trim();
 const bareTitle = (t: string) => String(t || "").replace(/\s*[\(\[][^\)\]]*[\)\]]/g, " ").replace(/\s+-\s+.*$/, "").trim();
 
-async function lookup(p: Pair, token: string, cache: any, state: { limited: boolean; logged?: boolean }): Promise<Hit> {
+async function lookup(p: Pair, token: string, cache: any, state: { limited: boolean; logged?: boolean; diag: string[] }): Promise<Hit> {
   const artist = firstArtist(p.artist).slice(0, 80), title = bareTitle(p.title).slice(0, 120);
   if (!artist || !title) return { found: false };
   const key = `v1/${clean(artist)}|${clean(title)}`.slice(0, 200);
@@ -22,22 +22,22 @@ async function lookup(p: Pair, token: string, cache: any, state: { limited: bool
   u.searchParams.set("type", "release"); u.searchParams.set("artist", artist); u.searchParams.set("track", title); u.searchParams.set("per_page", "5");
   const r = await fetch(u, { headers: { "user-agent": "BINDIG/0.5 +https://bindig.netlify.app", authorization: `Discogs token=${token}` } });
   if (r.status === 429) { state.limited = true; return { found: false, limited: true }; }
-  if (!r.ok) { if (!state.logged) { state.logged = true; console.error("discogs search failed", r.status, (await r.text()).slice(0, 200)); } return { found: false }; }
+  if (!r.ok) { if (state.diag.length < 3) state.diag.push(`http ${r.status}: ${(await r.text()).slice(0, 120)}`); return { found: false }; }
   const d = await r.json();
   const A = clean(artist).split(" ")[0];
   const res = (d.results || []).find((x: any) => clean(x.title).includes(A)) || null;
-  if (!res && !state.logged) { state.logged = true; console.log("discogs no match", artist, "|", title, "| results:", (d.results || []).length, (d.results || []).slice(0, 2).map((x: any) => x.title)); }
+  if (!res && state.diag.length < 3) state.diag.push(`no match: ${(d.results || []).length} results`);
   const hit: Hit = res
     ? { found: true, styles: (res.style || []).slice(0, 8), genres: (res.genre || []).slice(0, 4), have: res.community?.have || 0, want: res.community?.want || 0,
         year: Number(res.year) || 0, label: (res.label || [])[0] || "", url: res.uri ? `https://www.discogs.com${res.uri}` : "" }
     : { found: false };
-  try { await cache?.setJSON(key, hit); } catch {}
+  if (hit.found) { try { await cache?.setJSON(key, hit); } catch {} }
   return hit;
 }
 
-async function pool<T, R>(items: T[], n: number, fn: (x: T) => Promise<R>): Promise<R[]> {
+async function pool<T, R>(items: T[], n: number, fn: (x: T) => Promise<R>, diag?: string[]): Promise<R[]> {
   const out: R[] = new Array(items.length); let i = 0;
-  await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) { const k = i++; try { out[k] = await fn(items[k]); } catch { out[k] = { found: false } as any; } } }));
+  await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) { const k = i++; try { out[k] = await fn(items[k]); } catch (e: any) { if (diag && diag.length < 3) diag.push(`error: ${String(e?.message || e).slice(0, 120)}`); out[k] = { found: false } as any; } } }));
   return out;
 }
 
@@ -51,9 +51,10 @@ export default async (req: Request) => {
   const pairs = (v: unknown, n: number): Pair[] => (Array.isArray(v) ? v.slice(0, n) : []).map((x: any) => ({ artist: String(x?.artist || "").slice(0, 120), title: String(x?.title || "").slice(0, 160) }));
   const seeds = pairs(body?.seeds, 12), candidates = pairs(body?.candidates, 30);
   let cache: any = null; try { cache = getStore({ name: storeName("discogs-cache", req) }); } catch {}
-  const state = { limited: false };
-  const [s, c] = await Promise.all([pool(seeds, 3, (p) => lookup(p, token, cache, state)), pool(candidates, 4, (p) => lookup(p, token, cache, state))]);
-  return json({ seeds: s, candidates: c, limited: state.limited });
+  const state = { limited: false, diag: [] as string[] };
+  const [s, c] = await Promise.all([pool(seeds, 3, (p) => lookup(p, token, cache, state), state.diag), pool(candidates, 4, (p) => lookup(p, token, cache, state), state.diag)]);
+  if (state.diag.length) console.error("genre-check diag", state.diag);
+  return json({ seeds: s, candidates: c, limited: state.limited, diag: state.diag });
 };
 
 export const config = { path: "/api/genre-check", method: "POST", rateLimit: { windowLimit: 10, windowSize: 60, aggregateBy: ["ip", "domain"] } };
