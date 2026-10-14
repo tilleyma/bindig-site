@@ -158,7 +158,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
 </head>
 <body>
 <div class="wrap">
-  <header><p class="mark"><a href="/">BINDIG</a></p><span class="badge">v0.5.1 beta</span></header>
+  <header><p class="mark"><a href="/">BINDIG</a></p><span class="badge">v0.5.2 beta</span></header>
 
   <div class="dividers" id="dividers" aria-hidden="true">
     <span class="dv" style="--i:0"><i class="rec"></i><b>House</b></span><span class="dv" style="--i:1"><i class="rec"></i><b>Disco</b></span><span class="dv" style="--i:2"><i class="rec"></i><b>Techno</b></span><span class="dv" style="--i:3"><i class="rec"></i><b>Minimal</b></span><span class="dv" style="--i:4"><i class="rec"></i><b>Afro</b></span><span class="dv" style="--i:5"><i class="rec"></i><b>Breaks</b></span><span class="dv" style="--i:6"><i class="rec"></i><b>Melodic</b></span><span class="dv" style="--i:7"><i class="rec"></i><b>Edits</b></span>
@@ -701,10 +701,17 @@ async function dig(crate, ticket, free) {
   const seen = new Set(p._suggested);
   const cands = picks.filter(x => x && x.artist && x.title)
     .filter(x => { const k = norm(x.artist) + "|" + baseTitle(x.title); if (ownsAnyVersion(p._owned, x) || seen.has(k)) return false; seen.add(k); return true; });
-  line(`Checking ${cands.length} picks against Discogs styles and your own ${crate.name} tracks`);
+  line(`Genre-checking ${cands.length} picks against Discogs and your own ${crate.name} tracks`);
   const fp = await genreCheck(crate, cands, ticket);
   let dropped = 0;
-  for (const x of cands) { const f = fitOf(fp, x._dc); x._genre = f == null ? "unknown" : f ? "pass" : "fail"; if (x._genre === "fail") dropped++; }
+  // verdict = Discogs style lock (coarse) + AI genre judge (sub-genre); either one can reject
+  for (const x of cands) {
+    const f = fitOf(fp, x._dc), j = x._judge, same = j && norm(j.genre) === norm(crate.name);
+    const judgedOut = j && !same && !/^(unknown|unsure)$/i.test(j.genre) && j.confidence >= .5;
+    x._genre = f === false || judgedOut ? "fail" : (same && j.confidence >= .5) || f === true ? "pass" : "unknown";
+    x._why = judgedOut ? `filed as ${j.genre}` : f === false ? "Discogs styles outside your crate" : "";
+    if (x._genre === "fail") dropped++;
+  }
   const keep = cands.filter(x => x._genre !== "fail");
   line(`Checking ${keep.length} tracks against Apple Music and Deezer`);
   const hits = await pool(keep, 4, x => findPreview(x.artist, x.title));
@@ -735,14 +742,14 @@ async function dig(crate, ticket, free) {
         el("div", { class: "title", text: `${x.artist} — ${x.title}${ver}` }),
         el("div", { class: "meta" }, `${[x.label, x.year].filter(Boolean).join(" · ")}`, x.kind ? el("span", { class: "kind k-" + String(x.kind).toLowerCase(), text: x.kind }) : null,
           x._found ? null : el("span", { class: "unv", text: "not found online", title: "Not on Apple Music or Deezer. It may be vinyl-only, or the AI may have it wrong. Check the links." })),
-        x._dc && x._dc.found && x._dc.styles.length ? el("div", { class: "styles" }, ...x._dc.styles.slice(0, 3).map(st => el("span", { class: "st" + (fp && fp[st] >= .25 ? " on" : ""), text: st })), x._genre === "pass" ? el("span", { class: "gk", text: "✓ genre match" }) : null) : el("div", { class: "styles" }, el("span", { class: "st", text: "genre not checked" })),
+        x._dc && x._dc.found && x._dc.styles.length ? el("div", { class: "styles" }, ...x._dc.styles.slice(0, 3).map(st => el("span", { class: "st" + (fp && fp[st] >= .25 ? " on" : ""), text: st })), x._genre === "pass" ? el("span", { class: "gk", text: `✓ ${crate.name}` }) : null) : el("div", { class: "styles" }, x._genre === "pass" ? el("span", { class: "gk", text: `✓ ${crate.name}` }) : el("span", { class: "st", text: "genre not checked" })),
         el("p", { class: "why", text: x.why || "" }), links), react));
   });
   const score = el("p", { class: "note" });
   function tallyUp() { const v = [...list.querySelectorAll('[aria-pressed="true"]')].map(b => b.dataset.v); const c = k => v.filter(x => x === k).length; score.textContent = v.length ? `${c("want")} wanted · ${c("have")} already owned · ${c("no")} not for you` : ""; }
   const verified = clean.filter(x => x._found).length;
   addMsg(">", el("div", { class: "crate-head" }, el("span", { class: "crate-tag", text: "Crate" }), el("h3", { text: `Your ${crate.name} crate` })),
-    el("p", { class: "note", text: `${clean.length} tracks · ${crate.subMix.slice(0, 3).map(x => x.style).join(", ")} · ${crate.bpm[0]}–${crate.bpm[1]} BPM · ${newArtists} artists new to you · ${clean.filter(x => x._genre === "pass").length} genre-checked on Discogs · ${verified} on Apple Music or Deezer.${dropped ? ` Dropped ${dropped} picks that Discogs files outside your ${crate.name}.` : ""}` }),
+    el("p", { class: "note", text: `${clean.length} tracks · ${crate.subMix.slice(0, 3).map(x => x.style).join(", ")} · ${crate.bpm[0]}–${crate.bpm[1]} BPM · ${newArtists} artists new to you · ${clean.filter(x => x._genre === "pass").length} genre-checked on Discogs · ${verified} on Apple Music or Deezer.${dropped ? ` Dropped ${dropped} picks that belong in a different genre.` : ""}` }),
     list, score);
   moreCrates(crate);
 }
@@ -752,12 +759,13 @@ async function genreCheck(crate, cands, ticket) {
   try {
     const needSeeds = !crate._fp;
     const r = await fetch("/api/genre-check", { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + ticket },
-      body: JSON.stringify({ seeds: needSeeds ? (crate.seedPairs || []) : [], candidates: cands.map(x => ({ artist: x.artist, title: x.title })) }) });
+      body: JSON.stringify({ crate: { name: crate.name, seeds: crate.seeds || [], neighbours: crate.neighbours || [] },
+        seeds: needSeeds ? (crate.seedPairs || []) : [], candidates: cands.map(x => ({ artist: x.artist, title: x.title, label: x.label || "", year: x.year || 0 })) }) });
     if (!r.ok) return crate._fp || null;
     const d = await r.json();
     if (needSeeds) { const found = (d.seeds || []).filter(x => x && x.found && x.styles.length && (!x.genres.length || x.genres.includes("Electronic")));
       if (found.length >= 4) { const fp = {}; for (const x of found) for (const st of x.styles) fp[st] = (fp[st] || 0) + 1 / found.length; crate._fp = fp; } }
-    cands.forEach((x, i) => { x._dc = (d.candidates || [])[i] || null; });
+    cands.forEach((x, i) => { x._dc = (d.candidates || [])[i] || null; x._judge = (d.verdicts || [])[i] || null; });
     return crate._fp || null;
   } catch { return crate._fp || null; }
 }
