@@ -46,9 +46,11 @@ Profile:
 ${JSON.stringify(p)}`;
 }
 
-export function cratePrompt(crate: any, reading: any, owned: string[], already: string[], recentWindowMonths: number) {
+export function cratePrompt(crate: any, reading: any, owned: string[], already: string[], recentWindowMonths: number, part: "A" | "B" = "A") {
+  const count = 8;
+  const mix = part === "A" ? 'about 4 "fresh" (released in the last 2 years) and 4 "classic" (older tracks this sound grew from)' : 'all 8 "deep" (lesser-known cuts from the last 10 years)';
   return `You are BINDIG, a record-shop digger with deep knowledge of electronic and dance music.
-Build this DJ a ${crate.name} crate: 16 ${crate.name} tracks they do NOT own and would love.
+Build this DJ a ${crate.name} crate: ${count} ${crate.name} tracks they do NOT own and would love.
 
 Their ${crate.name} right now (patterns across ${crate.tracks} tracks they own):
 - Styles inside it: ${crate.subMix.map((x: any) => `${x.style} ${x.pct}%`).join(", ") || "n/a"}
@@ -62,11 +64,11 @@ Hard rules:
 - Every track must be a real, commercially released track that is on Apple Music, Deezer or Beatport. Use the exact artist name, exact title and exact version/mix name as released. If you are not sure a track exists exactly as written, leave it out. Accuracy beats variety.
 - Base picks on the patterns above, never on a single track.
 - Never suggest any version (original, remix, edit, dub) of a track they already own. Not by obvious chart names unless it's a lesser-known cut.
-- Mix: about 4 "fresh" (released in the last 2 years), 8 "deep" (lesser-known cuts), 4 "classic" (older tracks this sound grew from).
-- At least 7 tracks by artists not in their owned-artist list.
+- Mix: ${mix}.
+- At least 4 tracks by artists not in their owned-artist list.
 ${already.length ? `- Don't repeat anything already suggested: ${JSON.stringify(already)}\n` : ""}- "why" is one sentence, max 22 words, tying the track to their ${crate.name} (artists, labels, styles). Dry, British, no hype words.
 
-Reply with only a JSON array of 16 objects:
+Reply with only a JSON array of ${count} objects:
 [{"artist":"","title":"","version":"Original Mix or remix name or empty","label":"","year":2019,"kind":"fresh|deep|classic","why":"","bridge":"one artist or label of theirs it connects to","confidence":0.0}]
 
 DJ profile: ${s(reading?.name, 60)}: ${s(reading?.oneLiner, 160)}

@@ -35,6 +35,39 @@ function streamClaude(model: string, prompt: string, maxTokens: number, extra: R
   });
 }
 
+// Crate: two half-size digs run side by side (fresh+classic, deep cuts) so the whole thing finishes well inside
+// the function limit. Spaces trickle out while Claude thinks, so the CDN never sees a silent connection.
+function crateStream(model: string, prompts: string[], effort: string, onFail: () => Promise<void>) {
+  const enc = new TextEncoder();
+  return new ReadableStream({
+    async start(controller) {
+      const t0 = Date.now();
+      controller.enqueue(enc.encode(" "));
+      const beat = setInterval(() => { try { controller.enqueue(enc.encode(" ")); } catch {} }, 4000);
+      try {
+        const client = new Anthropic();
+        const parts = await Promise.all(prompts.map(async (p) => {
+          const msg = await client.messages.create({ model, max_tokens: 8000, output_config: { effort }, messages: [{ role: "user", content: p }] } as any);
+          const text = (msg.content || []).filter((b: any) => b.type === "text").map((b: any) => b.text).join("");
+          console.log("claude crate part", model, msg.stop_reason, msg.usage?.output_tokens, `${Date.now() - t0}ms`);
+          const a = text.indexOf("["), b = text.lastIndexOf("]");
+          try { return a >= 0 && b > a ? JSON.parse(text.slice(a, b + 1)) : []; } catch { return []; }
+        }));
+        const picks = parts.flat().filter((x: any) => x && x.artist && x.title);
+        clearInterval(beat);
+        if (!picks.length) { await onFail(); controller.enqueue(enc.encode(ERR + "failed")); }
+        else controller.enqueue(enc.encode(JSON.stringify(picks)));
+      } catch (e: any) {
+        clearInterval(beat);
+        console.error("claude crate failed", model, e?.status, e?.message);
+        try { await onFail(); } catch {}
+        controller.enqueue(enc.encode(ERR + (e?.status === 429 ? "busy" : "failed")));
+      }
+      controller.close();
+    },
+  });
+}
+
 const textHeaders = (extra: Record<string, string> = {}) => ({ "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", ...extra });
 
 export default async (req: Request, context: any) => {
@@ -69,11 +102,11 @@ export default async (req: Request, context: any) => {
   } catch (e: any) { console.error("ticket store failed", e?.message); }
   const owned = (Array.isArray(body?.owned) ? body.owned : []).slice(0, 300).map((x: unknown) => String(x).slice(0, 80));
   const already = (Array.isArray(body?.already) ? body.already : []).slice(0, 60).map((x: unknown) => String(x).slice(0, 120));
-  const prompt = cratePrompt(crate, body?.reading, owned, already, Number(body?.recentWindowMonths) || 18);
+  const args = [crate, body?.reading, owned, already, Number(body?.recentWindowMonths) || 18] as const;
+  const prompts = [cratePrompt(...args, "A"), cratePrompt(...args, "B")];
   context.waitUntil?.(record("crate", { crate: crate.name, paid: t.kind === "crate-paid" }, req, context));
   // A failed dig gives the pass back so the DJ can try again.
-  return new Response(// Crate: Opus 5.5 always thinks; low effort keeps the whole dig well inside the 60 s function limit.
-  streamClaude(MODEL_CRATE(), prompt, 12000, { output_config: { effort: env("BINDIG_CRATE_EFFORT") || "low" } }, async () => { await used?.delete(t.jti); }), { headers: textHeaders() });
+  return new Response(crateStream(MODEL_CRATE(), prompts, env("BINDIG_CRATE_EFFORT") || "low", async () => { await used?.delete(t.jti); }), { headers: textHeaders() });
 };
 
 export const config = {
