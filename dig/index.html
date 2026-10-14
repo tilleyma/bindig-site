@@ -755,8 +755,8 @@ async function genreCheck(crate, cands, ticket) {
       body: JSON.stringify({ seeds: needSeeds ? (crate.seedPairs || []) : [], candidates: cands.map(x => ({ artist: x.artist, title: x.title })) }) });
     if (!r.ok) return crate._fp || null;
     const d = await r.json();
-    if (needSeeds) { const found = (d.seeds || []).filter(x => x && x.found && x.styles.length);
-      if (found.length >= 3) { const fp = {}; for (const x of found) for (const st of x.styles) fp[st] = (fp[st] || 0) + 1 / found.length; crate._fp = fp; } }
+    if (needSeeds) { const found = (d.seeds || []).filter(x => x && x.found && x.styles.length && (!x.genres.length || x.genres.includes("Electronic")));
+      if (found.length >= 4) { const fp = {}; for (const x of found) for (const st of x.styles) fp[st] = (fp[st] || 0) + 1 / found.length; crate._fp = fp; } }
     cands.forEach((x, i) => { x._dc = (d.candidates || [])[i] || null; });
     return crate._fp || null;
   } catch { return crate._fp || null; }
