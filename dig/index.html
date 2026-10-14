@@ -230,7 +230,11 @@ async function aiCall(url, body, headers = {}, signal) {
   const reader = r.body.getReader(), dec = new TextDecoder(); let text = "";
   for (;;) { const { value, done } = await reader.read(); if (done) break; text += dec.decode(value, { stream: true }); }
   const i = text.indexOf("\u0000BINDIG_ERROR:");
-  if (i >= 0) throw { code: text.slice(i + 14).trim() || "failed" };
+  if (i >= 0) {
+    const partial = text.slice(0, i);
+    if (parseJSON(partial)) return { text: partial, ticket };   // usable despite the hiccup
+    throw { code: text.slice(i + 14).trim() || "failed", ticket };
+  }
   return { text, ticket };
 }
 function parseJSON(t) {
@@ -577,7 +581,7 @@ async function run(text, fname) {
     p._ticket = ticket;
     reading = parseJSON(text);
     if (!reading || !reading.name || !reading.bio) throw { code: "invalid_json" };
-  } catch (e) { note = (e?.message || aiErr(e?.code)) + " Here's the plain version."; reading = null; }
+  } catch (e) { if (e?.ticket) p._ticket = e.ticket; note = (e?.message || aiErr(e?.code)) + " Here's the plain version."; reading = null; }
   if (!reading) reading = fallbackReading(p);
   log.querySelectorAll(".cursor").forEach(n => n.classList.remove("cursor"));
   current.reading = reading; p._suggested = [];

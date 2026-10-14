@@ -12,15 +12,17 @@ const ERR = "\u0000BINDIG_ERROR:";
 const MODEL_PROFILE = () => env("BINDIG_MODEL_PROFILE") || "claude-sonnet-5-5";
 const MODEL_CRATE = () => env("BINDIG_MODEL_CRATE") || "claude-opus-5-5";
 
-function streamClaude(model: string, prompt: string, maxTokens: number, onFail?: () => Promise<void>, onDone?: () => void) {
+function streamClaude(model: string, prompt: string, maxTokens: number, extra: Record<string, unknown>, onFail?: () => Promise<void>, onDone?: () => void) {
   const enc = new TextEncoder();
   return new ReadableStream({
     async start(controller) {
+      const t0 = Date.now();
       try {
         const client = new Anthropic();
-        const stream = client.messages.stream({ model, max_tokens: maxTokens, messages: [{ role: "user", content: prompt }] });
+        const stream = client.messages.stream({ model, max_tokens: maxTokens, ...extra, messages: [{ role: "user", content: prompt }] } as any);
         stream.on("text", (d) => controller.enqueue(enc.encode(d)));
         const msg = await stream.finalMessage();
+        console.log("claude done", model, msg.stop_reason, msg.usage?.output_tokens, `${Date.now() - t0}ms`);
         if (msg.stop_reason === "max_tokens") controller.enqueue(enc.encode(ERR + "cut_short"));
         onDone?.();
       } catch (e: any) {
@@ -49,7 +51,8 @@ export default async (req: Request, context: any) => {
     const lead = String(profile?.leadCrate?.name || "").slice(0, 60);
     const ticket = lead ? signToken({ kind: "crate-free", crate: lead, jti: `free-${crypto.randomUUID()}`, exp: Date.now() + 12 * 3600 * 1000 }, secret) : "";
     context.waitUntil?.(record("profile", { tracks: Number(profile.tracks) || 0, ageMonths: Number(profile.collectionAgeMonths) || 0, lead }, req, context));
-    return new Response(streamClaude(MODEL_PROFILE(), profilePrompt(profile), 1500), { headers: textHeaders(ticket ? { "x-bindig-ticket": ticket } : {}) });
+    return new Response(// Profile: no up-front thinking (between_tools is Sonnet 5.5's lowest setting) so it answers fast.
+    streamClaude(MODEL_PROFILE(), profilePrompt(profile), 4000, { thinking: { type: "between_tools" } }), { headers: textHeaders(ticket ? { "x-bindig-ticket": ticket } : {}) });
   }
 
   // crate
@@ -69,7 +72,8 @@ export default async (req: Request, context: any) => {
   const prompt = cratePrompt(crate, body?.reading, owned, already, Number(body?.recentWindowMonths) || 18);
   context.waitUntil?.(record("crate", { crate: crate.name, paid: t.kind === "crate-paid" }, req, context));
   // A failed dig gives the pass back so the DJ can try again.
-  return new Response(streamClaude(MODEL_CRATE(), prompt, 5000, async () => { await used?.delete(t.jti); }), { headers: textHeaders() });
+  return new Response(// Crate: Opus 5.5 always thinks; low effort keeps the whole dig well inside the 60 s function limit.
+  streamClaude(MODEL_CRATE(), prompt, 12000, { output_config: { effort: env("BINDIG_CRATE_EFFORT") || "low" } }, async () => { await used?.delete(t.jti); }), { headers: textHeaders() });
 };
 
 export const config = {
