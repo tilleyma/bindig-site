@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BINDIG · Show me your crate</title>
+<meta name="description" content="Drop your rekordbox XML. BINDIG writes your DJ profile, then digs a crate of ten tracks you don't own yet.">
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" href="/favicon-32.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><meta name="theme-color" content="#050806">
+<meta property="og:image" content="/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Doto:wght@600;800;900&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+/* Layout: one narrow chat column. A composer that takes a file, then a thread of replies:
+   reading → tarot card → pause → ten tracks. Deliberately single dark theme (BINDIG terminal). */
+:root{
+  --ink:#050806;          /* screen black, faint green bias */
+  --panel:#0b120d;        /* raised surface */
+  --line:#1c2a20;         /* hairlines */
+  --phos:#78f09a;         /* BINDIG phosphor */
+  --phos-dim:#4f9d66;
+  --text:#d6eedc;         /* body text */
+  --muted:#7f9a87;
+  --warn:#f0c878;
+  --c-orange:#ff8a3d;    /* data palette: genres, picks, facts */
+  --c-purple:#a77bff;
+  --c-yellow:#f2d04b;
+  --c-pink:#ff6fa8;
+  --c-green:#3fcf8e;
+  --f-display:"Doto","JetBrains Mono",ui-monospace,monospace;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--ink);color:var(--text)}
+body{font-family:var(--f-mono);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:680px;margin:0 auto;padding-block:28px 80px;display:flex;flex-direction:column;gap:28px}
+header{display:flex;align-items:baseline;gap:12px}
+.mark{font-family:var(--f-display);font-weight:900;font-size:30px;letter-spacing:.06em;color:var(--phos);margin:0}
+.badge{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);background:var(--phos);padding:1px 7px;border-radius:3px}
+.hero h1{font-family:var(--f-display);font-weight:800;font-size:clamp(28px,6vw,44px);line-height:1.1;margin:0;color:var(--text);text-wrap:balance}
+.hero p{margin:10px 0 0;color:var(--muted);max-width:52ch}
+.hl{background:linear-gradient(90deg,var(--c-orange) 0 20%,var(--c-purple) 20% 40%,var(--c-yellow) 40% 60%,var(--c-green) 60% 80%,var(--c-pink) 80%) left bottom/100% 5px no-repeat;padding-bottom:4px}
+
+/* crate dividers: genres are how BINDIG reads a collection */
+.dividers{display:flex;gap:6px;align-items:flex-end;border-bottom:2px solid var(--line);overflow:hidden;padding-top:8px;
+  -webkit-mask-image:linear-gradient(90deg,#000 80%,transparent);mask-image:linear-gradient(90deg,#000 80%,transparent)}
+.dv{--c:var(--c-orange);display:flex;flex-direction:column;align-items:center;flex:none;animation:rise .6s cubic-bezier(.2,.9,.3,1.15) both;animation-delay:calc(var(--i)*70ms)}
+.dv .rec{width:38px;height:38px;border-radius:50%;margin-bottom:-16px;position:relative;transition:transform .35s cubic-bezier(.2,.9,.3,1.3);
+  background:repeating-radial-gradient(circle,#0b0f0c 0 1.4px,#1d241f 1.4px 2.8px);box-shadow:inset 0 0 0 1px #2c352f}
+.dv .rec::after{content:"";position:absolute;inset:13px;border-radius:50%;background:var(--c)}
+.dv b{position:relative;z-index:1;font-weight:600;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--c);white-space:nowrap;
+  padding:6px 11px 5px;border-radius:7px 7px 0 0;border-top:3px solid var(--c);background:color-mix(in srgb,var(--c) 14%,var(--panel))}
+.dv.up .rec,.dv:hover .rec{transform:translateY(-9px) rotate(40deg)}
+.dv:nth-child(5n+2){--c:var(--c-purple)}.dv:nth-child(5n+3){--c:var(--c-yellow)}.dv:nth-child(5n+4){--c:var(--c-green)}.dv:nth-child(5n){--c:var(--c-pink)}
+@keyframes rise{from{transform:translateY(70px)}to{transform:none}}
+@media (prefers-reduced-motion:reduce){.dv{animation:none}.dv .rec{transition:none}}
+
+/* composer */
+.composer{position:relative;overflow:hidden;border:1px solid var(--line);background:var(--panel);border-radius:18px;padding:14px 14px 14px 18px;display:flex;align-items:center;gap:12px;transition:border-color .15s,box-shadow .15s}
+.composer::after{content:"";position:absolute;left:18px;right:18px;bottom:0;height:2px;background:linear-gradient(90deg,var(--c-orange) 0 20%,var(--c-purple) 20% 40%,var(--c-yellow) 40% 60%,var(--c-green) 60% 80%,var(--c-pink) 80%);opacity:.75}
+.composer.drag{border-color:var(--phos);box-shadow:0 0 0 3px rgba(120,240,154,.12)}
+.composer .hint{flex:1;min-width:0;color:var(--muted)}
+.composer .hint b{color:var(--text);font-weight:600}
+.composer .file{font-size:13px;color:var(--phos);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.btn{font:inherit;font-size:14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--text);padding:8px 16px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--phos-dim)}
+.btn:focus-visible,.link:focus-visible,.chip-btn:focus-visible{outline:2px solid var(--phos);outline-offset:2px}
+.btn.primary{background:var(--phos);border-color:var(--phos);color:var(--ink);font-weight:600}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn[disabled]{opacity:.45;cursor:default}
+.send{width:40px;height:40px;padding:0;display:grid;place-items:center;border-radius:50%}
+.under{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;margin-top:-16px;padding-left:4px}
+.link{font:inherit;background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.link:hover{color:var(--phos)}
+.howto{border-left:2px solid var(--phos-dim);padding:2px 0 2px 16px;color:var(--muted);font-size:14px}
+.howto ol{margin:6px 0 6px;padding-left:20px}
+.howto b{color:var(--text);font-weight:600}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:13px;color:var(--muted)}
+.steps div{border-top:1px solid var(--line);padding-top:10px}
+.steps span{display:block;font-family:var(--f-display);font-weight:800;color:var(--c-orange);font-size:18px}
+.steps div:nth-child(2) span{color:var(--c-purple)}.steps div:nth-child(3) span{color:var(--c-yellow)}
+@media (max-width:520px){.steps{grid-template-columns:1fr}}
+
+/* thread */
+.thread{display:flex;flex-direction:column;gap:22px}
+.msg{display:flex;gap:12px;align-items:flex-start;min-width:0}
+.msg .who{flex:none;width:22px;color:var(--phos);font-weight:600}
+.msg .body{flex:1;min-width:0}
+.log{font-size:13px;color:var(--muted)}
+.log div::before{content:"› ";color:var(--phos-dim)}
+.log .now{color:var(--text)}
+.cursor::after{content:"▋";color:var(--phos);animation:blink 1s steps(1) infinite;margin-left:2px}
+@keyframes blink{50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.cursor::after{animation:none}}
+
+.cardwrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+#card{width:min(100%,380px);height:auto;aspect-ratio:2/3;border-radius:14px;background:var(--ink);box-shadow:0 30px 80px -30px rgba(167,123,255,.28)}
+.cardcap{font-size:12px;color:var(--muted);text-align:center;max-width:40ch}
+.cardacts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+
+.reading p{margin:0 0 12px;max-width:62ch}
+.reading .lede{color:var(--text)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:14px;margin-top:6px}
+.kv dt{color:var(--c-yellow);font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding-top:3px}
+.kv dd{margin:0;min-width:0}
+h3{font-family:var(--f-display);font-weight:800;font-size:18px;color:var(--phos);margin:0 0 8px;letter-spacing:.03em}
+.panel{border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--panel)}
+.chart{overflow-x:auto}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.tables{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:560px){.tables{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+td{padding:4px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td.n{text-align:right;color:var(--muted);padding-left:10px;white-space:nowrap}
+
+.ask{display:flex;flex-direction:column;gap:12px}
+.ask .q{font-family:var(--f-display);font-weight:800;font-size:22px;line-height:1.25;color:var(--text);text-wrap:balance;margin:0}
+.ask .row{display:flex;gap:10px;flex-wrap:wrap}
+
+.picks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0;counter-reset:p}
+.pick{display:grid;grid-template-columns:36px 1fr;gap:4px 12px;padding:16px 0;border-bottom:1px solid var(--line)}
+.pick .no{font-family:var(--f-display);font-weight:900;font-size:22px;color:var(--c-orange);line-height:1.2}
+.pick:nth-child(3n+2) .no{color:var(--c-purple)}.pick:nth-child(3n) .no{color:var(--c-yellow)}
+.pick .t{min-width:0}
+.pick .title{font-weight:600;color:var(--text)}
+.pick .meta{font-size:12px;color:var(--muted)}
+.pick .kind{font-size:10px;letter-spacing:.12em;text-transform:uppercase;border:1px solid currentColor;border-radius:3px;padding:0 5px;margin-left:6px;color:var(--muted);vertical-align:1px}
+.k-fresh{color:var(--c-yellow)!important}.k-deep{color:var(--c-purple)!important}.k-classic{color:var(--c-orange)!important}
+.track{height:4px;background:var(--line);border-radius:2px;margin-top:4px}.bar{display:block;height:4px;border-radius:2px}
+.pick .why{margin:6px 0 8px;font-size:14px;max-width:60ch}
+.pick .links{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px}
+.pick .links a{color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+.pick .links a:hover{color:var(--phos)}
+.pick .react{grid-column:2;display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.chip-btn{font:inherit;font-size:12px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:2px 10px;cursor:pointer}
+.chip-btn[aria-pressed="true"]{border-color:var(--phos);color:var(--phos)}
+.note{font-size:12px;color:var(--muted)}
+.err{color:var(--warn);font-size:14px}
+.crate-head{display:flex;align-items:center;gap:10px;margin-bottom:4px}.crate-head h3{margin:0}
+.crate-tag{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);background:var(--c-orange);border-radius:3px;padding:1px 6px}
+.crate-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.crate-btn{font:inherit;font-size:14px;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:10px;padding:12px 14px;cursor:pointer}
+.crate-btn:hover{border-color:var(--c-purple)}.crate-btn:focus-visible{outline:2px solid var(--phos);outline-offset:2px}
+.crate-btn:nth-child(3n+1){border-left:3px solid var(--c-orange)}.crate-btn:nth-child(3n+2){border-left:3px solid var(--c-purple)}.crate-btn:nth-child(3n){border-left:3px solid var(--c-yellow)}
+.lock{font-size:11px;color:var(--ink);background:var(--phos);border-radius:999px;padding:1px 8px;font-weight:600}
+footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+.pv{font:inherit;font-size:12px;border:1px solid var(--phos-dim);background:transparent;color:var(--phos);border-radius:999px;padding:1px 10px;cursor:pointer}
+.pv.on{background:var(--phos);color:var(--ink)}.pv.nf{border-color:var(--line);color:var(--muted);cursor:default}
+.pv:focus-visible{outline:2px solid var(--phos);outline-offset:2px}
+.pick .links{align-items:center}
+.unv{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--warn);margin-left:8px}
+.mark a{color:inherit;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><p class="mark"><a href="/">BINDIG</a></p><span class="badge">v0.5 beta</span></header>
+
+  <div class="dividers" id="dividers" aria-hidden="true">
+    <span class="dv" style="--i:0"><i class="rec"></i><b>House</b></span><span class="dv" style="--i:1"><i class="rec"></i><b>Disco</b></span><span class="dv" style="--i:2"><i class="rec"></i><b>Techno</b></span><span class="dv" style="--i:3"><i class="rec"></i><b>Minimal</b></span><span class="dv" style="--i:4"><i class="rec"></i><b>Afro</b></span><span class="dv" style="--i:5"><i class="rec"></i><b>Breaks</b></span><span class="dv" style="--i:6"><i class="rec"></i><b>Melodic</b></span><span class="dv" style="--i:7"><i class="rec"></i><b>Edits</b></span>
+  </div>
+  <section class="hero">
+    <h1>Show me your <span class="hl">crate</span>.<br>I'll tell you who you are.</h1>
+    <p>Then I'll dig you a crate of ten tracks you should own but don't.</p>
+  </section>
+
+  <section id="start">
+    <div class="composer" id="drop" tabindex="0" aria-label="Drop your rekordbox XML file here">
+      <div class="hint" id="hint"><b>Drop your rekordbox.xml</b> or choose the file</div>
+      <label class="btn" for="file">Choose</label>
+      <input id="file" type="file" accept=".xml,text/xml" hidden>
+      <button class="btn primary send" id="go" aria-label="Read my crate" disabled>
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </section>
+  <div class="under">
+    <button class="link" id="howBtn" aria-expanded="false" aria-controls="how">How do I get the file?</button>
+    <button class="link" id="demoBtn">Try a sample crate</button>
+  </div>
+  <div class="howto" id="how" hidden>
+    <ol>
+      <li>Open rekordbox on your computer.</li>
+      <li><b>File → Export Collection in xml format</b>.</li>
+      <li>Save it anywhere, then drop it above.</li>
+    </ol>
+    Your file stays on your device. Only a short summary (top artists, labels, genres, BPM) goes to the AI to write your profile and dig your crate.
+  </div>
+
+  <div class="steps" id="steps">
+    <div><span>1</span>Reads plays, labels, dates and keys across your whole collection.</div>
+    <div><span>2</span>Writes your DJ profile: who you are behind the decks, and where you're heading.</div>
+    <div><span>3</span>Digs a crate of ten tracks you don't own yet, in the lane you're playing now.</div>
+  </div>
+
+  <section class="thread" id="thread" aria-live="polite"></section>
+
+  <footer>BINDIG digs. You DJ. · v0.5 beta · Track picks are AI suggestions, checked against Apple Music and Deezer. Hear them before you buy. · <a href="/privacy/" style="color:inherit">Privacy</a> · <a href="/terms/" style="color:inherit">Terms</a></footer>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") n.className = v; else if (k === "text") n.textContent = v;
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v);
+  }
+  for (const k of kids) if (k != null) n.append(k);
+  return n;
+};
+const thread = $("#thread");
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+// genre palette: brand green stays for BINDIG chrome; data gets its own colours
+const GENRE = ["#ff8a3d", "#a77bff", "#f2d04b", "#3fcf8e", "#ff6fa8"];
+const OTHER = "#39423d";
+
+/* ---------- AI (server-side, via /api/ai) ---------- */
+const ls = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+function visitor() { let v = ls.get("bindig_visitor"); if (!v) { v = crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2); ls.set("bindig_visitor", v); } return v; }
+async function aiCall(url, body, headers = {}, signal) {
+  const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json", "x-bindig-visitor": visitor(), ...headers }, body: JSON.stringify(body), signal });
+  if (!r.ok) { const d = await r.json().catch(() => ({})); throw { code: d.code || "http_" + r.status, message: d.error }; }
+  const ticket = r.headers.get("x-bindig-ticket") || "";
+  const reader = r.body.getReader(), dec = new TextDecoder(); let text = "";
+  for (;;) { const { value, done } = await reader.read(); if (done) break; text += dec.decode(value, { stream: true }); }
+  const i = text.indexOf("\u0000BINDIG_ERROR:");
+  if (i >= 0) throw { code: text.slice(i + 14).trim() || "failed" };
+  return { text, ticket };
+}
+function parseJSON(t) {
+  t = String(t || "").trim();
+  try { return JSON.parse(t); } catch {}
+  const f = t.match(/```(?:json)?\s*([\s\S]*?)```/); if (f) { try { return JSON.parse(f[1]); } catch {} }
+  const a = Math.min(...["[", "{"].map(c => { const k = t.indexOf(c); return k < 0 ? Infinity : k; })), b = Math.max(t.lastIndexOf("]"), t.lastIndexOf("}"));
+  if (a < b) { try { return JSON.parse(t.slice(a, b + 1)); } catch {} }
+  return null;
+}
+const aiErr = c => ({
+  busy: "The AI is busy right now. Give it a minute and try again.",
+  http_429: "Too many asks in a row. Give it a minute and try again.",
+  http_503: "The AI isn't switched on for this site yet.",
+  cut_short: "The answer got cut short. Try again.",
+  invalid_json: "The answer came back garbled. Try again.",
+}[c] || "Something went wrong reaching the AI. Try again.");
+
+/* ---------- parse ---------- */
+function parseXML(text) {
+  const doc = new DOMParser().parseFromString(text, "application/xml");
+  if (doc.querySelector("parsererror")) throw new Error("That file isn't valid XML. Export it again from rekordbox.");
+  const col = doc.querySelector("COLLECTION");
+  if (!col) throw new Error("No COLLECTION found. Use File → Export Collection in xml format.");
+  const tracks = [];
+  for (const t of col.querySelectorAll(":scope > TRACK")) {
+    const g = a => t.getAttribute(a) || "";
+    const loc = g("Location");
+    tracks.push({
+      id: g("TrackID"), name: g("Name").trim(), artist: g("Artist").trim(), genre: g("Genre").trim(),
+      label: g("Label").trim(), remixer: g("Remixer").trim(), mix: g("Mix").trim(), year: parseInt(g("Year")) || 0,
+      bpm: parseFloat(g("AverageBpm")) || 0, added: g("DateAdded"), plays: parseInt(g("PlayCount")) || 0,
+      rating: parseInt(g("Rating")) || 0, key: g("Tonality").trim(),
+      stream: /^file:\/\/localhost(tidal|soundcloud|beatport|spotify|applemusic)/i.test(loc) || /^(tidal|soundcloud|beatport)/i.test(loc),
+    });
+  }
+  const playlists = [];
+  for (const n of doc.querySelectorAll('NODE[Type="1"]')) playlists.push({ name: n.getAttribute("Name") || "", size: n.querySelectorAll(":scope > TRACK").length });
+  return { tracks, playlists };
+}
+
+/* ---------- version matching: any version of an owned track counts as owned ---------- */
+function norm(s) { return (s || "").toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim(); }
+const VERSION_WORDS = /\b(original|extended|radio|club|mix|remix|edit|dub|version|rework|vip|bootleg|instrumental|reprise|remaster(ed)?|re ?edit)\b/g;
+function baseTitle(s) {
+  return norm(String(s || "").replace(/\s*[\(\[][^\)\]]*[\)\]]/g, " ").replace(/\s+-\s+[^-]*\b(mix|remix|edit|dub|version|rework|vip|bootleg)\b.*$/i, " "));
+}
+function names(s) {
+  return String(s || "").toLowerCase().split(/\s*(?:,|&|\+|\/|\band\b|\bfeat\.?|\bft\.?|\bfeaturing\b|\bx\b|\bvs\.?|\bwith\b)\s*/)
+    .map(x => norm(x).replace(VERSION_WORDS, "").replace(/\s+/g, " ").trim()).filter(Boolean);
+}
+function buildOwned(tracks) {
+  const idx = new Map();
+  for (const t of tracks) {
+    const bt = baseTitle(t.name); if (!bt) continue;
+    const set = idx.get(bt) || new Set();
+    const inParens = (t.name.match(/[\(\[]([^\)\]]+)[\)\]]/g) || []).join(" ");
+    for (const n of [...names(t.artist), ...names(t.remixer), ...names(inParens), ...names(t.mix)]) set.add(n);
+    idx.set(bt, set);
+  }
+  return idx;
+}
+function ownsAnyVersion(idx, pick) {
+  const bt = baseTitle(pick.title); if (!bt || !idx.has(bt)) return false;
+  const have = idx.get(bt);
+  const theirs = [...names(pick.artist), ...names(pick.version)];
+  if (theirs.some(n => have.has(n))) return true;
+  return bt.split(" ").length >= 3; // long identical titles: treat as the same record
+}
+
+/* ---------- analyse ---------- */
+const addMonths = (iso, m) => { const d = new Date(iso + "T00:00:00Z"); d.setUTCMonth(d.getUTCMonth() + m); return d.toISOString().slice(0, 10); };
+const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function analyse({ tracks: all, playlists }) {
+  const tracks = all.filter(t => !t.stream);
+  const n = tracks.length;
+  if (!n) throw new Error("No local tracks found in that file.");
+  const dated = tracks.filter(t => /^(19|20)\d\d-\d\d/.test(t.added));
+  const sortedDates = dated.map(t => t.added).sort();
+  const firstDate = sortedDates[0] || "", lastDate = sortedDates.at(-1) || "";
+  const firstYear = +firstDate.slice(0, 4) || 0, lastYear = +lastDate.slice(0, 4) || 0;
+  const spanMonths = firstDate ? (lastYear - firstYear) * 12 + (+lastDate.slice(5, 7)) - (+firstDate.slice(5, 7)) + 1 : 0;
+  const young = spanMonths <= 24;
+  const unit = spanMonths <= 9 ? "month" : spanMonths <= 30 ? "quarter" : "year";
+  const recentMonths = young ? 6 : 18;
+
+  const totalPlays = tracks.reduce((s, t) => s + t.plays, 0);
+  const played = tracks.filter(t => t.plays > 0);
+  // Patterns over outliers: one track played 300 times counts no more than a normal favourite.
+  const pp = played.map(t => t.plays).sort((a, b) => a - b);
+  const playCap = Math.max(3, pp.length ? pp[Math.floor(.9 * (pp.length - 1))] : 3);
+  const cp = t => Math.min(t.plays, playCap);
+  const weight = t => (t.plays > 0 ? 1 : 0) + cp(t) / playCap;   // breadth first, depth second
+  const tally = (list, keyFn, valFn = () => 1) => {
+    const m = new Map();
+    for (const t of list) { const k = keyFn(t); if (!k) continue; m.set(k, (m.get(k) || 0) + valFn(t)); }
+    return [...m.entries()].sort((a, b) => b[1] - a[1]);
+  };
+  const genreOf = t => t.genre || "Untagged";
+  const cutoff = lastDate ? addMonths(lastDate, -recentMonths) : "";
+  const recent = tracks.filter(t => t.added && t.added > cutoff);
+  const earlyEnd = firstDate ? addMonths(firstDate, young ? 6 : 24) : "";
+  const early = dated.filter(t => t.added < earlyEnd);
+
+  const artistCount = new Map(tally(tracks, t => t.artist));
+  const labelCount = new Map(tally(tracks, t => t.label));
+  const artistPlayed = new Map(tally(played, t => t.artist));
+  const labelPlayed = new Map(tally(played, t => t.label));
+  const rankBy = (keyFn, playedMap) => { const r = tally(tracks, keyFn, weight).filter(x => x[1] > 0); const solid = r.filter(([k]) => (playedMap.get(k) || 0) >= 2); return solid.length >= 5 ? solid : r; };
+  const artistRank = rankBy(t => t.artist, artistPlayed), labelRank = rankBy(t => t.label, labelPlayed);
+  const genreCount = tally(tracks, genreOf);
+  const genrePlays = new Map(tally(tracks, genreOf, cp));
+  const topGenres = tally(tracks, genreOf, t => 1 + cp(t)).slice(0, 5).map(x => x[0]);
+  const artistGenre = new Map(tally(tracks, t => t.artist && t.artist + "\u0000" + genreOf(t), t => 1 + cp(t)).reverse().map(([k]) => k.split("\u0000")));
+  const labelGenre = new Map(tally(tracks, t => t.label && t.label + "\u0000" + genreOf(t), t => 1 + cp(t)).reverse().map(([k]) => k.split("\u0000")));
+
+  // timeline buckets sized to the collection's age: months, quarters or years
+  const bucketOf = d => { const y = d.slice(0, 4), m = +d.slice(5, 7); return unit === "year" ? y : unit === "quarter" ? `${y}-Q${Math.ceil(m / 3)}` : d.slice(0, 7); };
+  const labelOf = k => unit === "year" ? "'" + k.slice(2) : unit === "quarter" ? `${k.slice(5)} '${k.slice(2, 4)}` : `${MON[+k.slice(5, 7) - 1]} '${k.slice(2, 4)}`;
+  const keys = [];
+  if (firstDate) { let d = firstDate.slice(0, 7) + "-01"; while (d <= lastDate) { const k = bucketOf(d); if (keys.at(-1) !== k) keys.push(k); d = addMonths(d, 1); } }
+  const buckets = keys.map(k => ({ key: k, label: labelOf(k), added: 0, by: Object.fromEntries(topGenres.map(g => [g, 0])), other: 0 }));
+  const bIdx = new Map(buckets.map((b, i) => [b.key, i]));
+  for (const t of dated) { const b = buckets[bIdx.get(bucketOf(t.added))]; if (!b) continue; b.added++; const g = genreOf(t); if (g in b.by) b.by[g]++; else b.other++; }
+
+  const shareRows = (list, k = 4) => { const c = tally(list, genreOf); const s = list.length || 1; return c.slice(0, k).map(([g, v]) => ({ genre: g, pct: Math.round(100 * v / s) })); };
+  const avgRate = played.length / n;
+  const ignored = genreCount.filter(([g, c]) => c >= Math.max(10, n * 0.05))
+    .map(([g, c]) => ({ genre: g, tracks: c, playedPct: Math.round(100 * tracks.filter(t => genreOf(t) === g && t.plays > 0).length / c) }))
+    .filter(x => x.playedPct < avgRate * 100 * 0.5).slice(0, 3);
+
+  const wq = (arr, q) => { if (!arr.length) return 0; const s = [...arr].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(q * s.length))]; };
+  const bpmPlayed = []; for (const t of played) if (t.bpm > 60) for (let i = 0; i < cp(t); i++) bpmPlayed.push(t.bpm);
+  const bpmOf = list => Math.round(wq(list.filter(t => t.bpm > 60).map(t => t.bpm), .5));
+  const homeKeys = tally(played, t => t.key, cp).slice(0, 3).map(x => x[0]);
+  const minorish = played.filter(t => /A$|m$/.test(t.key)).length / (played.filter(t => t.key).length || 1);
+  const relYears = played.filter(t => t.year > 1950).map(t => t.year);
+  const cappedTotal = played.reduce((s, t) => s + cp(t), 0);
+  const top10share = Math.round(100 * artistRank.slice(0, 10).reduce((s, [a]) => s + tracks.filter(t => t.artist === a).reduce((x, t) => x + cp(t), 0), 0) / (cappedTotal || 1));
+  const last90 = lastDate ? tracks.filter(t => t.added > addMonths(lastDate, -3)).length : 0;
+  const remixers = tally(tracks, t => t.remixer, t => 1 + t.plays).slice(0, 3).map(x => x[0]);
+  const recentArtists = tally(recent, t => t.artist, t => .5 + weight(t)).slice(0, 8).map(x => x[0]);
+  const crates = buildCrates(tracks, recent, early, weight, genreOf);
+
+  return {
+    tracks: n, streamingSkipped: all.length - n, playedPct: Math.round(100 * played.length / n), totalPlays,
+    firstYear, lastYear, collectionAgeMonths: spanMonths, yearsDigging: Math.max(1, Math.round(spanMonths / 12)), lastAdded: lastDate,
+    timelineUnit: unit, recentWindowMonths: recentMonths,
+    addedLast90Days: last90,
+    topArtists: artistRank.slice(0, 10).map(([a]) => ({ artist: a, playedTracks: artistPlayed.get(a) || 0, ownedTracks: artistCount.get(a), genre: artistGenre.get(a) })),
+    topLabels: labelRank.slice(0, 8).map(([l]) => ({ label: l, playedTracks: labelPlayed.get(l) || 0, ownedTracks: labelCount.get(l), genre: labelGenre.get(l) })),
+    genresAtStart: shareRows(early), genresNow: shareRows(recent),
+    genresMostPlayed: [...genrePlays.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([g, p]) => ({ genre: g, plays: p })),
+    ownedButIgnored: ignored,
+    recentArtists,
+    leadCrate: crates.lead && { name: crates.lead.name, recentSharePct: crates.lead.recentPct, startSharePct: crates.lead.startPct, styles: crates.lead.subMix },
+    bpm: { heart: Math.round(wq(bpmPlayed, .5)), low: Math.round(wq(bpmPlayed, .2)), high: Math.round(wq(bpmPlayed, .8)), atStart: bpmOf(early), now: bpmOf(recent) },
+    keys: homeKeys, minorKeyPct: Math.round(100 * minorish),
+    releaseEra: { medianYear: wq(relYears, .5), pre2010Pct: Math.round(100 * relYears.filter(y => y < 2010).length / (relYears.length || 1)) },
+    loyaltyTop10ArtistsPctOfPlays: top10share, favouriteRemixers: remixers,
+    _crates: crates, _buckets: buckets, _topGenres: topGenres,
+    _owned: buildOwned(tracks),
+    _artists: [...artistCount.keys()],
+  };
+}
+/* ---------- crates: the lane a DJ is playing now ---------- */
+const BROAD = [["House", /house|garage/], ["Techno", /techno/], ["House", /deep tech|minimal|micro/], ["Disco & Edits", /disco|edit|boogie|funk/],
+  ["Breaks", /break|electro\b/], ["Drum & Bass", /drum|dnb|jungle/], ["Afro & Amapiano", /amapiano|afro/], ["Downtempo", /downtempo|ambient|chill|balearic|electronica|idm/]];
+const SUB = [["Melodic House & Techno", /melodic|progressive/], ["Afro House", /afro/], ["Organic House", /organic|downtempo|balearic/], ["Tech House", /tech house/],
+  ["Deep House", /deep house/], ["Minimal / Deep Tech", /minimal|deep tech|micro/], ["Disco & Edits", /disco|edit|boogie/], ["Techno", /techno/],
+  ["Breaks", /break/], ["Drum & Bass", /drum|dnb|jungle/], ["House", /house|garage/]];
+const family = (map, g) => { if (!g || /^untagged$/i.test(g)) return null; const l = g.toLowerCase(); for (const [n, re] of map) if (re.test(l)) return n; return g.trim(); };
+function buildCrates(tracks, recent, early, weight, genreOf) {
+  const recentSet = new Set(recent), earlySet = new Set(early);
+  const stat = (name, test) => {
+    const all = tracks.filter(test); if (all.length < 10) return null;
+    const rec = all.filter(t => recentSet.has(t)), pl = all.filter(t => t.plays > 0);
+    const score = rec.reduce((s, t) => s + .5 + weight(t), 0) + .25 * all.reduce((s, t) => s + weight(t), 0);
+    const pick = (fn, k) => { const m = new Map(); for (const t of all) { const v = fn(t); if (v) m.set(v, (m.get(v) || 0) + weight(t) + (recentSet.has(t) ? .5 : 0)); } return [...m].sort((a, b) => b[1] - a[1]).slice(0, k).map(x => x[0]); };
+    const subs = new Map(); for (const t of (rec.length >= 10 ? rec : all)) { const sname = family(SUB, genreOf(t)); if (sname) subs.set(sname, (subs.get(sname) || 0) + 1); }
+    const subTot = [...subs.values()].reduce((a, b) => a + b, 0) || 1;
+    const bp = pl.filter(t => t.bpm > 60).map(t => t.bpm).sort((a, b) => a - b);
+    const q = x => bp.length ? Math.round(bp[Math.min(bp.length - 1, Math.floor(x * bp.length))]) : 0;
+    return { name, tracks: all.length, score, recentPct: Math.round(100 * rec.length / (recentSet.size || 1)), startPct: Math.round(100 * all.filter(t => earlySet.has(t)).length / (earlySet.size || 1)),
+      subMix: [...subs].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([st, c]) => ({ style: st, pct: Math.round(100 * c / subTot) })).filter((x, i) => i === 0 || x.pct >= 8),
+      artists: pick(t => t.artist, 10), labels: pick(t => t.label, 6), bpm: [q(.15), q(.85)] };
+  };
+  const broadNames = [...new Set(tracks.map(t => family(BROAD, genreOf(t))).filter(Boolean))];
+  const broad = broadNames.map(n => stat(n, t => family(BROAD, genreOf(t)) === n)).filter(Boolean).sort((a, b) => b.score - a.score);
+  const lead = broad[0] || null;
+  const subNames = [...new Set(tracks.map(t => family(SUB, genreOf(t))).filter(Boolean))];
+  const subs = subNames.filter(n => !lead || n !== lead.name).map(n => stat(n, t => family(SUB, genreOf(t)) === n)).filter(c => c && c.tracks >= Math.max(10, tracks.length * .03));
+  const seen = new Set(lead ? [lead.name] : []); const options = [];
+  for (const c of [...subs, ...broad.slice(1)].sort((a, b) => b.score - a.score)) { if (seen.has(c.name)) continue; seen.add(c.name); options.push(c); if (options.length >= 5) break; }
+  return { lead, options };
+}
+const publicProfile = p => { const o = {}; for (const [k, v] of Object.entries(p)) if (!k.startsWith("_")) o[k] = v; return o; };
+const genreColour = (p, g) => { const i = p._topGenres.indexOf(g); return i < 0 ? OTHER : GENRE[i]; };
+const ageText = p => p.collectionAgeMonths < 24 ? `${p.collectionAgeMonths} months` : `${p.yearsDigging} years`;
+
+/* ---------- profile (the "who you are" read) ---------- */
+function fallbackReading(p) {
+  const a = p.topArtists.slice(0, 3).map(x => x.artist), l = p.topLabels[0]?.label;
+  const then = p.genresAtStart[0]?.genre, now = p.genresNow[0]?.genre;
+  return {
+    name: p.bpm.now && p.bpm.atStart && p.bpm.now < p.bpm.atStart - 3 ? "Slow-Burn Selector" : `${now || "Late-Night"} Loyalist`,
+    oneLiner: then && now && then !== now ? `Came for ${then}. Stayed for ${now}.` : `${p.tracks} tracks, and you know where every one lives.`,
+    facts: [a[0] ? `${a[0]} on heavy rotation` : `${p.playedPct}% of the crate played`, l ? `${l} is your most played label` : `${p.bpm.heart} BPM heartbeat`, p.keys[0] ? `Home key: ${p.keys[0]}` : `${ageText(p)} of digging`],
+    bio: `${ageText(p)}, ${p.tracks} tracks, ${p.totalPlays} plays. You started out in ${then || "mixed company"} and you've drifted towards ${now || "something quieter"}.\n\nThe names you return to are ${a.join(", ") || "your own"}. Your heart sits at ${p.bpm.heart} BPM, and ${p.playedPct}% of what you own has actually been played.`,
+    sleepingOn: p.ownedButIgnored[0] ? `You own ${p.ownedButIgnored[0].tracks} ${p.ownedButIgnored[0].genre} tracks and play ${p.ownedButIgnored[0].playedPct}% of them.` : `Most of what you buy, you play. Rare.`,
+    heading: now ? `More ${now}, at a lower BPM than you'd admit.` : `Somewhere slower.`,
+  };
+}
+
+/* ---------- profile card (canvas, saveable) ---------- */
+async function drawCard(cv, p, r) {
+  try { await Promise.all(["900 80px Doto", "800 40px Doto", "400 28px 'JetBrains Mono'", "600 28px 'JetBrains Mono'"].map(f => document.fonts.load(f))); } catch {}
+  const W = 1080, H = 1620, c = cv.getContext("2d");
+  cv.width = W; cv.height = H;
+  c.fillStyle = "#050806"; c.fillRect(0, 0, W, H);
+  const M = 72;
+  // header row
+  c.textBaseline = "alphabetic"; c.textAlign = "left"; c.fillStyle = "#78f09a"; c.font = "900 44px Doto, monospace"; c.fillText("BINDIG", M, 118);
+  c.textAlign = "right"; c.fillStyle = "#7f9a87"; c.font = "400 22px 'JetBrains Mono', monospace"; c.fillText(`DJ PROFILE · ${p.lastYear || ""}`, W - M, 112);
+  c.fillStyle = "#1c2a20"; c.fillRect(M, 150, W - 2 * M, 2);
+  // emblem: one groove per period you dug, arcs = genre share of what you added
+  const cx = W / 2, cy = 520, r0 = 105, r1 = 310, bs = p._buckets.filter(b => b.added > 0), band = (r1 - r0) / Math.max(1, bs.length);
+  bs.forEach((b, i) => {
+    const rad = r0 + band * (i + .5), lw = Math.max(3, band * .7);
+    const parts = p._topGenres.map((g, gi) => [b.by[g], GENRE[gi]]).concat([[b.other, OTHER]]).filter(x => x[0] > 0);
+    const tot = parts.reduce((s, x) => s + x[0], 0); let a = -Math.PI / 2 + i * .23;
+    for (const [v, col] of parts) {
+      const sweep = Math.PI * 2 * v / tot, gap = Math.min(.035, sweep / 4);
+      c.beginPath(); c.arc(cx, cy, rad, a + gap, a + sweep - gap); c.strokeStyle = col; c.lineWidth = lw; c.lineCap = "butt"; c.stroke(); a += sweep;
+    }
+  });
+  c.beginPath(); c.arc(cx, cy, r0 - 16, 0, Math.PI * 2); c.fillStyle = "#78f09a"; c.fill();
+  c.textAlign = "center"; c.fillStyle = "#050806"; c.font = "900 52px Doto, monospace"; c.fillText(String(p.bpm.heart || "—"), cx, cy + 10);
+  c.font = "600 15px 'JetBrains Mono', monospace"; spaced(c, "BPM HEART", cx, cy + 46, 3);
+  // name + one-liner
+  c.textAlign = "left"; c.fillStyle = "#eef7f0"; c.font = "900 80px Doto, monospace";
+  let yy = wrap(c, (r.name || "").toUpperCase(), M, 960, W - 2 * M, 82, 2, "left");
+  c.fillStyle = "#c2dcc8"; c.font = "400 30px 'JetBrains Mono', monospace";
+  yy = wrap(c, r.oneLiner || "", M, yy + 60, W - 2 * M, 42, 2, "left");
+  // facts with coloured markers
+  yy += 74;
+  (r.facts || []).slice(0, 3).forEach((f, i) => {
+    c.fillStyle = "#78f09a"; c.fillRect(M, yy - 20, 16, 16);
+    c.fillStyle = "#eef7f0"; c.font = "600 28px 'JetBrains Mono', monospace"; wrap(c, f, M + 36, yy - 2, W - 2 * M - 36, 34, 1, "left");
+    yy += 54;
+  });
+  // genre key + stats
+  const ky = H - 168; let kx = M; c.font = "400 21px 'JetBrains Mono', monospace";
+  p._topGenres.slice(0, 4).forEach((g, i) => {
+    const label = g.length > 18 ? g.slice(0, 17) + "…" : g, w = c.measureText(label).width;
+    if (kx + 26 + w > W - M) return;
+    c.fillStyle = GENRE[i]; c.beginPath(); c.arc(kx + 8, ky - 7, 8, 0, Math.PI * 2); c.fill();
+    c.fillStyle = "#a9c3b0"; c.fillText(label, kx + 24, ky); kx += 24 + w + 30;
+  });
+  c.fillStyle = "#1c2a20"; c.fillRect(M, H - 130, W - 2 * M, 2);
+  c.fillStyle = "#7f9a87"; c.font = "400 22px 'JetBrains Mono', monospace";
+  c.fillText(`${p.tracks.toLocaleString()} TRACKS · ${ageText(p).toUpperCase()} · ${p.playedPct}% PLAYED · KEY ${p.keys[0] || "—"}`, M, H - 86);
+}
+function spaced(c, s, x, y, sp) { const w = [...s].reduce((t, ch) => t + c.measureText(ch).width + sp, -sp); let px = x - w / 2; c.textAlign = "left"; for (const ch of s) { c.fillText(ch, px, y); px += c.measureText(ch).width + sp; } c.textAlign = "center"; }
+function wrap(c, text, x, y, maxW, lh, maxLines, align = "center") {
+  c.textAlign = align;
+  const words = String(text).split(/\s+/); let line = "", lines = [];
+  for (const w of words) { const t = line ? line + " " + w : w; if (c.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; }
+  if (line) lines.push(line);
+  if (lines.length > maxLines) { lines = lines.slice(0, maxLines); lines[maxLines - 1] += "…"; }
+  for (const l of lines) { c.fillText(l, x, y); y += lh; }
+  return y - lh;
+}
+
+/* ---------- genre timeline chart ---------- */
+function journeyChart(p) {
+  const bs = p._buckets; const step = bs.length > 14 ? 40 : 52, bw = step - 18;
+  const W = Math.max(320, bs.length * step + 12), H = 172, top = 10, bot = 138;
+  const ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", `Share of each genre in the tracks you added, by ${p.timelineUnit}`);
+  const add = (t, a) => { const n = document.createElementNS(ns, t); for (const k in a) n.setAttribute(k, a[k]); svg.append(n); return n; };
+  bs.forEach((b, i) => {
+    const x = i * step + 10; let cur = bot; const tot = b.added;
+    if (!tot) add("rect", { x, y: bot - 2, width: bw, height: 2, fill: "#1c2a20" });
+    const parts = p._topGenres.map((g, gi) => [b.by[g], GENRE[gi]]).concat([[b.other, OTHER]]);
+    for (const [v, col] of parts) { if (!v) continue; const h = (bot - top) * v / tot; add("rect", { x, y: cur - h, width: bw, height: Math.max(0, h - 1.5), fill: col, rx: 2 }); cur -= h; }
+    add("text", { x: x + bw / 2, y: bot + 18, "text-anchor": "middle", "font-size": 10.5, fill: "#9fb6a6", "font-family": "JetBrains Mono, monospace" }).textContent = b.label;
+    add("text", { x: x + bw / 2, y: bot + 31, "text-anchor": "middle", "font-size": 9, fill: "#5f7a68", "font-family": "JetBrains Mono, monospace" }).textContent = b.added;
+  });
+  const per = { year: "year", quarter: "quarter", month: "month" }[p.timelineUnit];
+  const box = el("div", { class: "panel" }, el("h3", { text: "Your genre timeline" }), el("div", { class: "chart" }, svg));
+  const lg = el("div", { class: "legend" });
+  p._topGenres.forEach((g, i) => { const it = el("span"); const sw = el("i"); sw.style.background = GENRE[i]; it.append(sw, g); lg.append(it); });
+  const o = el("span"); const so = el("i"); so.style.background = OTHER; o.append(so, "Other"); lg.append(o);
+  box.append(lg, el("p", { class: "note", text: `What you added each ${per}. Small number = tracks added.` }));
+  return box;
+}
+function tablesPanel(p) {
+  const t = (rows, a) => {
+    const max = Math.max(1, ...rows.map(r => r.playedTracks)), tb = el("table");
+    for (const r of rows) {
+      const bar = el("span", { class: "bar" }); bar.style.width = Math.round(100 * r.playedTracks / max) + "%"; bar.style.background = genreColour(p, r.genre);
+      tb.append(el("tr", {}, el("td", {}, el("div", { text: r[a] }), el("div", { class: "track" }, bar)), el("td", { class: "n", text: `${r.playedTracks} of ${r.ownedTracks} played` })));
+    }
+    return tb;
+  };
+  return el("div", { class: "tables" },
+    el("div", { class: "panel" }, el("h3", { text: "Artists you play" }), t(p.topArtists.slice(0, 6), "artist")),
+    el("div", { class: "panel" }, el("h3", { text: "Labels you trust" }), t(p.topLabels.slice(0, 6), "label")),
+    el("p", { class: "note", style: "grid-column:1/-1;margin:0", text: "Ranked by how many of their tracks you play, not one track on repeat. Bar colour = the genre you play them in most." }));
+}
+
+/* ---------- recommendations: one crate at a time ---------- */
+const enc = encodeURIComponent;
+function pickLinks(x) {
+  const q = `${x.artist} ${x.title}`;
+  return [["Beatport", `https://www.beatport.com/search?q=${enc(q)}`], ["Bandcamp", `https://bandcamp.com/search?q=${enc(q)}`],
+    ["Discogs", `https://www.discogs.com/search/?q=${enc(q)}&type=all`], ["YouTube", `https://www.youtube.com/results?search_query=${enc(q)}`]];
+}
+
+/* ---------- flow ---------- */
+let current = null, digCtl = null;
+function addMsg(who, ...kids) { const m = el("div", { class: "msg" }, el("div", { class: "who", text: who }), el("div", { class: "body" }, ...kids)); thread.append(m); return m; }
+
+async function run(text, fname) {
+  thread.replaceChildren(); $("#steps").hidden = true; $("#go").disabled = true;
+  const log = el("div", { class: "log" }); addMsg(">", log);
+  const line = async (s, ms = 380) => { log.querySelectorAll(".now").forEach(n => n.classList.remove("now", "cursor")); log.append(el("div", { class: "now cursor", text: s })); await sleep(ms); };
+  let p;
+  try {
+    await line(`Opening ${fname}`);
+    const parsed = parseXML(text);
+    await line(`Reading ${parsed.tracks.length.toLocaleString()} tracks and ${parsed.playlists.length} playlists`);
+    p = analyse(parsed); current = p;
+    await line(`${ageText(p)} of digging, ${p.totalPlays.toLocaleString()} plays, ${p.playedPct}% of the crate played`);
+    await line(`Following you from ${p.genresAtStart[0]?.genre || "the start"} to ${p.genresNow[0]?.genre || "now"} (last ${p.recentWindowMonths} months)`);
+  } catch (e) { log.lastChild?.classList.remove("cursor"); addMsg("!", el("p", { class: "err", text: e.message || String(e) })); $("#go").disabled = false; return; }
+
+  let reading = null, note = null;
+  await line("Writing your profile", 50);
+  try {
+    const { text, ticket } = await aiCall("/api/ai/profile", { profile: publicProfile(p) });
+    p._ticket = ticket;
+    reading = parseJSON(text);
+    if (!reading || !reading.name || !reading.bio) throw { code: "invalid_json" };
+  } catch (e) { note = (e?.message || aiErr(e?.code)) + " Here's the plain version."; reading = null; }
+  if (!reading) reading = fallbackReading(p);
+  log.querySelectorAll(".cursor").forEach(n => n.classList.remove("cursor"));
+  current.reading = reading; p._suggested = [];
+  saveState();
+  showReading(p, reading, note);
+}
+
+async function showReading(p, r, note, restored) {
+  const cv = el("canvas", { id: "card", role: "img", "aria-label": `DJ profile card: ${r.name}. ${r.oneLiner}` });
+  const save = el("button", { class: "btn", text: "Save card" });
+  const acts = el("div", { class: "cardacts" }, save);
+  addMsg("", el("div", { class: "cardwrap" }, cv, el("p", { class: "cardcap", text: `Each groove is a ${p.timelineUnit} of digging, coloured by the genres you added.` }), acts));
+  await drawCard(cv, p, r);
+  save.onclick = () => cv.toBlob(b => { const a = document.createElement("a"); a.href = URL.createObjectURL(b);
+    a.download = `bindig-${(r.name || "profile").toLowerCase().replace(/[^a-z0-9]+/g, "-")}.png`; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 3000); }, "image/png");
+
+  const paras = String(r.bio || "").split(/\n\n+/).map((t, i) => el("p", { class: i ? "" : "lede", text: t }));
+  const kv = el("dl", { class: "kv" }, el("dt", { text: "Sleeping on" }), el("dd", { text: r.sleepingOn || "" }), el("dt", { text: "Heading" }), el("dd", { text: r.heading || "" }));
+  addMsg(">", el("div", { class: "reading" }, ...paras, kv, note ? el("p", { class: "note", text: note }) : null));
+  addMsg("", journeyChart(p));
+  addMsg("", tablesPanel(p));
+  if (!restored) askDig();
+}
+
+/* ---------- 30-second previews: iTunes first, Deezer as backup (JSONP, only artist + title are sent) ---------- */
+let audio = null, playing = null, jpN = 0; const pvCache = {};
+function jsonp(url, ms) { return new Promise(res => { const cb = "bdgjp" + (++jpN) + "_" + Date.now(), sc = document.createElement("script"); let done = false;
+  const fin = v => { if (done) return; done = true; try { delete window[cb]; } catch { window[cb] = undefined; } sc.remove(); res(v); };
+  window[cb] = d => fin(d); sc.onerror = () => fin(null); setTimeout(() => fin(null), ms || 6000);
+  sc.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb; document.head.appendChild(sc); }); }
+const pclean = x => String(x || "").toLowerCase().replace(/\((original|extended)( mix)?\)|- original mix|\b(feat|ft)\b\.?.*$/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+function bestHit(list, a, t, get) { const A = pclean(a).split(" ")[0] || "", T = pclean(t); let best = null, bs = -1;
+  for (const x of list || []) { const g = get(x); if (!g.url) continue; let sc = 0; const gt = pclean(g.title), ga = pclean(g.artist);
+    if (A && ga.includes(A)) sc += 2; if (gt === T) sc += 3; else if (T && (gt.includes(T) || T.includes(gt))) sc += 2; else if (T.split(" ")[0] && gt.includes(T.split(" ")[0])) sc += 1;
+    if (sc > bs) { bs = sc; best = g; } }
+  return bs >= 4 ? best : null; }   // artist + title must both match: this doubles as the "does it exist" check
+function findPreview(a, t) { const k = a + "|" + t; if (pvCache[k] !== undefined) return Promise.resolve(pvCache[k]);
+  const q = encodeURIComponent(String(a || "").split(/,|&| feat/i)[0] + " " + String(t || "").replace(/\((original|extended) mix\)/i, ""));
+  return jsonp("https://itunes.apple.com/search?media=music&entity=song&limit=10&term=" + q).then(d => {
+    const h = d && bestHit(d.results, a, t, x => ({ url: x.previewUrl, title: x.trackName, artist: x.artistName, src: "Apple Music" }));
+    if (h) return h;
+    return jsonp("https://api.deezer.com/search?output=jsonp&limit=10&q=" + q).then(z => z && bestHit(z.data, a, t, x => ({ url: x.preview, title: x.title, artist: x.artist && x.artist.name, src: "Deezer" })));
+  }).then(h => (pvCache[k] = h || null)); }
+function stopPv() { if (audio) audio.pause(); if (playing) { playing.classList.remove("on"); playing.textContent = "▶ Preview"; } playing = null; }
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-pv]"); if (!b || b.classList.contains("nf")) return;
+  if (playing === b) { stopPv(); return; } stopPv();
+  b.textContent = "… finding"; playing = b;
+  findPreview(b.dataset.a, b.dataset.t).then(h => {
+    if (playing !== b) return;
+    if (!h) { b.classList.add("nf"); b.textContent = "No preview"; b.title = "Not on Apple Music or Deezer. Try the links."; playing = null; return; }
+    audio = audio || new Audio(); audio.src = h.url; audio.onended = stopPv;
+    audio.play().then(() => { b.classList.add("on"); b.textContent = "■ Stop"; b.title = "30-second preview from " + h.src; }).catch(() => { b.textContent = "▶ Preview"; playing = null; });
+  });
+});
+async function pool(items, n, fn) { const out = new Array(items.length); let i = 0; await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) { const k = i++; out[k] = await fn(items[k], k); } })); return out; }
+
+/* ---------- state that survives the Stripe round trip ---------- */
+const SKEY = "bindig-dig-v05";
+function saveState(extra = {}) {
+  const p = current; if (!p) return;
+  const st = { p: { ...p, _owned: [...p._owned].map(([k, v]) => [k, [...v]]) }, reading: p.reading, ticket: p._ticket || "", suggested: p._suggested || [], ...extra };
+  try { sessionStorage.setItem(SKEY, JSON.stringify(st)); return true; } catch { return false; }
+}
+function loadState() {
+  try { const st = JSON.parse(sessionStorage.getItem(SKEY) || "null"); if (!st) return null;
+    const p = st.p; p._owned = new Map(p._owned.map(([k, v]) => [k, new Set(v)])); p.reading = st.reading; p._ticket = st.ticket; p._suggested = st.suggested || []; return { p, st }; } catch { return null; }
+}
+
+/* ---------- one crate at a time ---------- */
+function crateWhy(p, c) {
+  const st = c.subMix.slice(0, 2).map(x => x.style).filter(x => x !== c.name).join(" and ");
+  const trend = c.recentPct > c.startPct + 5 ? `, up from ${c.startPct}% at the start` : "";
+  return `${c.name} is ${c.recentPct}% of what you've added in the last ${p.recentWindowMonths} months${trend}.${st ? ` Mostly ${st}.` : ""}`;
+}
+function askDig() {
+  const p = current, lead = p._crates.lead;
+  if (!lead) { addMsg("!", el("p", { class: "err", text: "Not enough tagged genres to build a crate. Tag a few genres in rekordbox and try again." })); return; }
+  if (!p._ticket) { addMsg("!", el("p", { class: "err", text: "Your free crate needs the AI, and it didn't answer this time. Drop the file again in a minute." })); return; }
+  const yes = el("button", { class: "btn primary", text: `Dig my ${lead.name} crate` });
+  const no = el("button", { class: "btn", text: "Not now" });
+  const box = el("div", { class: "ask" },
+    el("p", { class: "q", text: `Want me to dig you a ${lead.name} crate? Ten tracks you don't own yet, but should.` }),
+    el("p", { class: "note", text: crateWhy(p, lead) + " This one's on the house." }),
+    el("div", { class: "row" }, yes, no));
+  const m = addMsg("?", box);
+  const go = () => { m.remove(); dig(lead, p._ticket, true); };
+  no.onclick = () => { box.replaceChildren(el("p", { class: "note", text: "Fair. The crate will keep." }), el("button", { class: "btn", text: `Dig my ${lead.name} crate`, onclick: go })); };
+  yes.onclick = go;
+}
+
+async function dig(crate, ticket, free) {
+  const p = current;
+  $("#more")?.closest(".msg")?.remove();
+  const log = el("div", { class: "log" }); const stop = el("button", { class: "btn", text: "Stop" });
+  const m = addMsg(">", log, el("div", { style: "margin-top:10px" }, stop));
+  const line = s => { log.querySelectorAll(".now").forEach(n => n.classList.remove("now", "cursor")); log.append(el("div", { class: "now cursor", text: s })); };
+  line(`Digging through ${crate.name} labels, remixes and back catalogues. This takes up to a minute.`);
+  const ctl = new AbortController(); stop.onclick = () => ctl.abort();
+  p._suggested = p._suggested || [];
+  let picks;
+  try {
+    const { text } = await aiCall("/api/ai/crate", { crate, reading: { name: p.reading.name, oneLiner: p.reading.oneLiner }, owned: p._artists.slice(0, 300), already: p._suggested.slice(-40), recentWindowMonths: p.recentWindowMonths }, { authorization: "Bearer " + ticket }, ctl.signal);
+    picks = parseJSON(text);
+    if (!Array.isArray(picks)) throw { code: "invalid_json" };
+  } catch (e) {
+    m.remove();
+    if (e?.name === "AbortError") { moreCrates(crate); return; }
+    addMsg("!", el("p", { class: "err", text: e?.message || aiErr(e?.code) }),
+      e?.code === "used" ? null : el("button", { class: "btn", text: "Try again", onclick: ev => { ev.target.closest(".msg").remove(); dig(crate, ticket, free); } }));
+    return;
+  }
+  if (free) { p._ticket = ""; }
+  const seen = new Set(p._suggested);
+  const cands = picks.filter(x => x && x.artist && x.title)
+    .filter(x => { const k = norm(x.artist) + "|" + baseTitle(x.title); if (ownsAnyVersion(p._owned, x) || seen.has(k)) return false; seen.add(k); return true; });
+  line(`Checking ${cands.length} tracks against Apple Music and Deezer`);
+  const hits = await pool(cands, 4, x => findPreview(x.artist, x.title));
+  cands.forEach((x, i) => { x._found = !!hits[i]; });
+  const found = cands.filter(x => x._found), missing = cands.filter(x => !x._found);
+  const byConf = (a, b) => (+b.confidence || 0) - (+a.confidence || 0);
+  const clean = [...found.sort(byConf), ...missing.sort(byConf)].slice(0, 10);
+  m.remove();
+  for (const x of clean) p._suggested.push(norm(x.artist) + "|" + baseTitle(x.title));
+  saveState();
+  const owned = new Set(p._artists.map(norm));
+  const newArtists = clean.filter(x => !owned.has(norm(x.artist))).length;
+  const list = el("ol", { class: "picks" });
+  clean.forEach((x, i) => {
+    const links = el("div", { class: "links" });
+    const pv = el("button", { class: "pv" + (x._found ? "" : " nf"), type: "button", "data-pv": "1", "data-a": x.artist, "data-t": x.title, "aria-label": `Preview ${x.artist} – ${x.title}`, text: x._found ? "▶ Preview" : "No preview" });
+    links.append(pv); for (const [n, u] of pickLinks(x)) links.append(el("a", { href: u, target: "_blank", rel: "noopener", text: n }));
+    const react = el("div", { class: "react" });
+    for (const [lab, val] of [["♥ want it", "want"], ["✓ have it", "have"], ["✕ not me", "no"]]) {
+      const b = el("button", { class: "chip-btn", "aria-pressed": "false", text: lab });
+      b.onclick = () => { react.querySelectorAll("button").forEach(o => o.setAttribute("aria-pressed", o === b && o.getAttribute("aria-pressed") !== "true" ? "true" : "false")); tallyUp(); };
+      b.dataset.v = val; react.append(b);
+    }
+    const ver = x.version && !/^original( mix)?$/i.test(x.version) ? ` (${x.version})` : "";
+    list.append(el("li", { class: "pick" }, el("div", { class: "no", text: String(i + 1).padStart(2, "0") }),
+      el("div", { class: "t" },
+        el("div", { class: "title", text: `${x.artist} — ${x.title}${ver}` }),
+        el("div", { class: "meta" }, `${[x.label, x.year].filter(Boolean).join(" · ")}`, x.kind ? el("span", { class: "kind k-" + String(x.kind).toLowerCase(), text: x.kind }) : null,
+          x._found ? null : el("span", { class: "unv", text: "not found online", title: "Not on Apple Music or Deezer. It may be vinyl-only, or the AI may have it wrong. Check the links." })),
+        el("p", { class: "why", text: x.why || "" }), links), react));
+  });
+  const score = el("p", { class: "note" });
+  function tallyUp() { const v = [...list.querySelectorAll('[aria-pressed="true"]')].map(b => b.dataset.v); const c = k => v.filter(x => x === k).length; score.textContent = v.length ? `${c("want")} wanted · ${c("have")} already owned · ${c("no")} not for you` : ""; }
+  const verified = clean.filter(x => x._found).length;
+  addMsg(">", el("div", { class: "crate-head" }, el("span", { class: "crate-tag", text: "Crate" }), el("h3", { text: `Your ${crate.name} crate` })),
+    el("p", { class: "note", text: `${clean.length} tracks · ${crate.subMix.slice(0, 3).map(x => x.style).join(", ")} · ${crate.bpm[0]}–${crate.bpm[1]} BPM · ${newArtists} artists new to you · ${verified} of ${clean.length} found on Apple Music or Deezer.` }),
+    list, score);
+  moreCrates(crate);
+}
+
+function moreCrates(last) {
+  const p = current, lead = p._crates.lead;
+  const opt = (c, label) => el("button", { class: "crate-btn", onclick: ev => buyCrate(c, ev.currentTarget) }, el("span", { text: label }), el("span", { class: "lock", text: "$1.99" }));
+  const grid = el("div", { class: "crate-grid" }, opt(last, `Another ${last.name} crate`));
+  for (const c of p._crates.options) if (c.name !== last.name) grid.append(opt(c, `${c.name} crate`));
+  if (lead && last.name !== lead.name) grid.prepend(opt(lead, `${lead.name} crate`));
+  const status = el("p", { class: "note", role: "status" });
+  addMsg("?", el("div", { class: "ask", id: "more" },
+    el("p", { class: "q", text: "Dig another crate?" }),
+    el("p", { class: "note", text: "Built from the other lanes in your collection. $1.99 a crate, ten tracks each, paid once by card." }),
+    grid, status));
+}
+
+async function buyCrate(crate, btn) {
+  const status = $("#more [role=status]");
+  if (!saveState({ pending: crate.name })) { status.textContent = "Your browser won't let me hold your results while you pay. Allow site data and try again."; return; }
+  btn.disabled = true; status.textContent = "Opening checkout…";
+  try {
+    const r = await fetch("/api/checkout", { method: "POST", headers: { "content-type": "application/json", "x-bindig-visitor": visitor() }, body: JSON.stringify({ item: "crate", crate: crate.name }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.url) throw new Error(d.error || "Checkout couldn't start. Try again in a minute.");
+    location.href = d.url;
+  } catch (e) { btn.disabled = false; status.textContent = e.message; }
+}
+
+/* ---------- back from Stripe: restore the page, then dig the paid crate ---------- */
+async function resume() {
+  const q = new URLSearchParams(location.search), sid = q.get("crate_session"), cancelled = q.get("cancelled");
+  if (!sid && !cancelled) return;
+  history.replaceState(null, "", location.pathname);
+  const got = loadState(); if (!got) { if (sid) addMsg("!", el("p", { class: "err", text: "Payment went through, but your results weren't kept in this tab. Drop your file again; email bindig.dj@gmail.com with your receipt and we'll sort the crate." })); return; }
+  current = got.p; $("#steps").hidden = true;
+  await showReading(current, current.reading, null, true);
+  const crate = [current._crates.lead, ...current._crates.options].find(c => c && c.name === got.st.pending) || current._crates.lead;
+  if (cancelled) { moreCrates(crate); return; }
+  const v = await fetch("/api/verify?session_id=" + encodeURIComponent(sid)).then(r => r.json().then(d => ({ ok: r.ok, d }))).catch(() => ({ ok: false, d: {} }));
+  if (!v.ok || !v.d.ticket) { addMsg("!", el("p", { class: "err", text: v.d.error || "We couldn't confirm that payment. Email bindig.dj@gmail.com with your receipt." })); moreCrates(crate); return; }
+  const paid = [current._crates.lead, ...current._crates.options].find(c => c && c.name === v.d.crate) || crate;
+  dig(paid, v.d.ticket, false);
+}
+
+/* ---------- input ---------- */
+let pending = null;
+function take(file) {
+  if (!file) return;
+  if (!/\.xml$/i.test(file.name)) { $("#hint").replaceChildren(el("span", { class: "err", text: "That's not an .xml file. Export one from rekordbox first." })); return; }
+  pending = file; $("#hint").replaceChildren(el("span", { class: "file", text: file.name }), el("span", { text: `${(file.size / 1048576).toFixed(1)} MB · ready` }));
+  $("#go").disabled = false; $("#go").focus();
+}
+$("#file").addEventListener("change", e => take(e.target.files[0]));
+const drop = $("#drop");
+["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("drag"); }));
+["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("drag"); }));
+drop.addEventListener("drop", e => take(e.dataTransfer.files[0]));
+drop.addEventListener("keydown", e => { if (e.key === "Enter" && e.target === drop) $("#file").click(); });
+$("#go").addEventListener("click", async () => { if (!pending) return; run(await pending.text(), pending.name); });
+$("#howBtn").addEventListener("click", e => { const h = $("#how"); h.hidden = !h.hidden; e.target.setAttribute("aria-expanded", String(!h.hidden)); });
+$("#demoBtn").addEventListener("click", () => run(demoXML(), "sample-crate.xml"));
+
+/* ---------- sample crate ---------- */
+function demoXML() {
+  let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const pick = a => a[Math.floor(rnd() * a.length)];
+  const eras = [[2016, 2018, "Tech House", [["Patrick Topping", "Hot Creations"], ["Jamie Jones", "Hot Creations"], ["Lee Foss", "Repopulate Mars"]], 124, 126, 2],
+    [2018, 2021, "Minimal", [["Zip", "Perlon"], ["Sammy Dee", "Perlon"], ["Binh", "Bondage Music"]], 122, 125, 4],
+    [2021, 2026, "Organic House", [["&ME", "Keinemusik"], ["Rampa", "Keinemusik"], ["Âme", "Innervisions"], ["Luca Musto", "Kindisch"]], 110, 120, 9],
+    [2023, 2026, "Disco", [["Late Nite Tuff Guy", "Glitterbox"], ["Dimitri From Paris", "Glitterbox"]], 112, 122, 7]];
+  const w = "Night Shore Glass Ember Tide Velvet Static Ritual Paper Moon Salt Drift Orbit Lantern".split(" ");
+  const ks = ["8A", "9A", "7A", "10A", "5A", "11B"]; let id = 1, rows = [];
+  for (const [y0, y1, g, arts, b0, b1, pl] of eras) for (let i = 0; i < 150; i++) {
+    const [a, l] = pick(arts); const y = y0 + Math.floor(rnd() * (y1 - y0 + 1)); const pc = rnd() < .45 ? 0 : Math.floor(-Math.log(rnd()) * pl);
+    rows.push(`<TRACK TrackID="${id++}" Name="${pick(w)} ${pick(w)}" Artist="${a.replace("&", "&amp;")}" Genre="${g}" Label="${l}" Year="${y}" AverageBpm="${(b0 + rnd() * (b1 - b0)).toFixed(2)}" DateAdded="${y}-${String(1 + Math.floor(rnd() * 12)).padStart(2, "0")}-10" PlayCount="${pc}" Rating="0" Tonality="${pick(ks)}" Location="file://localhost/x.mp3"/>`);
+  }
+  return `<?xml version="1.0"?><DJ_PLAYLISTS><COLLECTION>${rows.join("")}</COLLECTION><PLAYLISTS><NODE Type="0" Name="ROOT"></NODE></PLAYLISTS></DJ_PLAYLISTS>`;
+}
+(() => { if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const dvs = [...document.querySelectorAll("#dividers .dv")]; let last = -1;
+  setInterval(() => { if (document.hidden) return; let i; do { i = Math.floor(Math.random() * dvs.length); } while (i === last && dvs.length > 1); last = i;
+    dvs[i].classList.add("up"); setTimeout(() => dvs[i].classList.remove("up"), 1400); }, 2600); })();
+resume();
+window.__bindig = { parseXML, analyse, fallbackReading, buildOwned, ownsAnyVersion };
+})();
+</script>
+<script src="/assets/feedback.js" defer></script>
+</body>
+</html>
