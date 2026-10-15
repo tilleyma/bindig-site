@@ -150,6 +150,74 @@ td.n{text-align:right;color:var(--muted);padding-left:10px;white-space:nowrap}
 .crate-btn:hover{border-color:var(--c-purple)}.crate-btn:focus-visible{outline:2px solid var(--phos);outline-offset:2px}
 .crate-btn:nth-child(3n+1){border-left:3px solid var(--c-orange)}.crate-btn:nth-child(3n+2){border-left:3px solid var(--c-purple)}.crate-btn:nth-child(3n){border-left:3px solid var(--c-yellow)}
 .lock{font-size:11px;color:var(--ink);background:var(--phos);border-radius:999px;padding:1px 8px;font-weight:600}
+/* ---------- v0.6 library check ---------- */
+.libcheck{display:flex;flex-direction:column;gap:10px}
+.lc-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}.lc-head h3{margin:0}
+.lc-score{font-size:12px;color:var(--ink);background:var(--phos);border-radius:999px;padding:2px 10px;font-weight:600}
+.lc-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.lc-list li{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start}
+.lc-list b{font-weight:600;font-size:14px;color:var(--text)}.lc-list p{margin:2px 0 0;font-size:13px;color:var(--muted);max-width:62ch}
+.lc-sym{font-weight:700;text-align:center;line-height:1.5}
+.lc-ok .lc-sym{color:var(--c-green)}.lc-warn .lc-sym{color:var(--c-yellow)}.lc-bad .lc-sym{color:var(--c-orange)}
+
+/* ---------- v0.6 record flick ---------- */
+.wide{width:min(1180px,calc(100vw - 32px));margin-left:50%;transform:translateX(-50%)}
+.fl{display:flex;flex-direction:column;gap:16px}
+.fl-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.fl-lane{font-size:13px;font-weight:600;color:var(--ink);background:var(--c-pink);border-radius:999px;padding:4px 12px}
+.fl-hint{font-size:12px;color:var(--muted)}
+.fl-cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px}
+.fl-col{display:flex;flex-direction:column;gap:8px;min-width:0}
+.fl-title{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}.fl-title h3{margin:0;font-size:24px}
+.col-bag .fl-title h3{color:#e9dcc4}
+.fl-tag{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);border-radius:3px;padding:2px 7px}
+.tag-bag{background:#e9dcc4}.tag-shelf{background:var(--phos)}
+.fl-sub{margin:0;font-size:13px;color:var(--muted)}.col-bag .fl-sub{color:#a89a84}
+.bin{position:relative;height:430px;border-radius:14px;perspective:1300px;overflow:hidden;outline-offset:3px}
+.bin:focus-visible{outline:2px solid var(--phos)}
+.bin-bag{background:#17120d;box-shadow:inset 0 0 0 1px #2c241a}.bin-shelf{background:#0b120d;box-shadow:inset 0 0 0 1px var(--line)}
+.bin-status{position:absolute;inset:0 0 74px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;font-size:13px;color:var(--muted)}
+.bin-status:empty{display:none}
+.sleeve{--sz:300px;position:absolute;left:50%;bottom:58px;width:var(--sz);height:var(--sz);margin-left:calc(var(--sz) / -2);padding:0;border:0;border-radius:3px;cursor:pointer;overflow:hidden;transform-origin:50% 100%;
+  transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .3s,filter .3s;box-shadow:0 -1px 0 rgba(255,255,255,.08),0 22px 34px -14px rgba(0,0,0,.9);font-family:inherit}
+.sleeve:focus-visible{outline:2px solid var(--phos);outline-offset:2px}
+.sl-art{position:absolute;inset:0;background-position:center}
+.fin-bag{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,transparent 37%,rgba(255,240,210,.09) 38%,rgba(255,240,210,.09) 40%,transparent 41%)}
+.fin-shelf{position:absolute;inset:0;background:linear-gradient(118deg,transparent 38%,rgba(255,255,255,.10) 44%,transparent 52%)}
+.sl-top{position:absolute;left:0;right:0;top:0;padding:7px 10px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.9);background:rgba(0,0,0,.45);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sl-title,.sl-sticker{display:none}
+.sleeve.front .sl-title{display:block;position:absolute;left:14px;bottom:14px;right:84px;text-align:left;font-family:var(--f-display);font-weight:800;font-size:22px;line-height:1.05;color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.7)}
+.sleeve.front .sl-sticker{display:flex}
+.st-bag{position:absolute;right:12px;bottom:12px;width:62px;height:62px;border-radius:50%;background:#e9dcc4;color:#3a2f22;font-size:9px;font-weight:700;letter-spacing:.06em;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.2;transform:rotate(-12deg)}
+.st-shelf{position:absolute;right:12px;top:36px;background:var(--phos);color:var(--ink);font-size:10px;font-weight:700;letter-spacing:.08em;padding:5px 8px;border-radius:2px;transform:rotate(4deg);box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.lip{position:absolute;left:0;right:0;bottom:0;height:74px;z-index:300;display:flex;align-items:center;justify-content:center;gap:18px}
+.lip-bag{background:#2a2118;border-top:2px dashed #5a4a36;color:#e9dcc4}.lip-shelf{background:#101712;border-top:2px solid var(--phos);color:var(--text)}
+.lip-btn{width:44px;height:44px;border-radius:50%;background:transparent;font:inherit;font-size:18px;cursor:pointer;color:inherit;border:1px solid currentColor;opacity:.85}
+.lip-btn:hover{opacity:1}.lip-btn:focus-visible{outline:2px solid var(--phos);outline-offset:2px}
+.lip-count{font-size:13px;min-width:64px;text-align:center;font-variant-numeric:tabular-nums}
+.fl-detail{display:flex;gap:22px;align-items:flex-start;border-radius:14px;padding:18px;background:var(--panel);box-shadow:inset 0 0 0 1px var(--line);transition:background .3s}
+.det-bag{background:#17120d;box-shadow:inset 0 0 0 1px #2c241a}
+.det-thumb{flex:none;width:150px;height:150px;border-radius:3px;background-position:center;box-shadow:0 14px 28px -12px rgba(0,0,0,.9)}
+.det-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.det-src{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.det-title{font-family:var(--f-display);font-weight:800;font-size:24px;line-height:1.1;color:#eef7f0}
+.det-why{margin:0;font-size:14px;color:#c2dcc8;max-width:70ch}
+.det-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.det-acts .chip-btn{height:40px;padding:0 14px;font-size:13px}
+.pv.big{height:40px;padding:0 16px;font-size:13px;font-weight:700}
+.fl-detail .links{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px}.fl-detail .links a{color:var(--muted)}
+.fl-tabs{display:none}
+@media (max-width:760px){
+  .fl-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:5px;border-radius:999px;background:#0f1611;box-shadow:inset 0 0 0 1px var(--line)}
+  .fl-tab{height:44px;border-radius:999px;border:0;font:inherit;font-size:13px;font-weight:700;cursor:pointer;background:transparent;color:#9fb6a6}
+  .fl[data-focus="bag"] .tab-bag{background:#e9dcc4;color:var(--ink)}.fl[data-focus="shelf"] .tab-shelf{background:var(--phos);color:var(--ink)}
+  .fl-cols{grid-template-columns:1fr;gap:0}
+  .fl[data-focus="bag"] .col-shelf,.fl[data-focus="shelf"] .col-bag{display:none}
+  .fl-hint{display:none}
+  .bin{height:380px}.sleeve{--sz:250px;bottom:52px}.lip{height:66px}
+  .fl-detail{flex-direction:column}.det-thumb{width:110px;height:110px}.det-title{font-size:20px}
+}
+body{overflow-x:hidden}
 footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
 .pv{font:inherit;font-size:12px;border:1px solid var(--phos-dim);background:transparent;color:var(--phos);border-radius:999px;padding:1px 10px;cursor:pointer}
 .pv.on{background:var(--phos);color:var(--ink)}.pv.nf{border-color:var(--line);color:var(--muted);cursor:default}
@@ -169,7 +237,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
 </head>
 <body>
 <div class="wrap">
-  <header><p class="mark"><a href="/">BINDIG</a></p><span class="badge">v0.5.2 beta</span></header>
+  <header><p class="mark"><a href="/">BINDIG</a></p><span class="badge">v0.6 beta</span></header>
 
   <div class="dividers" id="dividers" aria-hidden="true">
     <span class="dv" style="--i:0"><i class="rec"></i><b>House</b></span><span class="dv" style="--i:1"><i class="rec"></i><b>Disco</b></span><span class="dv" style="--i:2"><i class="rec"></i><b>Techno</b></span><span class="dv" style="--i:3"><i class="rec"></i><b>Minimal</b></span><span class="dv" style="--i:4"><i class="rec"></i><b>Afro</b></span><span class="dv" style="--i:5"><i class="rec"></i><b>Breaks</b></span><span class="dv" style="--i:6"><i class="rec"></i><b>Melodic</b></span><span class="dv" style="--i:7"><i class="rec"></i><b>Edits</b></span>
@@ -182,7 +250,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
   <div class="steps" id="steps">
     <div><span>1</span>Reads plays, labels, dates and keys across your whole collection.</div>
     <div><span>2</span>Writes your DJ profile: who you are behind the decks, and where you're heading.</div>
-    <div><span>3</span>Digs a crate of ten tracks you don't own yet, in the lane you're playing now.</div>
+    <div><span>3</span>Digs two crates in your lane: records you own but never play, and new ones you should.</div>
   </div>
   <section id="start">
     <div class="composer" id="drop" tabindex="0" aria-label="Drop your rekordbox XML file here">
@@ -207,7 +275,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
 
   <section class="thread" id="thread" aria-live="polite"></section>
 
-  <footer>BINDIG digs. You DJ. · v0.5.2 beta · Track picks are AI suggestions, genre-checked on Discogs and Apple Music / Deezer. Hear them before you buy. · <a href="/privacy/" style="color:inherit">Privacy</a> · <a href="/terms/" style="color:inherit">Terms</a></footer>
+  <footer>BINDIG digs. You DJ. · v0.6 beta · Track picks are AI suggestions, genre-checked on Discogs and Apple Music / Deezer. Hear them before you buy. · <a href="/privacy/" style="color:inherit">Privacy</a> · <a href="/terms/" style="color:inherit">Terms</a></footer>
 </div>
 
 <script>
@@ -262,27 +330,41 @@ const aiErr = c => ({
   invalid_json: "The answer came back garbled. Try again.",
 }[c] || "Something went wrong reaching the AI. Try again.");
 
-/* ---------- parse ---------- */
+/* ---------- parse (also builds the rows the v0.4 engine reads for health and tag fixes) ---------- */
+const COLS = ["id","artist","title","album","genre","year","comments","label","bpm","key","plays","rating","added","bitrate","time","kind","tn","cues","lists","remixer","sets","hist","stream","pld"];
 function parseXML(text) {
   const doc = new DOMParser().parseFromString(text, "application/xml");
   if (doc.querySelector("parsererror")) throw new Error("That file isn't valid XML. Export it again from rekordbox.");
   const col = doc.querySelector("COLLECTION");
   if (!col) throw new Error("No COLLECTION found. Use File → Export Collection in xml format.");
-  const tracks = [];
-  for (const t of col.querySelectorAll(":scope > TRACK")) {
+  const ts = [...col.querySelectorAll(":scope > TRACK")];
+  const locToId = {}; for (const t of ts) locToId[t.getAttribute("Location") || ""] = t.getAttribute("TrackID");
+  const inLists = {}, inSets = {}, inHist = {}, plDate = {}, playlists = [];
+  const walk = (node, path) => { for (let c = node.firstElementChild; c; c = c.nextElementSibling) { if (c.tagName !== "NODE") continue; const nm = c.getAttribute("Name") || "";
+    if (c.getAttribute("Type") === "1") { const kt = c.getAttribute("KeyType"), ids = [];
+      for (let tr = c.firstElementChild; tr; tr = tr.nextElementSibling) { if (tr.tagName !== "TRACK") continue; const k = tr.getAttribute("Key"), id = kt === "1" ? locToId[k] : k; if (id) { ids.push(id); inLists[id] = (inLists[id] || 0) + 1; } }
+      const full = path.concat(nm).join(" / "); playlists.push({ name: nm, size: ids.length });
+      // your playlists as history: History playlists = played; set-sized playlists (≤80) = tracks you know
+      if (!/^BINDIG( \/|$)/.test(full)) { const isH = /histor/i.test(full), dm = /(20\d\d)[-._ ]?(\d\d)?/.exec(full), d = dm ? dm[1] + "-" + (dm[2] && +dm[2] >= 1 && +dm[2] <= 12 ? dm[2] : "06") + "-01" : "";
+        ids.forEach(id => { if (isH) inHist[id] = (inHist[id] || 0) + 1; else if (ids.length <= 80) inSets[id] = (inSets[id] || 0) + 1; if (d && d > (plDate[id] || "")) plDate[id] = d; }); } }
+    else walk(c, nm === "ROOT" ? path : path.concat(nm)); } };
+  const pls = doc.querySelector("PLAYLISTS"); if (pls) walk(pls, []);
+  const tracks = [], rows = [];
+  for (const t of ts) {
     const g = a => t.getAttribute(a) || "";
-    const loc = g("Location");
+    const id = g("TrackID"), loc = g("Location"), cues = t.getElementsByTagName("POSITION_MARK").length;
+    const stream = /^file:\/\/localhost(tidal|soundcloud|beatport|spotify|applemusic)/i.test(loc) || /^(tidal|soundcloud|beatport)/i.test(loc) || (!!loc && !/^file:/i.test(loc));
     tracks.push({
-      id: g("TrackID"), name: g("Name").trim(), artist: g("Artist").trim(), genre: g("Genre").trim(),
+      id, name: g("Name").trim(), artist: g("Artist").trim(), genre: g("Genre").trim(),
       label: g("Label").trim(), remixer: g("Remixer").trim(), mix: g("Mix").trim(), year: parseInt(g("Year")) || 0,
       bpm: parseFloat(g("AverageBpm")) || 0, added: g("DateAdded"), plays: parseInt(g("PlayCount")) || 0,
-      rating: parseInt(g("Rating")) || 0, key: g("Tonality").trim(),
-      stream: /^file:\/\/localhost(tidal|soundcloud|beatport|spotify|applemusic)/i.test(loc) || /^(tidal|soundcloud|beatport)/i.test(loc),
+      rating: parseInt(g("Rating")) || 0, key: g("Tonality").trim(), time: +g("TotalTime") || 0, comments: g("Comments"),
+      cues, lists: inLists[id] || 0, sets: inSets[id] || 0, hist: inHist[id] || 0, stream,
     });
+    rows.push([id, g("Artist"), g("Name"), g("Album"), g("Genre"), g("Year"), g("Comments"), g("Label"), +g("AverageBpm") || 0, g("Tonality"), +g("PlayCount") || 0, +g("Rating") || 0, g("DateAdded"),
+      +g("BitRate") || 0, +g("TotalTime") || 0, g("Kind"), +g("TrackNumber") || 0, cues, inLists[id] || 0, g("Remixer"), inSets[id] || 0, inHist[id] || 0, /^file:/i.test(loc) ? 0 : 1, plDate[id] || ""]);
   }
-  const playlists = [];
-  for (const n of doc.querySelectorAll('NODE[Type="1"]')) playlists.push({ name: n.getAttribute("Name") || "", size: n.querySelectorAll(":scope > TRACK").length });
-  return { tracks, playlists };
+  return { tracks, playlists, rows };
 }
 
 /* ---------- version matching: any version of an owned track counts as owned ---------- */
@@ -317,7 +399,7 @@ function ownsAnyVersion(idx, pick) {
 /* ---------- analyse ---------- */
 const addMonths = (iso, m) => { const d = new Date(iso + "T00:00:00Z"); d.setUTCMonth(d.getUTCMonth() + m); return d.toISOString().slice(0, 10); };
 const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-function analyse({ tracks: all, playlists }) {
+function analyse({ tracks: all, playlists, rows = [] }) {
   const tracks = all.filter(t => !t.stream);
   const n = tracks.length;
   if (!n) throw new Error("No local tracks found in that file.");
@@ -399,7 +481,7 @@ function analyse({ tracks: all, playlists }) {
     genresMostPlayed: [...genrePlays.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([g, p]) => ({ genre: g, plays: p })),
     ownedButIgnored: ignored,
     recentArtists,
-    crateChoices: [crates.lead, ...crates.options.slice(0, 3)].filter(Boolean).map(c => c.name),
+    crateChoices: crates.all.slice(0, 12).map(c => c.name),
     leadCrate: crates.lead && { name: crates.lead.name, recentSharePct: crates.lead.recentPct, startSharePct: crates.lead.startPct, styles: crates.lead.subMix },
     bpm: { heart: Math.round(wq(bpmPlayed, .5)), low: Math.round(wq(bpmPlayed, .2)), high: Math.round(wq(bpmPlayed, .8)), atStart: bpmOf(early), now: bpmOf(recent) },
     keys: homeKeys, minorKeyPct: Math.round(100 * minorish),
@@ -408,6 +490,7 @@ function analyse({ tracks: all, playlists }) {
     _crates: crates, _buckets: buckets, _topGenres: topGenres,
     _owned: buildOwned(tracks),
     _artists: [...artistCount.keys()],
+    _tracks: tracks, _rows: rows,
   };
 }
 /* ---------- crates: the lane a DJ is playing now ---------- */
@@ -444,7 +527,7 @@ function buildCrates(tracks, recent, early, weight, genreOf) {
   for (const c of subs) c.neighbours = [...new Set([...names, ...STD_NEIGHBOURS])].filter(n => n !== c.name).slice(0, 9);
   const playTot = subs.reduce((a, c) => a + c.recPlay, 0) || 1;
   for (const c of subs) c.playPct = Math.round(100 * c.recPlay / playTot);
-  return { lead: subs[0] || null, options: subs.slice(1, 6) };
+  return { lead: subs[0] || null, options: subs.slice(1, 6), all: subs };
 }
 const publicProfile = p => { const o = {}; for (const [k, v] of Object.entries(p)) if (!k.startsWith("_")) o[k] = v; return o; };
 const genreColour = (p, g) => { const i = p._topGenres.indexOf(g); return i < 0 ? OTHER : GENRE[i]; };
@@ -582,13 +665,15 @@ async function run(text, fname) {
   let p;
   try {
     await line(`Opening ${fname}`);
-    const parsed = parseXML(text);
+    const parsed = parseXML(text); XML_TEXT = text; XML_NAME = fname; idbPut("xml", text);
     await line(`Reading ${parsed.tracks.length.toLocaleString()} tracks and ${parsed.playlists.length} playlists`);
     p = analyse(parsed); current = p;
     await line(`${ageText(p)} of digging, ${p.totalPlays.toLocaleString()} plays, ${p.playedPct}% of the crate played`);
     await line(`Following you from ${p.genresAtStart[0]?.genre || "the start"} to ${p.genresNow[0]?.genre || "now"} (last ${p.recentWindowMonths} months)`);
   } catch (e) { log.lastChild?.classList.remove("cursor"); addMsg("!", el("p", { class: "err", text: e.message || String(e) })); return; }
 
+  const healthP = fetch("/api/scan", { method: "POST", headers: { "content-type": "application/json", "x-bindig-visitor": visitor() }, body: JSON.stringify({ cols: COLS, rows: p._rows }) })
+    .then(r => r.ok ? r.json() : null).then(d => (p._health = d && d.health) || null).catch(() => null);
   let reading = null, note = null;
   await line("Writing your profile", 50);
   try {
@@ -600,6 +685,7 @@ async function run(text, fname) {
   if (!reading) reading = fallbackReading(p);
   log.querySelectorAll(".cursor").forEach(n => n.classList.remove("cursor"));
   current.reading = reading; p._suggested = [];
+  await Promise.race([healthP, sleep(4000)]);
   saveState();
   showReading(p, reading, note);
 }
@@ -618,6 +704,7 @@ async function showReading(p, r, note, restored) {
   addMsg(">", el("div", { class: "reading" }, ...paras, kv, note ? el("p", { class: "note", text: note }) : null));
   addMsg("", journeyChart(p));
   addMsg("", tablesPanel(p));
+  addMsg("", libraryCheck(p, p._health));
   if (!restored) askDig();
 }
 
@@ -636,9 +723,9 @@ function bestHit(list, a, t, get) { const A = pclean(a).split(" ")[0] || "", T =
 function findPreview(a, t) { const k = a + "|" + t; if (pvCache[k] !== undefined) return Promise.resolve(pvCache[k]);
   const q = encodeURIComponent(String(a || "").split(/,|&| feat/i)[0] + " " + String(t || "").replace(/\((original|extended) mix\)/i, ""));
   return jsonp("https://itunes.apple.com/search?media=music&entity=song&limit=10&term=" + q).then(d => {
-    const h = d && bestHit(d.results, a, t, x => ({ url: x.previewUrl, title: x.trackName, artist: x.artistName, src: "Apple Music" }));
+    const h = d && bestHit(d.results, a, t, x => ({ url: x.previewUrl, title: x.trackName, artist: x.artistName, src: "Apple Music", art: x.artworkUrl100 ? x.artworkUrl100.replace(/\/\d+x\d+bb\./, "/600x600bb.") : "" }));
     if (h) return h;
-    return jsonp("https://api.deezer.com/search?output=jsonp&limit=10&q=" + q).then(z => z && bestHit(z.data, a, t, x => ({ url: x.preview, title: x.title, artist: x.artist && x.artist.name, src: "Deezer" })));
+    return jsonp("https://api.deezer.com/search?output=jsonp&limit=10&q=" + q).then(z => z && bestHit(z.data, a, t, x => ({ url: x.preview, title: x.title, artist: x.artist && x.artist.name, src: "Deezer", art: x.album ? (x.album.cover_big || x.album.cover_medium || "") : "" })));
   }).then(h => (pvCache[k] = h || null)); }
 // A real, not-owned track by the same artist from Deezer's catalogue (skips the biggest hits and anything already listed).
 async function swapIn(x, taken) {
@@ -651,10 +738,10 @@ async function swapIn(x, taken) {
   list.sort((p, q) => (p.rank || 0) - (q.rank || 0));               // least-played first...
   const pick = list[Math.floor(list.length * .35)] || list[0];      // ...but not the most obscure filler
   taken.add(norm(x.artist) + "|" + baseTitle(pick.title));
-  pvCache[x.artist + "|" + pick.title] = { url: pick.preview, title: pick.title, artist: pick.artist.name, src: "Deezer" };
+  pvCache[x.artist + "|" + pick.title] = { url: pick.preview, title: pick.title, artist: pick.artist.name, src: "Deezer", art: pick.album ? (pick.album.cover_big || "") : "" };
   return { title: pick.title, artist: pick.artist.name, year: 0 };
 }
-function stopPv() { if (audio) audio.pause(); if (playing) { playing.classList.remove("on"); playing.textContent = "▶ Preview"; } playing = null; }
+function stopPv() { if (audio) audio.pause(); if (playing) { playing.classList.remove("on"); playing.textContent = playing.classList.contains("big") ? "▶ Preview 30 s" : "▶ Preview"; } playing = null; }
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-pv]"); if (!b || b.classList.contains("nf")) return;
   if (playing === b) { stopPv(); return; } stopPv();
@@ -668,53 +755,219 @@ document.addEventListener("click", e => {
 });
 async function pool(items, n, fn) { const out = new Array(items.length); let i = 0; await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) { const k = i++; out[k] = await fn(items[k], k); } })); return out; }
 
-/* ---------- state that survives the Stripe round trip ---------- */
-const SKEY = "bindig-dig-v05";
+/* ---------- state that survives the Stripe round trip: the XML in IndexedDB, the rest in sessionStorage ---------- */
+const SKEY = "bindig-dig-v06";
+function idb() { return new Promise((res, rej) => { try { const r = indexedDB.open("bindig", 1); r.onupgradeneeded = () => r.result.createObjectStore("kv"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } }); }
+function idbPut(k, v) { return idb().then(db => new Promise(res => { const tx = db.transaction("kv", "readwrite"); tx.objectStore("kv").put(v, k); tx.oncomplete = () => res(true); tx.onerror = () => res(false); })).catch(() => false); }
+function idbGet(k) { return idb().then(db => new Promise(res => { const rq = db.transaction("kv").objectStore("kv").get(k); rq.onsuccess = () => res(rq.result); rq.onerror = () => res(null); })).catch(() => null); }
+let XML_TEXT = "", XML_NAME = "";
 function saveState(extra = {}) {
-  const p = current; if (!p) return;
-  const st = { p: { ...p, _owned: [...p._owned].map(([k, v]) => [k, [...v]]) }, reading: p.reading, ticket: p._ticket || "", suggested: p._suggested || [], ...extra };
+  const p = current; if (!p) return false;
+  const st = { reading: p.reading, ticket: p._ticket || "", suggested: p._suggested || [], health: p._health || null, clean: p._cleanToken || "", name: XML_NAME, ...extra };
   try { sessionStorage.setItem(SKEY, JSON.stringify(st)); return true; } catch { return false; }
 }
-function loadState() {
-  try { const st = JSON.parse(sessionStorage.getItem(SKEY) || "null"); if (!st) return null;
-    const p = st.p; p._owned = new Map(p._owned.map(([k, v]) => [k, new Set(v)])); p.reading = st.reading; p._ticket = st.ticket; p._suggested = st.suggested || []; return { p, st }; } catch { return null; }
+function loadState() { try { return JSON.parse(sessionStorage.getItem(SKEY) || "null"); } catch { return null; } }
+
+/* ---------- library check: honest, tactful notes on what helps or holds back the results ---------- */
+function libraryCheck(p, h) {
+  const T = p._tracks, n = T.length;
+  const blank = Math.round(100 * T.filter(t => !t.genre).length / (n || 1));
+  const keyed = Math.round(100 * T.filter(t => t.key).length / (n || 1));
+  const streaming = p.streamingSkipped || 0;
+  const rows = [];
+  const add = (lvl, title, text) => rows.push({ lvl, title, text });
+  if (n < 300) add("warn", `${n.toLocaleString()} tracks: a small crate, so far`, "Lanes and the bag crate sharpen up past about 500 tracks, so treat today's picks as a first sketch rather than gospel.");
+  else add("ok", `${n.toLocaleString()} tracks to dig through`, "Plenty for BINDIG to read.");
+  if (p.playedPct < 15 || (h && h.signals && h.signals.historyThin)) add("warn", `Only ${p.playedPct}% of your tracks show a play`, "If you play from USB, those gigs only reach rekordbox when you sync the stick back. Sync, export again, and the bag crate stops suggesting records you already know.");
+  else add("ok", `${p.playedPct}% of your tracks have been played`, "Enough history to tell what you actually reach for.");
+  if (blank > 30) add("bad", `${blank}% of your tracks have no genre`, "BINDIG builds lanes from your genre tags and can't hear the music yet, so untagged tracks sit out of every crate. Tag the ones you care about and run it again.");
+  else add("ok", `Genres tagged on ${100 - blank}% of tracks`, "Your lanes are built from these.");
+  if (keyed < 60) add("warn", `Keys on only ${keyed}% of tracks`, "Analyse them in rekordbox and your bag crate comes back in Camelot order.");
+  if (streaming) add("ok", `${streaming.toLocaleString()} streaming track${streaming === 1 ? "" : "s"} left out`, "Only files you own count towards your lanes and your bag.");
+  if (h && h.fixable > 0) add("warn", `${h.fixable.toLocaleString()} tracks carry tag clutter`, "Download-site text, repeated artist names and the odd typo. BINDIG can tidy them without touching your genres. Comes free with any extra crate.");
+  else if (h) add("ok", "Tags look clean", "Nothing to tidy. Rare, and frankly suspicious.");
+  const sym = { ok: "✓", warn: "~", bad: "✗" };
+  const box = el("div", { class: "panel libcheck" },
+    el("div", { class: "lc-head" }, el("h3", { text: "Library check" }), h ? el("span", { class: "lc-score", text: `Tag health ${h.score}/100` }) : null),
+    el("ul", { class: "lc-list" }, ...rows.map(r => el("li", { class: "lc-" + r.lvl }, el("span", { class: "lc-sym", "aria-hidden": "true", text: sym[r.lvl] }),
+      el("div", {}, el("b", { text: r.title }), el("p", { text: r.text }))))));
+  return box;
 }
 
-/* ---------- one crate at a time ---------- */
+/* ---------- bag crate: records you own in this lane and never play ---------- */
+const CAMELOT = { "Abm": "1A", "G#m": "1A", "B": "1B", "Ebm": "2A", "D#m": "2A", "F#": "2B", "Gb": "2B", "Bbm": "3A", "A#m": "3A", "Db": "3B", "C#": "3B", "Fm": "4A", "Ab": "4B", "G#": "4B", "Cm": "5A", "Eb": "5B", "D#": "5B", "Gm": "6A", "Bb": "6B", "A#": "6B", "Dm": "7A", "F": "7B", "Am": "8A", "C": "8B", "Em": "9A", "G": "9B", "Bm": "10A", "D": "10B", "F#m": "11A", "Gbm": "11A", "A": "11B", "C#m": "12A", "Dbm": "12A", "E": "12B" };
+function camelotOf(t) { const m = /^\s*(\d{1,2}[AB])\b/i.exec(t.comments || ""); if (m) return m[1].toUpperCase(); const k = (t.key || "").trim(); if (/^\d{1,2}[AB]$/i.test(k)) return k.toUpperCase(); return CAMELOT[k] || ""; }
+const camelotRank = c => { const m = /^(\d{1,2})([AB])$/.exec(c || ""); return m ? (+m[1]) * 2 + (m[2] === "B" ? 1 : 0) : 999; };
+function bagCrate(p, lane) {
+  const T = p._tracks, inLane = t => family(SUB, t.genre || "Untagged") === lane.name;
+  const laneT = T.filter(inLane);
+  const playedKeys = new Set(T.filter(t => t.plays > 0).map(t => norm(t.artist) + "|" + baseTitle(t.name)));
+  const artistPlays = new Map(), labelPlays = new Map();
+  for (const t of laneT) if (t.plays > 0) { artistPlays.set(t.artist, (artistPlays.get(t.artist) || 0) + 1); if (t.label) labelPlays.set(t.label, (labelPlays.get(t.label) || 0) + 1); }
+  let cands = laneT.filter(t => !(t.plays > 0) && !t.hist && t.artist && t.name && !(t.time && t.time < 120) && !playedKeys.has(norm(t.artist) + "|" + baseTitle(t.name)));
+  const strict = cands.filter(t => !t.sets);
+  let relaxed = false; if (strict.length >= 10) cands = strict; else relaxed = true;
+  const cut = p.lastAdded ? addMonths(p.lastAdded, -p.recentWindowMonths) : "";
+  const [lo, hi] = lane.bpm || [0, 0];
+  const scored = cands.map(t => {
+    const ap = artistPlays.get(t.artist) || 0, lp = (t.label && labelPlays.get(t.label)) || 0;
+    let sc = Math.min(ap, 8) * 3 + Math.min(lp, 8) * 1.5;
+    if (t.bpm && lo && hi) sc += t.bpm >= lo - 2 && t.bpm <= hi + 2 ? 4 : -4;
+    if (t.cues) sc += 3; if (t.rating >= 153) sc += 3; if (cut && t.added > cut) sc += 2; if (t.sets) sc -= 6;
+    const why = ap ? `You've played ${ap} other ${t.artist} track${ap > 1 ? "s" : ""}. Not this one.`
+      : lp ? `Same label as ${lp} of your played ${lane.name} tracks (${t.label}).`
+      : t.cues ? "You set cue points on it, then never played it out."
+      : t.rating >= 51 ? `You rated it ${Math.round(t.rating / 51)}★ and never played it.`
+      : `Added ${t.added ? MON[+t.added.slice(5, 7) - 1] + " " + t.added.slice(0, 4) : "a while back"}, still in the sleeve.`;
+    return { t, sc, why };
+  }).sort((a, b) => b.sc - a.sc);
+  const per = new Map(), out = [];
+  for (const x of scored) { const c = per.get(x.t.artist) || 0; if (c >= 2) continue; per.set(x.t.artist, c + 1); out.push(x); if (out.length >= 10) break; }
+  out.sort((a, b) => camelotRank(camelotOf(a.t)) - camelotRank(camelotOf(b.t)) || (a.t.bpm || 0) - (b.t.bpm || 0));
+  return { relaxed, items: out.map(({ t, why }) => ({ id: t.id, artist: t.artist, title: t.name, label: t.label, year: t.year, bpm: t.bpm, key: camelotOf(t), why, owned: true })) };
+}
+
+/* ---------- record flick: your bag and the shelf, side by side ---------- */
+const PATS = ["radial-gradient(circle at 30% 68%, A 0 24%, transparent 24.5%)", "repeating-linear-gradient(135deg, A 0 14px, transparent 14px 30px)", "linear-gradient(180deg, transparent 0 56%, A 56% 100%)", "radial-gradient(circle at 72% 30%, A 0 30%, transparent 30.5%)"];
+const DARKS = ["#1d1438", "#3a1d12", "#16302a", "#132a3a", "#2a0f22", "#2b2410", "#0f2433", "#22163a"];
+function fallbackArt(x, i) { const h = [...(x.artist + x.title)].reduce((a, c) => a + c.charCodeAt(0), 0); return PATS[h % 4].replace("A", GENRE[(h >> 2) % 5]) + ", " + DARKS[(h + i) % DARKS.length]; }
+function flick(lane) {
+  const S = { bag: { items: [], cur: 0 }, shelf: { items: [], cur: 0 }, focus: "bag", react: {} };
+  const root = el("section", { class: "fl wide", "aria-label": `${lane.name} crates` });
+  const tabs = el("div", { class: "fl-tabs", role: "tablist", "aria-label": "Crates" });
+  const head = el("div", { class: "fl-head" }, el("span", { class: "fl-lane", text: lane.name }), el("span", { class: "fl-hint", text: "Flick with the arrows, scroll or swipe. Tap a sleeve to pull it out." }));
+  const col = (side, title, tag, sub) => {
+    const bin = el("div", { class: `bin bin-${side}`, tabindex: "0", "aria-label": `${title}: use left and right arrow keys to flick` });
+    const count = el("span", { class: "lip-count" });
+    const lip = el("div", { class: `lip lip-${side}` },
+      el("button", { class: "lip-btn", type: "button", "aria-label": "Flick back", text: "‹", onclick: () => step(side, -1) }), count,
+      el("button", { class: "lip-btn", type: "button", "aria-label": "Flick forward", text: "›", onclick: () => step(side, 1) }));
+    const status = el("div", { class: "bin-status" });
+    bin.append(status, lip);
+    const subEl = el("p", { class: "fl-sub", text: sub });
+    const c = el("div", { class: `fl-col col-${side}` }, el("div", { class: "fl-title" }, el("h3", { text: title }), el("span", { class: `fl-tag tag-${side}`, text: tag })), subEl, bin);
+    let last = 0;
+    bin.addEventListener("wheel", e => { e.preventDefault(); const now = Date.now(); if (now - last < 220) return; last = now; step(side, e.deltaY > 0 ? 1 : -1); }, { passive: false });
+    bin.addEventListener("keydown", e => { if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); step(side, 1); } if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); step(side, -1); } if (e.key === "Enter") pull(side); });
+    let tx = 0, ty = 0; bin.addEventListener("touchstart", e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
+    bin.addEventListener("touchend", e => { const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty; if (Math.max(Math.abs(dx), Math.abs(dy)) > 30) step(side, (Math.abs(dx) > Math.abs(dy) ? -dx : dy) > 0 ? 1 : -1); });
+    S[side].el = { c, bin, count, status, sub: subEl };
+    return c;
+  };
+  const tabBtn = (side, label) => { const b = el("button", { class: `fl-tab tab-${side}`, type: "button", role: "tab", text: label, onclick: () => setFocus(side, true) }); tabs.append(b); return b; };
+  tabBtn("bag", "From your bag"); tabBtn("shelf", "Off the shelf");
+  const cols = el("div", { class: "fl-cols" },
+    col("bag", "From your bag", "Yours · never played", "Records you own in this lane and keep skipping past."),
+    col("shelf", "Off the shelf", "New · not in your collection", `Records BINDIG just pulled from the ${lane.name} racks.`));
+  const detail = el("div", { class: "fl-detail" });
+  const note = el("p", { class: "note fl-note" });
+  root.append(head, tabs, cols, detail, note);
+
+  function place(side) {
+    const st = S[side];
+    st.items.forEach((x, i) => {
+      const d = i - st.cur, sl = x._sl; if (!sl) return;
+      let y = 0, s = 1, rot = 0, op = 1, z = 100, br = 1, pe = "auto";
+      if (d < 0) { y = 70 + (-d) * 14; rot = -64; op = d === -1 ? .5 : 0; z = 100 + d * 2; pe = "none"; br = .7; }
+      else if (d > 0) { y = -d * 26; s = 1 - d * .035; z = 100 - d; br = 1 - d * .09; op = d > 6 ? 0 : 1; if (d > 6) pe = "none"; }
+      sl.style.transform = `translateY(${y}px) scale(${s}) rotateX(${rot}deg)`; sl.style.zIndex = z; sl.style.opacity = op; sl.style.filter = `brightness(${br})`; sl.style.pointerEvents = pe;
+      sl.classList.toggle("front", d === 0); sl.tabIndex = -1;
+    });
+    st.el.count.textContent = st.items.length ? `${st.cur + 1} / ${st.items.length}` : "";
+  }
+  function step(side, by) { const st = S[side]; if (!st.items.length) return; st.cur = Math.max(0, Math.min(st.items.length - 1, st.cur + by)); place(side); setFocus(side); }
+  function pull(side) { setFocus(side); detail.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
+  function setFocus(side, fromTab) {
+    S.focus = side; root.dataset.focus = side;
+    tabs.querySelectorAll(".fl-tab").forEach(b => b.setAttribute("aria-selected", b.classList.contains("tab-" + side) ? "true" : "false"));
+    renderDetail();
+  }
+  function setArt(x, hit) { if (!x._art) return; if (hit && hit.art) { x._art.style.backgroundImage = `url("${hit.art}")`; x._art.style.backgroundSize = "cover"; x._art.classList.add("real"); } }
+  function fill(side, items) {
+    const st = S[side]; st.items = items; st.cur = 0;
+    st.el.bin.querySelectorAll(".sleeve").forEach(n => n.remove());
+    items.forEach((x, i) => {
+      const art = el("span", { class: "sl-art" }); art.style.background = fallbackArt(x, i);
+      const sl = el("button", { class: `sleeve sl-${side}`, type: "button", "aria-label": `${x.artist} – ${x.title}`, onclick: () => { if (st.cur === i) pull(side); else { st.cur = i; place(side); setFocus(side); } } },
+        art, el("span", { class: `sl-finish fin-${side}` }), el("span", { class: "sl-top", text: `${x.artist} – ${x.title}` }),
+        el("span", { class: "sl-title", text: x.title }),
+        side === "bag" ? el("span", { class: "sl-sticker st-bag" }, "OWNED", el("br"), "0 PLAYS") : el("span", { class: "sl-sticker st-shelf", text: "NEW IN" }));
+      x._sl = sl; x._art = art; st.el.bin.insertBefore(sl, st.el.bin.querySelector(".lip"));
+      const hit = pvCache[x.artist + "|" + x.title]; if (hit) setArt(x, hit);
+    });
+    st.el.status.textContent = items.length ? "" : st.emptyText || "";
+    place(side);
+    if (side === "bag") pool(items, 4, x => findPreview(x.artist, x.title)).then(hits => items.forEach((x, i) => { setArt(x, hits[i]); x._found = !!hits[i]; if (S.focus === "bag" && S.bag.items[S.bag.cur] === x) renderDetail(); }));
+  }
+  function renderDetail() {
+    const side = S.focus, st = S[side], x = st.items[st.cur];
+    detail.className = `fl-detail det-${side}`;
+    if (!x) { detail.replaceChildren(el("p", { class: "note", text: side === "shelf" ? "Your shelf crate is on its way." : (S.bag.emptyText || "") })); return; }
+    const id = side[0] + st.cur, mine = S.react[id] || "";
+    const opts = side === "bag" ? [["play", "★ Play it next"], ["no", "✕ Not for me"]] : [["want", "♥ Want it"], ["have", "✓ Have it"], ["no", "✕ Not for me"]];
+    const reacts = opts.map(([k, label]) => el("button", { class: "chip-btn", type: "button", "aria-pressed": mine === k ? "true" : "false", text: label, onclick: () => {
+      const v = mine === k ? "" : k; S.react[id] = v; renderDetail();
+      fetch("/api/react", { method: "POST", headers: { "content-type": "application/json", "x-bindig-visitor": visitor() }, body: JSON.stringify({ side, r: v || "clear", lane: lane.name, pos: st.cur }) }).catch(() => {});
+    } }));
+    const thumb = el("span", { class: "det-thumb" }); thumb.style.background = x._art ? x._art.style.background : fallbackArt(x, st.cur); if (x._art && x._art.classList.contains("real")) { thumb.style.backgroundImage = x._art.style.backgroundImage; thumb.style.backgroundSize = "cover"; }
+    const pv = el("button", { class: "pv big", type: "button", "data-pv": "1", "data-a": x.artist, "data-t": x.title, "aria-label": `Preview ${x.artist} – ${x.title}`, text: "▶ Preview 30 s" });
+    const links = el("div", { class: "links" }); for (const [n, u] of pickLinks(x)) links.append(el("a", { href: u, target: "_blank", rel: "noopener", text: n }));
+    const meta = side === "bag" ? [x.label, x.bpm ? Math.round(x.bpm) + " BPM" : "", x.key, "in your collection · 0 plays"].filter(Boolean).join(" · ")
+      : [x.label, x.year, x.kind, x._genre === "pass" ? `✓ ${lane.name}` : "", x._swapped ? "swapped in" : ""].filter(Boolean).join(" · ");
+    detail.replaceChildren(thumb, el("div", { class: "det-body" },
+      el("div", { class: "det-src" }, el("span", { class: `fl-tag tag-${side}`, text: side === "bag" ? "From your bag" : "Off the shelf" }), el("span", { class: "note", text: meta })),
+      el("div", { class: "det-title", text: `${x.artist} – ${x.title}` }),
+      el("p", { class: "det-why", text: x.why || "" }),
+      el("div", { class: "det-acts" }, pv, ...reacts), links));
+  }
+  return {
+    root,
+    setBag(items, emptyText) { S.bag.emptyText = emptyText || ""; fill("bag", items); setFocus("bag"); },
+    shelfStatus(text, extra) { S.shelf.el.status.replaceChildren(el("span", { class: "cursor", text }), extra || ""); },
+    setShelf(items) { fill("shelf", items); setFocus("shelf"); },
+    note(t) { note.textContent = t; },
+    items: side => S[side].items,
+  };
+}
+
+/* ---------- pick a lane ---------- */
 function crateWhy(p, c) {
   const st = c.subMix.slice(0, 2).map(x => x.style).filter(x => x !== c.name).join(" and ");
-  const trend = c.recentPct > c.startPct + 5 ? `, up from ${c.startPct}% at the start` : "";
-  return `${c.playPct}% of what you've been playing lately (tracks added in the last ${p.recentWindowMonths} months)${c.recentPct > c.startPct + 5 ? `, and growing` : ""}.${st ? ` Mostly ${st}.` : ""}`;
+  return `${c.playPct}% of what you've been playing lately (tracks added in the last ${p.recentWindowMonths} months)${c.recentPct > c.startPct + 5 ? ", and growing" : ""}.${st ? ` Mostly ${st}.` : ""}`;
 }
 function askDig() {
   const p = current, lead = p._crates.lead;
   if (!lead) { addMsg("!", el("p", { class: "err", text: "Not enough tagged genres to build a crate. Tag a few genres in rekordbox and try again." })); return; }
   if (!p._ticket) { addMsg("!", el("p", { class: "err", text: "Your free crate needs the AI, and it didn't answer this time. Drop the file again in a minute." })); return; }
-  const choices = [lead, ...p._crates.options.slice(0, 3)];
+  const all = p._crates.all || [lead, ...p._crates.options];
   let chosen = lead;
   const why = el("p", { class: "note", text: crateWhy(p, lead) });
-  const yes = el("button", { class: "btn primary", text: `Dig my ${lead.name} crate` });
+  const yes = el("button", { class: "btn primary", text: `Dig my ${lead.name} crates` });
   const lanes = el("div", { class: "lanes", role: "radiogroup", "aria-label": "Pick your lane" });
-  choices.forEach((c, i) => {
-    const b = el("button", { class: "lane", role: "radio", "aria-checked": i === 0 ? "true" : "false", type: "button" }, el("b", { text: c.name }), el("span", { text: `${c.playPct}% of recent plays` }));
-    b.onclick = () => { chosen = c; lanes.querySelectorAll(".lane").forEach(o => o.setAttribute("aria-checked", o === b ? "true" : "false")); why.textContent = crateWhy(p, c); yes.textContent = `Dig my ${c.name} crate`; };
-    lanes.append(b);
-  });
+  const laneBtn = (c, on) => { const b = el("button", { class: "lane", role: "radio", "aria-checked": on ? "true" : "false", type: "button" }, el("b", { text: c.name }), el("span", { text: `${c.playPct}% of recent plays` }));
+    b.onclick = () => { chosen = c; lanes.querySelectorAll(".lane").forEach(o => o.setAttribute("aria-checked", o === b ? "true" : "false")); why.textContent = crateWhy(p, c); yes.textContent = `Dig my ${c.name} crates`; };
+    return b; };
+  all.slice(0, 4).forEach((c, i) => lanes.append(laneBtn(c, i === 0)));
+  const more = all.length > 4 ? el("button", { class: "link", type: "button", text: `See all ${all.length} lanes`, onclick: () => { all.slice(4).forEach(c => lanes.append(laneBtn(c, false))); more.remove(); } }) : null;
   const box = el("div", { class: "ask" },
-    el("p", { class: "q", text: "Pick your lane. Ten tracks you don't own yet, but should." }),
-    el("p", { class: "note", text: "Ranked by what you've been playing lately. Your first crate's on the house." }),
-    lanes, why, el("div", { class: "row" }, yes));
+    el("p", { class: "q", text: "Pick your lane." }),
+    el("p", { class: "note", text: "Two crates per lane: records from your own bag you never play, and ten new ones off the shelf. Lanes come from your genre tags, ranked by what you've played lately. Your first pair is on the house." }),
+    lanes, more, why, el("div", { class: "row" }, yes));
   const m = addMsg("?", box);
   yes.onclick = () => { m.remove(); dig(chosen, p._ticket, true); };
 }
 
+/* ---------- dig: bag straight away, then the shelf ---------- */
 async function dig(crate, ticket, free) {
   const p = current;
-  $("#more")?.closest(".msg")?.remove();
-  const log = el("div", { class: "log" }); const stop = el("button", { class: "btn", text: "Stop" });
-  const m = addMsg(">", log, el("div", { style: "margin-top:10px" }, stop));
-  const line = s => { log.querySelectorAll(".now").forEach(n => n.classList.remove("now", "cursor")); log.append(el("div", { class: "now cursor", text: s })); };
-  line(`Digging through ${crate.name} labels, remixes and back catalogues. This takes up to a minute.`);
+  $("#more")?.closest(".msg")?.remove(); $("#home")?.closest(".msg")?.remove();
+  const fl = flick(crate);
+  thread.append(fl.root);
+  const bag = bagCrate(p, crate);
+  fl.setBag(bag.items, `Nothing hiding in your ${crate.name} bag: you play everything you own in this lane. Respect.`);
+  fl.root.scrollIntoView({ behavior: "smooth", block: "start" });
+  const stop = el("button", { class: "btn", type: "button", text: "Stop" });
+  fl.shelfStatus(`Digging the ${crate.name} racks. Up to a minute.`, stop);
   const ctl = new AbortController(); stop.onclick = () => ctl.abort();
   p._suggested = p._suggested || [];
   let picks;
@@ -723,34 +976,30 @@ async function dig(crate, ticket, free) {
     picks = parseJSON(text);
     if (!Array.isArray(picks)) throw { code: "invalid_json" };
   } catch (e) {
-    m.remove();
-    if (e?.name === "AbortError") { moreCrates(crate); return; }
-    addMsg("!", el("p", { class: "err", text: e?.message || aiErr(e?.code) }),
-      e?.code === "used" ? null : el("button", { class: "btn", text: "Try again", onclick: ev => { ev.target.closest(".msg").remove(); dig(crate, ticket, free); } }));
+    if (e?.name === "AbortError") { fl.shelfStatus("Stopped. The shelf will keep."); moreCrates(crate); return; }
+    const retry = e?.code === "used" ? "" : el("button", { class: "btn", type: "button", text: "Try again", onclick: () => { fl.root.remove(); dig(crate, ticket, free); } });
+    fl.shelfStatus(e?.message || aiErr(e?.code), retry);
     return;
   }
-  if (free) { p._ticket = ""; }
+  if (free) p._ticket = "";
   const seen = new Set(p._suggested);
   const cands = picks.filter(x => x && x.artist && x.title)
     .filter(x => { const k = norm(x.artist) + "|" + baseTitle(x.title); if (ownsAnyVersion(p._owned, x) || seen.has(k)) return false; seen.add(k); return true; });
-  // 1) Existence first: a pick only counts if Apple Music or Deezer has that exact artist + title.
-  line(`Checking ${cands.length} picks really exist (Apple Music, Deezer)`);
+  fl.shelfStatus(`Checking ${cands.length} records really exist`);
   const hits = await pool(cands, 4, x => findPreview(x.artist, x.title));
   cands.forEach((x, i) => { x._found = !!hits[i]; });
   const missing = cands.filter(x => !x._found);
-  // 2) The AI's artists are usually right even when a title is made up: swap in a real track by the same artist.
   let swapped = 0;
   if (missing.length) {
-    line(`${missing.length} picks couldn't be found. Swapping in real tracks by the same artists`);
+    fl.shelfStatus(`Swapping ${missing.length} made-up titles for real records by the same artists`);
     const taken = new Set(cands.filter(x => x._found).map(x => norm(x.artist) + "|" + baseTitle(x.title)));
     const subs = await pool(missing, 3, x => swapIn(x, taken));
     missing.forEach((x, i) => { const r = subs[i]; if (!r) return; x._orig = x.title; x.title = r.title; x.version = ""; x._found = true; x._swapped = true;
-      x.year = r.year || x.year; x.why = `A real ${r.artist} track in place of a title the AI got wrong. ${x.why || ""}`.trim(); swapped++; });
+      x.why = `A real ${r.artist} record in place of a title the AI got wrong. ${x.why || ""}`.trim(); swapped++; });
   }
   const real = cands.filter(x => x._found && !ownsAnyVersion(p._owned, x));
   const fakes = cands.length - real.length;
-  // 3) Genre lock on what's left: Discogs styles + the AI genre judge
-  line(`Genre-checking ${real.length} real tracks against Discogs and your own ${crate.name} tracks`);
+  fl.shelfStatus(`Genre-checking ${real.length} records against your own ${crate.name}`);
   const fp = await genreCheck(crate, real, ticket);
   let dropped = 0;
   for (const x of real) {
@@ -764,38 +1013,68 @@ async function dig(crate, ticket, free) {
   const rank = x => [x._genre === "pass" ? 0 : 1, anthem(x), x._swapped ? 1 : 0, -(+x.confidence || 0)];
   const cmp = (a, b) => { const A = rank(a), B = rank(b); for (let i = 0; i < A.length; i++) if (A[i] !== B[i]) return A[i] - B[i]; return 0; };
   const clean = keep.sort(cmp).slice(0, 10);
-  m.remove();
   for (const x of clean) p._suggested.push(norm(x.artist) + "|" + baseTitle(x.title));
   saveState();
-  const owned = new Set(p._artists.map(norm));
-  const newArtists = clean.filter(x => !owned.has(norm(x.artist))).length;
-  const list = el("ol", { class: "picks" });
-  clean.forEach((x, i) => {
-    const links = el("div", { class: "links" });
-    const pv = el("button", { class: "pv" + (x._found ? "" : " nf"), type: "button", "data-pv": "1", "data-a": x.artist, "data-t": x.title, "aria-label": `Preview ${x.artist} – ${x.title}`, text: x._found ? "▶ Preview" : "No preview" });
-    links.append(pv); for (const [n, u] of pickLinks(x)) links.append(el("a", { href: u, target: "_blank", rel: "noopener", text: n }));
-    const react = el("div", { class: "react" });
-    for (const [lab, val] of [["♥ want it", "want"], ["✓ have it", "have"], ["✕ not me", "no"]]) {
-      const b = el("button", { class: "chip-btn", "aria-pressed": "false", text: lab });
-      b.onclick = () => { react.querySelectorAll("button").forEach(o => o.setAttribute("aria-pressed", o === b && o.getAttribute("aria-pressed") !== "true" ? "true" : "false")); tallyUp(); };
-      b.dataset.v = val; react.append(b);
-    }
-    const ver = x.version && !/^original( mix)?$/i.test(x.version) ? ` (${x.version})` : "";
-    list.append(el("li", { class: "pick" }, el("div", { class: "no", text: String(i + 1).padStart(2, "0") }),
-      el("div", { class: "t" },
-        el("div", { class: "title", text: `${x.artist} — ${x.title}${ver}` }),
-        el("div", { class: "meta" }, `${[x.label, x.year].filter(Boolean).join(" · ")}`, x.kind ? el("span", { class: "kind k-" + String(x.kind).toLowerCase(), text: x.kind }) : null,
-          x._swapped ? el("span", { class: "unv", text: "swapped in", title: "The AI's original title for this artist couldn't be found, so this is a real track by them instead." }) : null),
-        x._dc && x._dc.found && x._dc.styles.length ? el("div", { class: "styles" }, ...x._dc.styles.slice(0, 3).map(st => el("span", { class: "st" + (fp && fp[st] >= .25 ? " on" : ""), text: st })), x._genre === "pass" ? el("span", { class: "gk", text: `✓ ${crate.name}` }) : null) : el("div", { class: "styles" }, x._genre === "pass" ? el("span", { class: "gk", text: `✓ ${crate.name}` }) : el("span", { class: "st", text: "genre not checked" })),
-        el("p", { class: "why", text: x.why || "" }), links), react));
-  });
-  const score = el("p", { class: "note" });
-  function tallyUp() { const v = [...list.querySelectorAll('[aria-pressed="true"]')].map(b => b.dataset.v); const c = k => v.filter(x => x === k).length; score.textContent = v.length ? `${c("want")} wanted · ${c("have")} already owned · ${c("no")} not for you` : ""; }
-  const verified = clean.filter(x => x._found).length;
-  addMsg(">", el("div", { class: "crate-head" }, el("span", { class: "crate-tag", text: "Crate" }), el("h3", { text: `Your ${crate.name} crate` })),
-    el("p", { class: "note", text: `${clean.length} tracks · ${crate.subMix.slice(0, 3).map(x => x.style).join(", ")} · ${crate.bpm[0]}–${crate.bpm[1]} BPM · ${newArtists} artists new to you · every track checked on Apple Music or Deezer · ${clean.filter(x => x._genre === "pass").length} genre-matched.${fakes ? ` Threw out ${fakes} picks that don't exist.` : ""}${swapped ? ` Swapped ${swapped} for real tracks by the same artist.` : ""}${dropped ? ` Dropped ${dropped} from a different genre.` : ""}` }),
-    list, score);
+  if (!clean.length) {
+    fl.shelfStatus(`None of this batch passed the checks (real, not yours, properly ${crate.name}), so the shelf stays empty rather than padded. That one's on us: email bindig.dj@gmail.com and we'll re-dig or refund.`);
+    takeHome(crate, fl); moreCrates(crate); return;
+  }
+  fl.setShelf(clean);
+  const ownedArtists = new Set(p._artists.map(norm));
+  const newArtists = clean.filter(x => !ownedArtists.has(norm(x.artist))).length;
+  fl.note(`Bag: ${bag.items.length} records you own and haven't played${bag.relaxed ? " (a few sit in your set playlists)" : ""}, in key order. Shelf: ${clean.length} new records, ${newArtists} from artists new to you, every one checked on Apple Music or Deezer, ${clean.filter(x => x._genre === "pass").length} genre-matched.${fakes ? ` Threw out ${fakes} that don't exist.` : ""}${swapped ? ` Swapped ${swapped}.` : ""}${dropped ? ` Dropped ${dropped} from a different genre.` : ""}`);
+  takeHome(crate, fl);
   moreCrates(crate);
+}
+
+/* ---------- take it home: bag as a rekordbox playlist, shelf as a shopping list, clean-up when paid ---------- */
+function saveBlob(name, text, type) { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); }
+const FIELD_ATTR = { title: "Name", artist: "Artist", genre: "Genre", comments: "Comments", album: "Album" };
+function buildXml(playlistsSpec, fixes, undo) {
+  const doc = new DOMParser().parseFromString(XML_TEXT, "application/xml");
+  const byId = {}; for (const t of doc.querySelector("COLLECTION").querySelectorAll(":scope > TRACK")) byId[t.getAttribute("TrackID")] = t;
+  const changed = [];
+  for (const f of fixes || []) { const n = byId[f.id]; if (n && FIELD_ATTR[f.field]) { n.setAttribute(FIELD_ATTR[f.field], undo ? (f.from ?? "") : f.to); if (!changed.includes(f.id)) changed.push(f.id); } }
+  let pl = doc.querySelector("PLAYLISTS"); if (!pl) { pl = doc.createElement("PLAYLISTS"); doc.documentElement.append(pl); }
+  pl.replaceChildren();
+  const root = doc.createElement("NODE"); root.setAttribute("Type", "0"); root.setAttribute("Name", "ROOT"); pl.append(root);
+  const folder = doc.createElement("NODE"); folder.setAttribute("Type", "0"); folder.setAttribute("Name", "BINDIG"); root.append(folder); root.setAttribute("Count", "1");
+  const spec = [...playlistsSpec]; if (fixes && fixes.length) spec.push([undo ? "Undo · put tags back" : "Fixed tracks · import to collection", changed]);
+  for (const [name, ids] of spec) { const n = doc.createElement("NODE"); n.setAttribute("Name", name); n.setAttribute("Type", "1"); n.setAttribute("KeyType", "0"); n.setAttribute("Entries", String(ids.length));
+    for (const id of ids) { const t = doc.createElement("TRACK"); t.setAttribute("Key", id); n.append(t); } folder.append(n); }
+  folder.setAttribute("Count", String(spec.length));
+  return { xml: '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(doc.documentElement), changed: changed.length };
+}
+function takeHome(crate, fl) {
+  const p = current, slug = crate.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const status = el("p", { class: "note", role: "status" });
+  const bagBtn = el("button", { class: "btn", type: "button", text: "Bag → rekordbox playlist", onclick: () => {
+    const ids = fl.items("bag").map(x => x.id); if (!ids.length) { status.textContent = "Your bag crate is empty in this lane."; return; }
+    try { saveBlob(`bindig-bag-${slug}.xml`, buildXml([[`Bag · ${crate.name}`, ids]]).xml, "application/xml"); status.textContent = `Downloaded bindig-bag-${slug}.xml. In rekordbox: Preferences › Advanced › rekordbox xml › Browse, pick the file, then right-click BINDIG › Bag › Import Playlist.`; }
+    catch (e) { status.textContent = "Couldn't build the file: " + e.message; } } });
+  const shelfBtn = el("button", { class: "btn", type: "button", text: "Shelf → shopping list (CSV)", onclick: () => {
+    const q = v => { v = String(v == null ? "" : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    const rows = [["artist", "title", "label", "year", "kind", "why", "beatport", "bandcamp"]].concat(fl.items("shelf").map(x => [x.artist, x.title, x.label || "", x.year || "", x.kind || "", x.why || "", pickLinks(x)[0][1], pickLinks(x)[1][1]]));
+    saveBlob(`bindig-shelf-${slug}.csv`, "﻿" + rows.map(r => r.map(q).join(",")).join("\r\n"), "text/csv"); status.textContent = `Downloaded bindig-shelf-${slug}.csv.`; } });
+  const h = p._health, kids = [bagBtn, shelfBtn];
+  let cleanLine = null;
+  if (p._cleanToken) kids.push(el("button", { class: "btn primary", type: "button", text: "Clean my tags", onclick: ev => cleanUp(ev.currentTarget, status) }));
+  else if (h && h.fixable) cleanLine = el("p", { class: "note", text: `${h.fixable.toLocaleString()} tracks need a tidy. The clean-up comes free with any extra crate.` });
+  addMsg(">", el("div", { class: "ask", id: "home" }, el("p", { class: "q", text: "Take it home." }), el("div", { class: "row" }, ...kids), cleanLine, status,
+    el("p", { class: "note" }, "New to importing? ", el("a", { href: "/guide/", text: "The two-minute guide" }), ".")));
+}
+async function cleanUp(btn, status) {
+  const p = current; btn.disabled = true; status.textContent = "Tidying your tags…";
+  try {
+    const r = await fetch("/api/fix", { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + p._cleanToken, "x-bindig-visitor": visitor() }, body: JSON.stringify({ cols: COLS, rows: p._rows }) });
+    const d = await r.json(); if (!r.ok) throw new Error(d.error || "Clean-up couldn't run.");
+    const fixes = (d.fixes || []).filter(f => f.confidence === "high");
+    if (!fixes.length) { status.textContent = "Nothing to tidy after all. Your tags are clean."; return; }
+    const a = buildXml([], fixes, false), u = buildXml([], fixes, true);
+    saveBlob("rekordbox-bindig-clean.xml", a.xml, "application/xml");
+    setTimeout(() => saveBlob("rekordbox-bindig-undo.xml", u.xml, "application/xml"), 600);
+    status.textContent = `Downloaded rekordbox-bindig-clean.xml (${a.changed.toLocaleString()} tracks tidied, genres untouched) and an undo file. In rekordbox: open BINDIG › Fixed tracks, select the tracks, right-click › Import To Collection.`;
+  } catch (e) { status.textContent = e.message; btn.disabled = false; }
 }
 
 /* ---------- genre lock: Discogs styles of your own tracks vs. the picks ---------- */
@@ -813,32 +1092,29 @@ async function genreCheck(crate, cands, ticket) {
     return crate._fp || null;
   } catch { return crate._fp || null; }
 }
-// true = fits the DJ's own style fingerprint, false = filed elsewhere, null = can't tell
 function fitOf(fp, dc) {
   if (!fp || !dc || !dc.found || !dc.styles || !dc.styles.length) return null;
   if (dc.genres && dc.genres.length && !dc.genres.includes("Electronic")) return false;
-  // strict lock: any distinctive style that's (nearly) absent from the DJ's own tracks rejects the pick
   const GENERIC = new Set(["House", "Electronic"]);
   if (dc.styles.some(st => !GENERIC.has(st) && (fp[st] || 0) < .1)) return false;
   return Math.max(...dc.styles.map(st => fp[st] || 0)) >= .25;
 }
 
+/* ---------- more crates ---------- */
 function moreCrates(last) {
-  const p = current, lead = p._crates.lead;
+  const p = current, all = p._crates.all || [p._crates.lead, ...p._crates.options];
   const opt = (c, label) => el("button", { class: "crate-btn", onclick: ev => buyCrate(c, ev.currentTarget) }, el("span", { text: label }), el("span", { class: "lock", text: "$1.99" }));
-  const grid = el("div", { class: "crate-grid" }, opt(last, `Another ${last.name} crate`));
-  for (const c of p._crates.options) if (c.name !== last.name) grid.append(opt(c, `${c.name} crate`));
-  if (lead && last.name !== lead.name) grid.prepend(opt(lead, `${lead.name} crate`));
+  const grid = el("div", { class: "crate-grid" }, opt(last, `Another ${last.name} pair`));
+  for (const c of all.slice(0, 7)) if (c.name !== last.name) grid.append(opt(c, `${c.name} pair`));
   const status = el("p", { class: "note", role: "status" });
   addMsg("?", el("div", { class: "ask", id: "more" },
-    el("p", { class: "q", text: "Dig another crate?" }),
-    el("p", { class: "note", text: "Built from the other lanes in your collection. $1.99 a crate, ten tracks each, paid once by card." }),
+    el("p", { class: "q", text: "Dig another lane?" }),
+    el("p", { class: "note", text: "$1.99 gets a fresh shelf crate plus that lane's bag, and unlocks the tag clean-up. Paid once by card." }),
     grid, status));
 }
-
 async function buyCrate(crate, btn) {
   const status = $("#more [role=status]");
-  if (!saveState({ pending: crate.name })) { status.textContent = "Your browser won't let me hold your results while you pay. Allow site data and try again."; return; }
+  if (!saveState({ pending: crate.name }) || !(await idbPut("xml", XML_TEXT))) { status.textContent = "Your browser won't let me hold your results while you pay. Allow site data and try again."; return; }
   btn.disabled = true; status.textContent = "Opening checkout…";
   try {
     const r = await fetch("/api/checkout", { method: "POST", headers: { "content-type": "application/json", "x-bindig-visitor": visitor() }, body: JSON.stringify({ item: "crate", crate: crate.name }) });
@@ -848,19 +1124,25 @@ async function buyCrate(crate, btn) {
   } catch (e) { btn.disabled = false; status.textContent = e.message; }
 }
 
-/* ---------- back from Stripe: restore the page, then dig the paid crate ---------- */
+/* ---------- back from Stripe: re-read the library, restore the page, then dig the paid lane ---------- */
 async function resume() {
   const q = new URLSearchParams(location.search), sid = q.get("crate_session"), cancelled = q.get("cancelled");
   if (!sid && !cancelled) return;
   history.replaceState(null, "", location.pathname);
-  const got = loadState(); if (!got) { if (sid) addMsg("!", el("p", { class: "err", text: "Payment went through, but your results weren't kept in this tab. Drop your file again; email bindig.dj@gmail.com with your receipt and we'll sort the crate." })); return; }
-  current = got.p; $("#steps").hidden = true;
-  await showReading(current, current.reading, null, true);
-  const crate = [current._crates.lead, ...current._crates.options].find(c => c && c.name === got.st.pending) || current._crates.lead;
+  const st = loadState(), xml = await idbGet("xml");
+  if (!st || !xml) { if (sid) addMsg("!", el("p", { class: "err", text: "Payment went through, but your results weren't kept in this browser. Drop your file again; email bindig.dj@gmail.com with your receipt and we'll sort the crate." })); return; }
+  XML_TEXT = xml; XML_NAME = st.name || "rekordbox.xml";
+  const p = analyse(parseXML(xml)); current = p;
+  p.reading = st.reading; p._ticket = st.ticket; p._suggested = st.suggested || []; p._health = st.health; p._cleanToken = st.clean || "";
+  $("#steps").hidden = true;
+  await showReading(p, p.reading, null, true);
+  const all = p._crates.all || [];
+  const crate = all.find(c => c.name === st.pending) || p._crates.lead;
   if (cancelled) { moreCrates(crate); return; }
   const v = await fetch("/api/verify?session_id=" + encodeURIComponent(sid)).then(r => r.json().then(d => ({ ok: r.ok, d }))).catch(() => ({ ok: false, d: {} }));
   if (!v.ok || !v.d.ticket) { addMsg("!", el("p", { class: "err", text: v.d.error || "We couldn't confirm that payment. Email bindig.dj@gmail.com with your receipt." })); moreCrates(crate); return; }
-  const paid = [current._crates.lead, ...current._crates.options].find(c => c && c.name === v.d.crate) || crate;
+  if (v.d.token) { p._cleanToken = v.d.token; saveState(); }
+  const paid = all.find(c => c.name === v.d.crate) || crate;
   dig(paid, v.d.ticket, false);
 }
 

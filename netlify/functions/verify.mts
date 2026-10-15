@@ -15,7 +15,9 @@ export default async (req, context) => {
   if (s.metadata?.product === "bindig-crate-v1") {
     // One paid crate. The session id is the ticket id, so the pass works once however often this is called.
     const ticket = signToken({ kind: "crate-paid", crate: s.metadata.crate || "", jti: id, exp: Date.now() + 7 * 24 * 3600 * 1000 }, secret);
-    return json({ ticket, crate: s.metadata.crate || "" });
+    // v0.6: any crate purchase also unlocks the tag clean-up (/api/fix) for 30 days
+    const token = signToken({ sid: id, email: s.customer_details?.email || null, exp: Date.now() + 30 * 24 * 3600 * 1000 }, secret);
+    return json({ ticket, token, crate: s.metadata.crate || "" });
   }
   const token = signToken({ sid: id, email: s.customer_details?.email || null, exp: Date.now() + 30 * 24 * 3600 * 1000 }, secret);
   return json({ token, email: s.customer_details?.email || null });

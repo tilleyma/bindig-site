@@ -4,3 +4,22 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
+
+# v0.6: the dig page is home. The old scan and demo pages point there.
+[[redirects]]
+  from = "/"
+  to = "/dig/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/scan/*"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/meet/*"
+  to = "/"
+  status = 301
+  force = true

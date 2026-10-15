@@ -82,7 +82,7 @@ export default async (req: Request, context: any) => {
     const profile = cleanProfile(body?.profile);
     if (!profile) return json({ error: "That profile is missing or too big." }, 400);
     const lead = String(profile?.leadCrate?.name || "").slice(0, 60);
-    const crates = (Array.isArray(profile?.crateChoices) ? profile.crateChoices : [lead]).slice(0, 4).map((x: unknown) => String(x).slice(0, 60)).filter(Boolean);
+    const crates = (Array.isArray(profile?.crateChoices) ? profile.crateChoices : [lead]).slice(0, 12).map((x: unknown) => String(x).slice(0, 60)).filter(Boolean);
     // one free crate, in whichever of the offered lanes the DJ picks
     const ticket = lead ? signToken({ kind: "crate-free", crate: lead, crates, jti: `free-${crypto.randomUUID()}`, exp: Date.now() + 12 * 3600 * 1000 }, secret) : "";
     context.waitUntil?.(record("profile", { tracks: Number(profile.tracks) || 0, ageMonths: Number(profile.collectionAgeMonths) || 0, lead }, req, context));
