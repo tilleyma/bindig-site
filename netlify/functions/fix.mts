@@ -12,7 +12,7 @@ export default async (req, context) => {
   if (error) return json({ error }, 400);
   const r = analyse(tracks, { prefs });
   await record("fix", { tracks: r.health.tracks, fixes: r.health.fixes, gems: r.health.gems, tester: String(licence.sid || "").startsWith("tester") }, req, context);
-  return json({ health: r.health, taste: r.taste, fixes: r.fixes, gems: r.gems, because: r.because, tidy: r.tidy, tidyQuality: r.tidyQuality, mixes: r.mixes, gaps: r.gaps, tags: r.tags });
+  return json({ health: r.health, taste: r.taste, read: r.read, fixes: r.fixes, gems: r.gems, tidy: r.tidy, tidyQuality: r.tidyQuality, mixes: [], gaps: r.gaps, tags: r.tags });
 };
 
 export const config = { path: "/api/fix" };

@@ -23,7 +23,7 @@ footer{margin-top:60px;border-top:1px solid var(--line);padding-block:24px;font-
 footer a{color:var(--muted)}
 .vbadge{font:700 11px "JetBrains Mono",ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#78F09A;border:1px solid #78F09A;padding:2px 7px;white-space:nowrap;line-height:1.4}
 </style></head><body><div class="wrap">
-<nav><span style="display:inline-flex;align-items:center;gap:10px"><a class="brand" href="/">BINDIG</a><span class="vbadge">v0.3 beta</span></span><a href="/scan/" style="font-size:13px">Free scan →</a></nav>
+<nav><span style="display:inline-flex;align-items:center;gap:10px"><a class="brand" href="/">BINDIG</a><span class="vbadge">v0.4 beta</span></span><a href="/scan/" style="font-size:13px">Free scan →</a></nav>
 
 <h1>Privacy</h1>
 <p class="muted">Last updated 5 October 2026 · BINDIG is in beta</p>
@@ -32,7 +32,7 @@ footer a{color:var(--muted)}
 <h2>What we use, and why</h2>
 <table>
 <tr><th>What</th><th>Why</th><th>Kept?</th></tr>
-<tr><td><b>Library details</b> from the file you drop in: track names, artists, albums, genres, keys, BPM, play counts, ratings, dates added, bitrate, and how many cue points and playlists each track has</td><td>To find your gems, fill your Gem Crates and suggest tag fixes</td><td>No. Used for the scan, then discarded. File paths and audio are never sent.</td></tr>
+<tr><td><b>Library details</b> from the file you drop in: track names, artists, albums, genres, keys, BPM, play counts, ratings, dates added, bitrate, and how many cue points and playlists each track has</td><td>To read your taste, find your gems and suggest tag fixes</td><td>No. Used for the scan, then discarded. File paths and audio are never sent.</td></tr>
 <tr><td><b>Beta sharing</b> (only if you say yes): a copy of those library details and the changes you pick when you download</td><td>To check BINDIG is helping and improve it</td><td>Yes, until the beta ends, then deleted. You can ask us to delete it any time.</td></tr>
 <tr><td><b>Usage counts</b>: library size, number of fixes and gems, genre totals, country (from our host), a random browser ID</td><td>To see how BINDIG is used</td><td>Yes. No track names or file details.</td></tr>
 <tr><td><b>Email</b> you enter when unlocking</td><td>Your receipt and help with your purchase</td><td>Yes. Never sold or shared. No marketing unless you ask for it.</td></tr>
@@ -45,6 +45,7 @@ footer a{color:var(--muted)}
 <ul>
 <li><b>Netlify</b>: hosting, the scan engine and private storage</li>
 <li><b>Stripe</b>: payments and receipts</li>
+<li><b>Apple Music (iTunes Search) and Deezer</b>: when you press ▶ Preview on a gem, your browser sends that track's artist and title to their public search to play a 30-second preview. Nothing else is sent, and nothing happens until you press play</li>
 <li><b>YouTube</b>: the walkthrough video on the Guide and import steps. It loads in no-cookie mode and only after you press play</li>
 <li><b>Google Fonts</b>: the fonts on the site</li>
 </ul>

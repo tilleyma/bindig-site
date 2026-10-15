@@ -5,12 +5,17 @@ import { record } from "../../lib/track.mts";
 export default async (req, context) => {
   if (req.method !== "POST") return json({ error: "Use POST." }, 405);
   const key = stripeKey(req);
-  let email = "";
-  try { const b = await req.json(); email = typeof b?.email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(b.email) ? b.email.trim().slice(0, 200) : ""; } catch {}
-  await record("checkout", { enabled: !!key, gaveEmail: !!email }, req, context);
+  let email = "", item = "unlock", crate = "";
+  try {
+    const b = await req.json();
+    email = typeof b?.email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(b.email) ? b.email.trim().slice(0, 200) : "";
+    if (b?.item === "crate") { item = "crate"; crate = String(b?.crate || "").replace(/[^\w &/'.-]/g, "").trim().slice(0, 60); }
+  } catch {}
+  if (item === "crate" && !crate) return json({ error: "Pick a crate first." }, 400);
+  await record("checkout", { enabled: !!key, gaveEmail: !!email, item }, req, context);
   if (!key) return json({ error: "Payments aren't switched on yet. Try again soon." }, 503);
   const origin = new URL(req.url).origin;
-  const price = Number(env("PRICE_CENTS") || 900);
+  const price = item === "crate" ? Number(env("CRATE_PRICE_CENTS") || 199) : Number(env("PRICE_CENTS") || 900);
   const form = new URLSearchParams({
     mode: "payment",
     "line_items[0][quantity]": "1",
@@ -24,6 +29,15 @@ export default async (req, context) => {
     allow_promotion_codes: "true",
     "metadata[product]": "bindig-fix-v1",
   });
+  if (item === "crate") {
+    // v0.5: one extra crate (ten tracks the DJ doesn't own yet) for $1.99.
+    form.set("line_items[0][price_data][product_data][name]", `BINDIG · ${crate} crate`);
+    form.set("line_items[0][price_data][product_data][description]", `One ${crate} crate: ten tracks you don't own yet, picked from your collection.`);
+    form.set("success_url", `${origin}/dig/?crate_session={CHECKOUT_SESSION_ID}`);
+    form.set("cancel_url", `${origin}/dig/?cancelled=1`);
+    form.set("metadata[product]", "bindig-crate-v1");
+    form.set("metadata[crate]", crate);
+  }
   if (email) form.set("customer_email", email);
   // Tax: price is always $9 all-in. Managed Payments (Stripe as merchant of record) is switched on with STRIPE_MANAGED_PAYMENTS=true
   // once its terms are accepted in the Stripe Dashboard; otherwise STRIPE_AUTOMATIC_TAX=true uses Stripe Tax.

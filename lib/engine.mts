@@ -83,8 +83,12 @@ function cleanComments(c) {
   return { junk: norm0(withoutJunk) !== norm0(src), withoutJunk, store, withoutStore };
 }
 
-export function analyse(tracks, opts = {}) {
-  const prefs = { love: new Set((opts.prefs?.love || []).map(String)), skip: new Set((opts.prefs?.skip || []).map(String)) };
+export function analyse(allTracks, opts = {}) {
+  const ids = (k) => new Set((opts.prefs?.[k] || []).map(String));
+  const prefs = { love: ids("love"), skip: ids("skip"), knew: ids("knew") };
+  // Streaming tracks (Tidal, Spotify, SoundCloud) aren't files you own: leave them out of gems, fixes and duplicates.
+  const tracks = allTracks.filter((t) => !isStream(t));
+  const streaming = allTracks.length - tracks.length;
   const fixes = [];
   const add = (t, field, to, rule, confidence) => {
     const from = t[field] ?? "";
@@ -120,7 +124,7 @@ export function analyse(tracks, opts = {}) {
     }
     const cc = cleanComments(t.comments || "");
     if (cc.junk) add(t, "comments", cc.withoutJunk, "Download-site text removed from comments", "high");
-    if (cc.store) add(t, "comments", cc.withoutStore, "Store receipt removed from comments (optional)", "medium");
+    // (v0.4) Store-receipt suggestions removed: testers kept 1 of 131.
     const g = (t.genre || "").trim();
     if (g) {
       const alias = GENRE_ALIASES[g.toLowerCase()];
@@ -131,20 +135,7 @@ export function analyse(tracks, opts = {}) {
     }
   }
 
-  // Pass 2: artist spelling — only case/punctuation variants, majority spelling wins
-  const spellings = new Map();
-  for (const t of tracks) {
-    const a = cur(t, "artist"); if (!a) continue;
-    const k = norm(a); if (!k) continue;
-    if (!spellings.has(k)) spellings.set(k, new Map());
-    const m = spellings.get(k); m.set(a, (m.get(a) || 0) + 1);
-  }
-  for (const t of tracks) {
-    const a = cur(t, "artist"); const m = spellings.get(norm(a)); if (!m || m.size < 2) continue;
-    const total = [...m.values()].reduce((x, y) => x + y, 0);
-    const [best, n] = [...m.entries()].sort((x, y) => y[1] - x[1])[0];
-    if (best !== a && n / total >= 0.7 && total >= 3) add(t, "artist", best, `Matches the spelling on ${n} of your ${total} tracks by this artist`, "medium");
-  }
+  // (v0.4) Artist spelling suggestions removed: testers kept 0 of 32.
 
   // Pass 2b: the same genre written different ways ("Electro/Dance", "Electro; Dance"). Optional: most-used spelling wins.
   const gkey = (g) => g.toLowerCase().split(/\s*[\/;|,]\s*/).map((x) => x.trim()).filter(Boolean).join("/");
@@ -223,37 +214,31 @@ export function analyse(tracks, opts = {}) {
   const tidyUp = makeTidy(keepOrder), tidyQuality = makeTidy(qualityOrder);
 
   const S = librarySignals(tracks, prefs);
-  const taste = tasteModel(tracks, cur, S, prefs);
-  const gems = gemsModel(tracks, cur, dupOf, taste, S, prefs);
-  const because = becauseYouPlay(tracks, cur, taste, gems, S);
+  const read = tasteRead(tracks, cur, dupOf, prefs, { count: opts.count || 20, months: opts.months ?? 18 }, S);
+  const gems = { flat: read.gems, byGenre: read.byGenre };
 
   const fixedIds = new Set(fixes.map((f) => f.id));
   const health = {
     tracks: tracks.length,
+    streaming,
     played: tracks.filter((t) => t.plays > 0).length,
     unplayed: tracks.filter((t) => !(t.plays > 0)).length,
     fixable: fixedIds.size,
     fixes: fixes.length,
     byRule: countBy(fixes, (f) => f.rule
-      .replace(/^Genre of \d+ of your \d+ other tracks by this artist$/, "Blank genre filled from the artist's other tracks")
-      .replace(/^Matches the spelling on \d+ of your \d+ tracks by this artist$/, "Artist spelling matched to the rest of your library")),
+      .replace(/^Genre of \d+ of your \d+ other tracks by this artist$/, "Blank genre filled from the artist's other tracks")),
     genreNeedsLookup, yearMissing, labelMissing,
     duplicates: dupOf.size,
     gems: gems.flat.length,
+    candidates: read.stats.candidates,
     gemTypes: countBy(gems.flat, (g) => g.type),
-    signals: S.public,
+    signals: { ...S.public, knew: prefs.knew.size, setTracks: read.stats.setTracks, historyTracks: read.stats.history },
   };
   const issuesTracks = new Set([...fixedIds, ...dupOf.keys()]);
   health.score = Math.max(0, Math.round(100 * (1 - (issuesTracks.size + genreNeedsLookup * 0.5) / Math.max(1, tracks.length))));
-  const gemMap = new Map(gems.flat.map((g) => [g.id, g]));
-  for (const [id, sc] of gems.cands) if (!gemMap.has(id) && !dupOf.has(id)) gemMap.set(id, { id, score: sc, soft: true });
-  const mixOut = buildMixes(tracks, taste.summary, gemMap, cur);
-  const mixes = mixOut.mixes;
   const gaps = findGaps(tracks);
-  const tags = tagIdeas(tracks, cur, gems, taste, S);
-  health.mixes = mixes.length; health.gapReleases = gaps.totalReleases;
-  health.mixGems = mixes.reduce((a, m) => a + m.gems, 0);
-  health.mixNote = mixOut.note;
+  const tags = tagIdeas(tracks, cur, gems, null, S);
+  health.mixes = 0; health.gapReleases = gaps.totalReleases;
   health.tags = tags.length; health.tagged = new Set(tags.flatMap((x) => x.ids)).size;
   health.ready = {
     played: tracks.filter((t) => t.plays > 0).length,
@@ -262,10 +247,19 @@ export function analyse(tracks, opts = {}) {
     genres: tracks.filter((t) => cur(t, "genre")).length,
     energy: tracks.filter((t) => energyOf(t) != null).length,
   };
-  const out = { health, fixes, gems: gems.byGenre, gemsFlat: gems.flat, because, tidy: tidyUp, tidyQuality, taste: taste.summary, mixes, gaps, tags };
-  if (opts.focus) out.focus = buildMixes(tracks, taste.summary, gemMap, cur, opts.focus);
+  const taste = { playedTracks: read.stats.playedCount, bpmRange: [Math.round(read.stats.bpm.low), Math.round(read.stats.bpm.high)], topGenres: read.stats.genres.filter((g) => g.genre !== "—").slice(0, 5).map((g) => g.genre) };
+  const out = { health, fixes, gems: gems.byGenre, gemsFlat: gems.flat, read: read.public, tidy: tidyUp, tidyQuality, taste, mixes: [], because: [], gaps, tags };
+  // Gem Crates are retired from the main flow (v0.4). The focus builder still works if called directly.
+  if (opts.focus) {
+    const T = tasteModel(tracks, cur, S, prefs), old = gemsModel(tracks, cur, dupOf, T, S, prefs);
+    const gemMap = new Map(old.flat.map((g) => [g.id, g]));
+    for (const [id, sc] of old.cands) if (!gemMap.has(id) && !dupOf.has(id)) gemMap.set(id, { id, score: sc, soft: true });
+    out.focus = buildMixes(tracks, T.summary, gemMap, cur, opts.focus);
+  }
   return out;
 }
+
+const isStream = (t) => !!t.stream || /^(tidal|spotify|soundcloud|beatport|beatsource|deezer|apple)[:]/i.test(t.kind || "");
 
 function countBy(arr, fn) { const m = {}; for (const x of arr) { const k = fn(x); m[k] = (m[k] || 0) + 1; } return m; }
 const lossless = (t) => /wav|aiff|aif|flac|alac/i.test(t.kind || "");
@@ -443,6 +437,165 @@ function becauseYouPlay(tracks, cur, T, gems, S) {
   return out;
 }
 
+// ---------- Taste read + gem picker (v0.4, from the "Taste Read" prototype, 11 Oct)
+// Learns what you play now (plays, History playlists, 3★+ ratings; set-sized playlists when history is thin),
+// writes a short read of your taste, then picks ~20 unplayed tracks that fit it.
+// Known tracks are left out: anything played, in a History playlist, or in a set-sized (≤80) playlist you built.
+// Date added is the clock (the XML has no play dates): plays on tracks added inside the taste window count in full, older ones 15%.
+const splitArt = (s) => (s || "").split(/,|&| feat\.? | ft\.? | x |\//i).map((a) => a.trim()).filter(Boolean);
+const camRank = (k) => { const m = /^(\d{1,2})([AB])$/.exec(k || ""); return m ? (+m[1]) * 2 + (m[2] === "B" ? 1 : 0) : 999; };
+
+function tasteRead(tracks, cur, dupOf, prefs, opts, S = {}) {
+  const N = opts.count || 20, months = opts.months || 0;
+  const T = tracks;
+  const ref = T.reduce((m, t) => ((t.added || "") > m ? t.added : m), "");
+  const cut = months && ref ? (() => { const d = new Date(ref); d.setMonth(d.getMonth() - months); return d.toISOString().slice(0, 10); })() : "";
+  const isNow = (t) => !cut || (t.added || "") >= cut || (t.pld || "") >= cut;
+  const known = (t) => (t.hist || 0) > 0 || prefs.knew.has(String(t.id));
+  const played = T.filter((t) => t.plays > 0 || known(t));
+  const coverage = T.length ? played.length / T.length : 0;
+  const thin = coverage < 0.25;
+  const w = (t) => {
+    let x = Math.log1p((t.plays || 0) + (t.hist || 0) + (prefs.knew.has(String(t.id)) ? 1 : 0) + (prefs.love.has(String(t.id)) ? 1 : 0));
+    if (STARS(t.rating) >= 3) x += 0.5;
+    if (thin && (t.sets || 0) > 0) x += 0.6;
+    return isNow(t) ? x : x * 0.15;
+  };
+  const G = (t) => cur(t, "genre") || "—";
+  const W = T.map((t) => [t, w(t)]).filter(([, x]) => x > 0);
+  const tot = W.reduce((s, [, x]) => s + x, 0) || 1;
+  const own = new Map(); for (const t of T) own.set(G(t), (own.get(G(t)) || 0) + 1);
+  const gw = new Map(), aw = new Map(), lw = new Map(), aName = new Map();
+  const add = (m, k, v) => m.set(k, (m.get(k) || 0) + v);
+  for (const [t, x] of W) {
+    add(gw, G(t), x);
+    for (const a of new Set([...splitArt(cur(t, "artist")), ...splitArt(t.remixer)])) { add(aw, norm(a), x); if (!aName.has(norm(a))) aName.set(norm(a), a); }
+    if (t.label) { add(lw, norm(t.label), x); if (!aName.has("L" + norm(t.label))) aName.set("L" + norm(t.label), t.label); }
+  }
+  const nown = T.length || 1;
+  const genres = [...gw].map(([g, v]) => ({ genre: g, played: v / tot, owned: (own.get(g) || 0) / nown })).sort((a, b) => b.played - a.played);
+  const bpms = W.map(([t]) => t.bpm).filter((b) => b > 0).sort((a, b) => a - b);
+  const q = (p) => (bpms.length ? bpms[Math.floor(p * (bpms.length - 1))] : 0);
+  const b25 = q(0.25), b50 = q(0.5), b75 = q(0.75);
+  const en = W.map(([t]) => energyOf(t)).filter((e) => e != null).sort((a, b) => a - b);
+  const energy = en.length > W.length * 0.3 ? en[Math.floor(en.length / 2)] : 0;
+  const amax = Math.max(1e-9, ...aw.values()), lmax = Math.max(1e-9, ...lw.values());
+  const playedKeys = new Set(played.map((t) => norm(cur(t, "artist")) + norm(cur(t, "title"))));
+  const now = Date.now();
+
+  function score(t) {
+    const g = G(t), gs = (gw.get(g) || 0) / tot, o = (own.get(g) || 0) / nown;
+    const lift = o ? gs / o : 0;
+    let s = Math.min(gs * 120, 30) + Math.max(Math.min((lift - 1) * 10, 8), -10);
+    const why = [];
+    const arts = [...splitArt(cur(t, "artist")), ...splitArt(t.remixer)].filter((a) => aw.has(norm(a)));
+    if (arts.length) {
+      const best = arts.reduce((a, b) => (aw.get(norm(b)) > aw.get(norm(a)) ? b : a));
+      s += 10 + 25 * Math.sqrt(aw.get(norm(best)) / amax); why.push(`You play ${best}`);
+    }
+    if (t.label && lw.has(norm(t.label))) { s += 5 + 12 * Math.sqrt(lw.get(norm(t.label)) / lmax); why.push(`${t.label}, a label you play`); }
+    if (t.bpm > 0) { if (t.bpm >= b25 && t.bpm <= b75) { s += 10; why.push(`${Math.round(t.bpm)} BPM, right in your range`); } else if (Math.abs(t.bpm - b50) <= 6) s += 4; else s -= 12; }
+    const e = energyOf(t); if (energy && e != null) s += Math.abs(e - energy) <= 1 ? 4 : -4;
+    if (g !== "—" && gs >= 0.05) why.push(`${g}, ${Math.round(gs * 100)}% of what you play`);
+    if (t.bitrate && t.bitrate < 192 && !lossless(t)) s -= 15;
+    if (!camelot(t)) s -= 6;
+    if ((t.sets || 0) > 0) s -= 15; // only reached in the fallback below
+    if (prefs.love.has(String(t.id))) { s += 25; why.unshift("You loved it in BINDIG"); }
+    return { s, why };
+  }
+  const base = (t) => !(t.plays > 0) && !known(t) && (t.time || 0) >= 120 && !dupOf.has(t.id) && !prefs.skip.has(String(t.id)) && !playedKeys.has(norm(cur(t, "artist")) + norm(cur(t, "title")));
+  let cand = T.filter((t) => base(t) && !((t.sets || 0) > 0));
+  const setTracks = T.filter((t) => (t.sets || 0) > 0).length;
+  let relaxed = false;
+  // Some DJs file everything into small playlists. If that leaves too few candidates, let those back in (scored lower).
+  if (cand.length < Math.max(60, N * 3)) { cand = T.filter(base); relaxed = true; }
+  const scored = cand.map((t) => ({ t, ...score(t) })).sort((a, b) => b.s - a.s);
+  const quota = new Map(genres.slice(0, 6).map((g) => [g.genre, Math.max(2, Math.round(N * g.played))]));
+  const perA = new Map(), perG = new Map(), pick = [];
+  for (const c of scored) {
+    const a = norm(splitArt(cur(c.t, "artist"))[0] || ""), g = G(c.t);
+    if ((perA.get(a) || 0) >= 2 || (perG.get(g) || 0) >= (quota.get(g) || 1)) continue;
+    pick.push(c); add(perA, a, 1); add(perG, g, 1);
+    if (pick.length === N) break;
+  }
+  // Grouped by genre (most played first), then around the Camelot wheel (1A, 1B, 2A … 12B), BPM as tie-break, no key last.
+  const gRank = new Map(genres.map((g, i) => [g.genre, i]));
+  pick.sort((x, y) => ((gRank.get(G(x.t)) ?? 99) - (gRank.get(G(y.t)) ?? 99)) || (camRank(camelot(x.t)) - camRank(camelot(y.t))) || ((x.t.bpm || 0) - (y.t.bpm || 0)));
+  const gemOut = pick.map((c) => {
+    const t = c.t, ageDays = t.added ? (now - Date.parse(t.added)) / 864e5 : 1800;
+    const type = (t.cues > 0 && !S.bulkCued) || (t.rating > 0 && !S.bulkRated) ? "Prepped, never played" : ageDays < 120 ? "New arrival" : ageDays > 365 ? "Forgotten" : "Still waiting";
+    const g = G(t);
+    return { id: t.id, artist: cur(t, "artist"), title: cur(t, "title"), genre: g === "—" ? "(none)" : g, label: t.label || "", year: t.year || "",
+      score: Math.max(0, Math.min(100, Math.round(c.s))), type, key: camelot(t), bpm: Math.round(t.bpm || 0), reasons: c.why.slice(0, 3), loved: prefs.love.has(String(t.id)) || undefined };
+  });
+  const byGenre = {};
+  for (const x of gemOut) (byGenre[x.genre === "(none)" ? "No genre" : x.genre] ||= []).push(x);
+  const top = (m, n, pre = "") => [...m].sort((a, b) => b[1] - a[1]).slice(0, n).map(([k]) => aName.get(pre + k) || k);
+  const r = {
+    total: T.length, playedCount: played.length, coverage, thin, history: T.filter((t) => (t.hist || 0) > 0).length, setTracks,
+    genres, bpm: { low: b25, mid: b50, high: b75 }, energy, artists: top(aw, 12).filter((a) => a.length > 2).slice(0, 8), labels: top(lw, 5, "L"),
+    eras: eras(T, G, cut || (() => { const d = new Date(ref || Date.now()); d.setMonth(d.getMonth() - 18); return d.toISOString().slice(0, 10); })()),
+    candidates: cand.length, relaxed, months, cut, gems: gemOut,
+  };
+  const text = plainRead(r);
+  return {
+    gems: gemOut, byGenre, stats: r,
+    public: { text, years: r.eras?.years || 0, since: r.eras?.first || 0, then: r.eras ? (r.eras.fallers.length ? r.eras.fallers : r.eras.earlyTop).slice(0, 2) : [], now: r.eras ? [r.eras.nowTop[0], ...r.eras.risers.filter((g) => g !== r.eras.nowTop[0])].filter(Boolean).slice(0, 3) : [], artists: r.artists.slice(0, 5), labels: r.labels.slice(0, 3),
+      genres: genres.filter((g) => g.genre !== "—").slice(0, 6).map((g) => ({ genre: g.genre, played: Math.round(g.played * 100), owned: Math.round(g.owned * 100) })),
+      bpm: [Math.round(b25), Math.round(b75)], energy, window: cut, relaxed, candidates: cand.length },
+  };
+}
+
+// Taste over time, using date added as the clock.
+function eras(T, G, cut) {
+  const P = T.filter((t) => (t.plays > 0 || (t.hist || 0) > 0) && t.added && G(t) !== "—");
+  if (P.length < 40) return null;
+  const years = new Map(); for (const t of T) if (t.added) { const y = +t.added.slice(0, 4); years.set(y, (years.get(y) || 0) + 1); }
+  const first = Math.min(...[...years].filter(([, n]) => n >= T.length * 0.02).map(([y]) => y));
+  const last = Math.max(...years.keys());
+  if (!isFinite(first) || last - first < 2) return null;
+  const share = (f) => { const c = new Map(); let s = 0; for (const t of P) if (f(t)) { const v = (t.plays || 0) + (t.hist || 0); c.set(G(t), (c.get(G(t)) || 0) + v); s += v; } return { s, m: new Map([...c].map(([g, v]) => [g, v / (s || 1)])) }; };
+  const e1 = String(first + 2);
+  const early = share((t) => t.added < e1), mid = share((t) => t.added >= e1 && t.added < cut), now = share((t) => t.added >= cut);
+  if (early.s < 20 || now.s < 20) return null;
+  const top = (m) => [...m].sort((a, b) => b[1] - a[1]).map(([g]) => g);
+  const gs = new Set([...early.m.keys(), ...now.m.keys()]);
+  const d = [...gs].map((g) => [g, (now.m.get(g) || 0) - (early.m.get(g) || 0)]);
+  const risers = d.filter(([, v]) => v >= 0.02).sort((a, b) => b[1] - a[1]).map(([g]) => g);
+  const fallers = d.filter(([g, v]) => v <= -0.03 && (early.m.get(g) || 0) >= 0.05).sort((a, b) => (early.m.get(b[0]) || 0) - (early.m.get(a[0]) || 0)).map(([g]) => g);
+  let phase = null;
+  if (mid.s >= 20) { const g = top(mid.m)[0]; const v = mid.m.get(g); if (v - Math.max(early.m.get(g) || 0, now.m.get(g) || 0) >= 0.05) phase = { genre: g, from: first + 2, to: +cut.slice(0, 4) - (cut.slice(5, 7) <= "06" ? 1 : 0) }; }
+  return { first, years: last - first, earlyTop: top(early.m).slice(0, 3), nowTop: top(now.m).slice(0, 3), risers, fallers, phase };
+}
+
+const WORDS = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
+const list = (a) => (a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " and " + a[a.length - 1]);
+const capit = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+// Plain-language read with no AI: short, deadpan, built only from what the XML shows.
+function plainRead(r) {
+  const out = [], E = r.eras;
+  const yrs = E && E.years >= 1 ? (WORDS[E.years] || E.years) + " year" + (E.years > 1 ? "s" : "") : "";
+  out.push(`${yrs ? capit(String(yrs)) + " of crate-digging" : "A crate"}, ${r.total.toLocaleString("en-US")} tracks deep.`);
+  if (E && (E.fallers.length || E.risers.length)) {
+    const then = (E.fallers.length ? E.fallers : E.earlyTop).slice(0, 2);
+    const now = [E.nowTop[0], ...E.risers.filter((g) => g !== E.nowTop[0] && !then.includes(g))].filter(Boolean).slice(0, 3);
+    let s = `You started out on ${list(then)}`;
+    if (E.phase && !then.includes(E.phase.genre) && !now.includes(E.phase.genre)) s += `, had a proper ${E.phase.genre} phase around ${E.phase.from}${E.phase.to > E.phase.from ? "–" + String(E.phase.to).slice(2) : ""},`;
+    out.push(`${s} and these days it's ${list(now)}.`);
+  } else {
+    const core = r.genres.filter((g) => g.genre !== "—").slice(0, 2).map((g) => g.genre);
+    if (core.length) out.push(`You're ${/^[aeiou]/i.test(core[0] || "") ? "an" : "a"} ${list(core)} DJ${r.bpm.mid ? `, around ${Math.round(r.bpm.mid)} BPM` : ""}, and you've stayed loyal.`);
+  }
+  const lo = r.genres.filter((g) => g.genre !== "—" && g.owned >= 0.06 && g.played / g.owned <= 0.7).sort((a, b) => b.owned - a.owned)[0];
+  if (lo) out.push(`${lo.genre} came along for the ride and never left the bag.`);
+  else if (E && E.fallers[2]) out.push(`${E.fallers[2]} quietly left the building.`);
+  if (r.artists.length) out.push(`Lately you keep reaching for ${list(r.artists.slice(0, 3))}.`);
+  if (r.thin) out.push(r.setTracks > 0 ? "Your play history is thin, so your own playlists did some of the talking." : "Your play history is thin, so treat this as a first dig.");
+  out.push(r.gems.length ? `So here are ${r.gems.length} tracks in that vein, sitting in your crate, unplayed.` : "We couldn't find unplayed tracks that fit yet. Play a few more sets, export again and rescan.");
+  return out.join(" ");
+}
+
 // Tag ideas: playlists the DJ can turn into My Tags in Rekordbox (select all → My Tag). Adds only; never touches existing tags.
 // Rekordbox XML can't carry My Tags, so BINDIG delivers them as playlists under BINDIG → 4 · Tags.
 function tagIdeas(tracks, cur, gems, T, S) {
@@ -473,20 +626,18 @@ function tagIdeas(tracks, cur, gems, T, S) {
   return out;
 }
 
-// Free preview: counts plus a sample. The full lists are only returned to paid users.
+// Free preview: the taste read, the gem count and 3 gems to hear. Everything else after unlock.
 export function preview(result) {
-  const gemsByGenre = Object.entries(result.gems).map(([genre, items]) => ({ genre, count: items.length, sample: items.slice(0, 2) }))
-    .sort((a, b) => b.count - a.count);
   const bySev = [...result.fixes].sort((a, b) => (a.confidence === "high" ? 0 : 1) - (b.confidence === "high" ? 0 : 1));
   const seen = new Set(); const sample = [];
   const ruleKey = (f) => f.rule.replace(/\d+/g, "#");
   for (const f of bySev) { if (sample.length >= 12) break; if (seen.has(ruleKey(f))) continue; seen.add(ruleKey(f)); sample.push(f); }
   for (const f of bySev) { if (sample.length >= 12) break; if (!sample.includes(f)) sample.push(f); }
-  const mixesPreview = result.mixes.map((m, i) => ({ name: m.name, minutes: m.minutes, count: m.tracks.length, gems: m.gems, keys: m.tracks.map((t) => t.key), news: m.tracks.map((t) => !!t.isNew), tracks: i === 0 ? m.tracks.slice(0, 3) : [] }));
-  const gapsPreview = { totalReleases: result.gaps.totalReleases, releases: result.gaps.releases.slice(0, 3), artists: result.gaps.artists.slice(0, 5) };
-  const becausePreview = (result.because || []).slice(0, 1).map((b) => ({ fav: b.fav, picks: b.picks.slice(0, 1) }));
+  const flat = result.gemsFlat || [];
+  const free = [...flat].sort((a, b) => b.score - a.score).slice(0, 3);
+  const gemsByGenre = Object.entries(result.gems).map(([genre, items]) => ({ genre, count: items.length, keys: items.map((x) => x.key || "–") }));
   const tagsPreview = (result.tags || []).map((t) => ({ name: t.name, why: t.why, count: t.ids.length }));
-  return { health: result.health, taste: result.taste, fixSample: sample, gemsByGenre, mixesPreview, gapsPreview, tidyCount: result.tidy.length, becausePreview, becauseCount: (result.because || []).length, tagsPreview };
+  return { health: result.health, taste: result.taste, read: result.read, fixSample: sample, freeGems: free, gemsByGenre, tidyCount: result.tidy.length, tagsPreview, mixesPreview: [] };
 }
 
 // ---------- Key helpers
