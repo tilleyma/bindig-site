@@ -94,21 +94,31 @@ export default async (req: Request, context: any) => {
   const crate = cleanCrate(body?.crate);
   if (!crate) return json({ error: "Pick a crate first." }, 400);
   const t = verifyToken((req.headers.get("authorization") || "").replace(/^Bearer\s+/i, ""), secret);
-  if (!t || !["crate-free", "crate-paid"].includes(t.kind) || !t.jti) return json({ error: "This crate isn't unlocked yet.", code: "locked" }, 402);
-  if (t.crate !== crate.name && !(Array.isArray(t.crates) && t.crates.includes(crate.name))) return json({ error: `That pass is for a ${t.crate} crate.`, code: "wrong_crate" }, 403);
-  let used: any = null;
+  // Friend passes (from /api/redeem) dig any lane, up to FRIEND_CRATES crates per pass (default 10).
+  const friend = !!t && !t.kind && String(t.sid || "").startsWith("friend-");
+  if (!t || (!friend && (!["crate-free", "crate-paid"].includes(t.kind) || !t.jti))) return json({ error: "This crate isn't unlocked yet.", code: "locked" }, 402);
+  if (!friend && t.crate !== crate.name && !(Array.isArray(t.crates) && t.crates.includes(crate.name))) return json({ error: `That pass is for a ${t.crate} crate.`, code: "wrong_crate" }, 403);
+  let used: any = null, giveBack = async () => {};
   try {
     used = getStore({ name: storeName("crate-tickets", req), consistency: "strong" });
-    if (await used.get(t.jti)) return json({ error: "That crate pass has already been used.", code: "used" }, 409);
-    await used.set(t.jti, new Date().toISOString());
+    if (friend) {
+      const key = `${t.sid}:n`, cap = Number(env("FRIEND_CRATES")) || 10, n = Number(await used.get(key)) || 0;
+      if (n >= cap) return json({ error: `That friend pass has dug all ${cap} of its crates.`, code: "used" }, 409);
+      await used.set(key, String(n + 1));
+      giveBack = async () => { const m = Number(await used.get(key)) || 1; await used.set(key, String(Math.max(0, m - 1))); };
+    } else {
+      if (await used.get(t.jti)) return json({ error: "That crate pass has already been used.", code: "used" }, 409);
+      await used.set(t.jti, new Date().toISOString());
+      giveBack = async () => { await used.delete(t.jti); };
+    }
   } catch (e: any) { console.error("ticket store failed", e?.message); }
   const owned = (Array.isArray(body?.owned) ? body.owned : []).slice(0, 300).map((x: unknown) => String(x).slice(0, 80));
   const already = (Array.isArray(body?.already) ? body.already : []).slice(0, 60).map((x: unknown) => String(x).slice(0, 120));
   const args = [crate, body?.reading, owned, already, Number(body?.recentWindowMonths) || 18] as const;
   const prompts = (["fresh", "deep", "classic"] as const).map((part) => cratePrompt(...args, part));
-  context.waitUntil?.(record("crate", { crate: crate.name, paid: t.kind === "crate-paid" }, req, context));
+  context.waitUntil?.(record("crate", { crate: crate.name, paid: t.kind === "crate-paid", friend }, req, context));
   // A failed dig gives the pass back so the DJ can try again.
-  return new Response(crateStream(MODEL_CRATE(), prompts, env("BINDIG_CRATE_EFFORT") || "low", async () => { await used?.delete(t.jti); }), { headers: textHeaders() });
+  return new Response(crateStream(MODEL_CRATE(), prompts, env("BINDIG_CRATE_EFFORT") || "low", giveBack), { headers: textHeaders() });
 };
 
 export const config = {

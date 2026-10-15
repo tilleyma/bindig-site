@@ -149,6 +149,7 @@ td.n{text-align:right;color:var(--muted);padding-left:10px;white-space:nowrap}
 .crate-btn{font:inherit;font-size:14px;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:10px;padding:12px 14px;cursor:pointer}
 .crate-btn:hover{border-color:var(--c-purple)}.crate-btn:focus-visible{outline:2px solid var(--phos);outline-offset:2px}
 .crate-btn:nth-child(3n+1){border-left:3px solid var(--c-orange)}.crate-btn:nth-child(3n+2){border-left:3px solid var(--c-purple)}.crate-btn:nth-child(3n){border-left:3px solid var(--c-yellow)}
+.friend summary{cursor:pointer;color:var(--muted,inherit);font-size:13px;margin-top:10px}.friend .row{margin-top:8px}.friend input{font:inherit;font-size:14px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text);min-width:0;flex:1;max-width:220px;text-transform:uppercase}
 .lock{font-size:11px;color:var(--ink);background:var(--phos);border-radius:999px;padding:1px 8px;font-weight:600}
 /* ---------- v0.6 library check ---------- */
 .libcheck{display:flex;flex-direction:column;gap:10px}
@@ -979,6 +980,7 @@ async function dig(crate, ticket, free) {
     if (e?.name === "AbortError") { fl.shelfStatus("Stopped. The shelf will keep."); moreCrates(crate); return; }
     const retry = e?.code === "used" ? "" : el("button", { class: "btn", type: "button", text: "Try again", onclick: () => { fl.root.remove(); dig(crate, ticket, free); } });
     fl.shelfStatus(e?.message || aiErr(e?.code), retry);
+    if (e?.code === "used" && ticket === friendPass()) { ls.set("bindig_friend", ""); moreCrates(crate); }
     return;
   }
   if (free) p._ticket = "";
@@ -1057,6 +1059,7 @@ function takeHome(crate, fl) {
     const rows = [["artist", "title", "label", "year", "kind", "why", "beatport", "bandcamp"]].concat(fl.items("shelf").map(x => [x.artist, x.title, x.label || "", x.year || "", x.kind || "", x.why || "", pickLinks(x)[0][1], pickLinks(x)[1][1]]));
     saveBlob(`bindig-shelf-${slug}.csv`, "﻿" + rows.map(r => r.map(q).join(",")).join("\r\n"), "text/csv"); status.textContent = `Downloaded bindig-shelf-${slug}.csv.`; } });
   const h = p._health, kids = [bagBtn, shelfBtn];
+  if (!p._cleanToken && friendPass()) p._cleanToken = friendPass();
   let cleanLine = null;
   if (p._cleanToken) kids.push(el("button", { class: "btn primary", type: "button", text: "Clean my tags", onclick: ev => cleanUp(ev.currentTarget, status) }));
   else if (h && h.fixable) cleanLine = el("p", { class: "note", text: `${h.fixable.toLocaleString()} tracks need a tidy. The clean-up comes free with any extra crate.` });
@@ -1101,16 +1104,41 @@ function fitOf(fp, dc) {
 }
 
 /* ---------- more crates ---------- */
+function friendPass() {
+  const t = ls.get("bindig_friend") || "";
+  try { const b = JSON.parse(atob(t.split(".")[0].replace(/-/g, "+").replace(/_/g, "/"))); if (/^friend-/.test(b.sid) && b.exp > Date.now()) return t; } catch {}
+  return "";
+}
 function moreCrates(last) {
-  const p = current, all = p._crates.all || [p._crates.lead, ...p._crates.options];
-  const opt = (c, label) => el("button", { class: "crate-btn", onclick: ev => buyCrate(c, ev.currentTarget) }, el("span", { text: label }), el("span", { class: "lock", text: "$1.99" }));
+  $("#more")?.closest(".msg")?.remove();
+  const p = current, all = p._crates.all || [p._crates.lead, ...p._crates.options], fp = friendPass();
+  const opt = (c, label) => el("button", { class: "crate-btn", onclick: ev => fp ? dig(c, fp, false) : buyCrate(c, ev.currentTarget) }, el("span", { text: label }), el("span", { class: "lock", text: fp ? "Free" : "$1.99" }));
   const grid = el("div", { class: "crate-grid" }, opt(last, `Another ${last.name} pair`));
   for (const c of all.slice(0, 7)) if (c.name !== last.name) grid.append(opt(c, `${c.name} pair`));
   const status = el("p", { class: "note", role: "status" });
+  let code = null;
+  if (!fp) {
+    const input = el("input", { type: "text", placeholder: "DIG-XXXXXX", autocomplete: "off", spellcheck: "false", "aria-label": "Friend code" });
+    const go = el("button", { class: "btn", type: "button", text: "Use code" });
+    const redeem = async () => {
+      if (!input.value.trim()) { status.textContent = "Enter your code."; return; }
+      go.disabled = true; status.textContent = "Checking your code…";
+      try {
+        const r = await fetch("/api/redeem", { method: "POST", headers: { "content-type": "application/json", "x-bindig-visitor": visitor() }, body: JSON.stringify({ code: input.value }) });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok || !d.token) throw new Error(d.error || "That code didn't work.");
+        ls.set("bindig_friend", d.token); p._cleanToken = d.token; saveState();
+        moreCrates(last);
+        $("#more [role=status]").textContent = "Friend pass on. Every lane is free, and Clean my tags comes with your next crate.";
+      } catch (e) { go.disabled = false; status.textContent = e.message; }
+    };
+    go.onclick = redeem; input.onkeydown = e => { if (e.key === "Enter") redeem(); };
+    code = el("details", { class: "friend" }, el("summary", { text: "Got a friend code?" }), el("div", { class: "row" }, input, go));
+  }
   addMsg("?", el("div", { class: "ask", id: "more" },
     el("p", { class: "q", text: "Dig another lane?" }),
-    el("p", { class: "note", text: "$1.99 gets a fresh shelf crate plus that lane's bag, and unlocks the tag clean-up. Paid once by card." }),
-    grid, status));
+    el("p", { class: "note", text: fp ? "Friend pass active: dig any lane for free. The tag clean-up comes with it." : "$1.99 gets a fresh shelf crate plus that lane's bag, and unlocks the tag clean-up. Paid once by card." }),
+    grid, code, status));
 }
 async function buyCrate(crate, btn) {
   const status = $("#more [role=status]");

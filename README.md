@@ -11,5 +11,5 @@ Static waitlist page. Deployed on Netlify; sign-ups are collected by Netlify For
 ## v0.5 beta: /dig/ (sandbox first)
 - `/dig/` — drop a rekordbox XML → DJ profile card + bio → free crate in the DJ's lead lane → extra crates at $1.99 (Stripe, `item: "crate"`).
 - AI: `netlify/functions/ai.mts` (`/api/ai/profile`, `/api/ai/crate`) calls Claude through the Netlify AI Gateway, streamed. Models: `BINDIG_MODEL_PROFILE` (default claude-sonnet-5-5), `BINDIG_MODEL_CRATE` (default claude-opus-5-5). Prompts in `lib/dig-ai.mts`.
-- Crate passes: signed with `UNLOCK_SECRET`, single use (Blobs store `crate-tickets`). Free pass comes back with the profile; paid pass from `/api/verify` after checkout. Price: `CRATE_PRICE_CENTS` (default 199).
+- Crate passes: signed with `UNLOCK_SECRET`, single use (Blobs store `crate-tickets`). Friend codes (`FRIEND_CODES`, `CODE:uses`) via `/api/redeem` give a 30-day pass: any lane free, up to `FRIEND_CRATES` crates (default 10), plus Clean my tags. Free pass comes back with the profile; paid pass from `/api/verify` after checkout. Price: `CRATE_PRICE_CENTS` (default 199).
 - Picks are checked against Apple Music / Deezer in the browser (same JSONP lookup as /scan/ previews); found tracks rank first, the rest are marked "not found online".
