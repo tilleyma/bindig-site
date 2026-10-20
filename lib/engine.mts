@@ -51,7 +51,9 @@ const TLDS = "com|org|net|info|club|pl|ru|uk|co|lt|lv|me|to|cc|io|xyz|eu|biz|de|
 const URL_SRC = `<?(?:https?:\\/\\/|www\\.)[^\\s<>\\]]*>?|\\b[\\w-]+(?:\\.[\\w-]+)*\\.(?:${TLDS})(?:\\/[^\\s<>\\]]*)?\\b`;
 const DOMAIN = new RegExp(URL_SRC, "i");
 const CREDITS = "visit|downloaded from|download(?:ed)? (?:at|from)|free download(?: at| from)?|get (?:it|more(?: music)?) (?:at|on|from)|order this cd at|for promotional use only(?: by)?|distributed exclusively by|distributed by|release(?:d)? by \\S+ for|rlz by|ripped by|uploaded by|shared by|posted by|promo from|from|at|by";
-const JUNK_RE = new RegExp(`(?:\\b(?:${CREDITS})\\s*:?\\s*)?(?:${URL_SRC})(?:\\s*(?:=+>|-+>|\u00bb)\\s*[^/|]*$)?`, "gi");
+// What's left hanging once the link goes: "visit www.x.com for more" -> drop "for more" too (only right after a link, at a break).
+const DANGLING = "(?:\\s+for\\s+(?:more|free)\\b(?:\\s+(?:info|music|tracks|downloads?|mp3s?))?[.!]*(?=\\s*(?:$|@@|[|,;]|\\s[-\u2013]\\s)))?";
+const JUNK_RE = new RegExp(`(?:\\b(?:${CREDITS})\\s*:?\\s*)?(?:${URL_SRC})(?:\\s*(?:=+>|-+>|\u00bb)\\s*[^/|]*$)?${DANGLING}`, "gi");
 const STORE_RE = new RegExp(`\\b(?:purchased|bought) (?:at|from|on)\\s+(?:${URL_SRC}|\\w+)|\\bamazon\\.com song id:?\\s*\\d*|\\bdelivered by\\s+\\S+`, "gi");
 const ENCODER = /^(?:fre:ac\b.*|to (?:mp3|audio|wav|aiff|flac) converter.*|.*\bconverter (?:free|lite|pro)\b.*|lame\s*\d.*|encoded (?:by|with)\b.*)$/i;
 function tidyComment(s) {
@@ -69,10 +71,11 @@ function cleanComments(c) {
   rest = rest.replace(/\/\*[\s\S]*?\*\//g, (x) => { tags.push(x.trim()); return " @@T" + (tags.length - 1) + "T@@ "; });
   const store = STORE_RE.test(rest); STORE_RE.lastIndex = 0;
   const finish = (txt) => {
-    let out = tidyComment(txt.replace(/@@T\d+T@@/g, " "));
-    if (ENCODER.test(out)) out = "";
-    const parts = [prefix, out, ...tags].filter(Boolean);
-    return parts.join(prefix && !out && tags.length ? " " : " ").replace(/^(\d{1,2}[AB][^ ]* - Energy \d+) (?!\/\*)/, "$1 - ").trim();
+    // My Tag blocks stay where the DJ put them: tidy around the placeholders, then put the blocks back.
+    let out = tidyComment(txt);
+    if (ENCODER.test(out.replace(/@@T\d+T@@/g, " ").trim())) out = (out.match(/@@T\d+T@@/g) || []).join(" ");
+    out = out.replace(/@@T(\d+)T@@/g, (_, i) => tags[+i]).replace(/\s{2,}/g, " ").trim();
+    return [prefix, out].filter(Boolean).join(" ").replace(/^(\d{1,2}[AB][^ ]* - Energy \d+) (?!\/\*)/, "$1 - ").trim();
   };
   // remove junk, keep store receipts
   const keepStore = []; let noJunk = rest.replace(STORE_RE, (x) => { keepStore.push(x); return " @@S" + (keepStore.length - 1) + "S@@ "; });

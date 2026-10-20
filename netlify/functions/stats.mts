@@ -17,7 +17,7 @@ export default async (req) => {
     }
     return json({ reset: true, deleted: n });
   }
-  const kinds = ["scan", "checkout", "paid", "fix", "friend"];
+  const kinds = ["scan", "checkout", "paid", "fix", "friend", "react", "checkoutfail"];
   const events = {};
   for (const k of kinds) {
     events[k] = [];
@@ -35,6 +35,23 @@ export default async (req) => {
     if (s.country) countries[s.country] = (countries[s.country] || 0) + 1;
     days[s.day] = (days[s.day] || 0) + 1;
   }
+  // v0.6.2: crate reactions (counts only) and checkout health per item
+  const rate = (a, b) => (b ? Math.round((100 * a) / b) : null);
+  const reactions = { bag: { play: 0, no: 0, clear: 0 }, shelf: { want: 0, have: 0, no: 0, clear: 0 } };
+  const lanes = {};
+  for (const e of events.react) {
+    const side = reactions[e.side]; if (!side || !(e.r in side)) continue;
+    side[e.r]++;
+    if (e.lane && e.r !== "clear") { const l = (lanes[e.lane] ||= { yes: 0, no: 0 }); if (e.r === "no") l.no++; else l.yes++; }
+  }
+  reactions.bagHitRate = rate(reactions.bag.play, reactions.bag.play + reactions.bag.no);
+  reactions.shelfHitRate = rate(reactions.shelf.want + reactions.shelf.have, reactions.shelf.want + reactions.shelf.have + reactions.shelf.no);
+  reactions.byLane = Object.entries(lanes).map(([lane, v]) => ({ lane, ...v, hitRate: rate(v.yes, v.yes + v.no) })).sort((a, b) => b.yes + b.no - (a.yes + a.no));
+  const checkoutByItem = {};
+  const ci = (item) => (checkoutByItem[item || "unlock"] ||= { checkouts: 0, failed: 0, paid: 0, cents: 0 });
+  for (const c of events.checkout) ci(c.item).checkouts++;
+  for (const c of events.checkoutfail) ci(c.item).failed++;
+  for (const p of events.paid) { const r = ci(p.item); r.paid++; if (p.live) r.cents += Number(p.amount) || 0; }
   const top = (o, n) => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, n);
   const sizes = scans.map((s) => s.tracks).sort((a, b) => a - b);
   return json({
@@ -47,6 +64,7 @@ export default async (req) => {
     },
     funnel: { scans: scans.length, checkouts: events.checkout.length, emails: events.checkout.filter((x) => x.gaveEmail).length, paid: events.paid.length, friends: events.friend.length, fixRuns: events.fix.filter((f) => !f.tester).length, testerRuns: events.fix.filter((f) => f.tester).length },
     revenueCents: sum(events.paid.filter((p) => p.live), (p) => p.amount),
+    reactions, checkoutByItem,
     days: Object.entries(days).sort(), genres: top(genres, 15), rules: top(rules, 10), countries: top(countries, 10),
   });
 };

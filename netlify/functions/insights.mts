@@ -1,6 +1,7 @@
 // Owner-only beta insights from opt-in shared libraries (before = scanned library, after = choices at download).
 // GET ?key=STATS_KEY
-import { json, env } from "../../lib/http.mts";
+import { getStore } from "@netlify/blobs";
+import { json, env, storeName } from "../../lib/http.mts";
 import { listShares, getShare } from "../../lib/share.mts";
 import { analyse } from "../../lib/engine.mts";
 
@@ -40,8 +41,15 @@ export default async (req) => {
     }
   }
   const rate = (a, b) => (b ? Math.round((100 * a) / b) : null);
+  // v0.6.2: crate reactions from anonymous react/ events
+  const ev = getStore({ name: storeName("events", req), consistency: "strong" });
+  const { blobs: rb } = await ev.list({ prefix: "react/" });
+  const reacts = (await Promise.all(rb.map((b) => ev.get(b.key, { type: "json" })))).filter(Boolean);
+  const n = (side, r) => reacts.filter((e) => e.side === side && e.r === r).length;
+  const re = { bagPlay: n("bag", "play"), bagNo: n("bag", "no"), shelfWant: n("shelf", "want"), shelfHave: n("shelf", "have"), shelfNo: n("shelf", "no") };
+  const reactions = { ...re, bagHitRate: rate(re.bagPlay, re.bagPlay + re.bagNo), shelfHitRate: rate(re.shelfWant + re.shelfHave, re.shelfWant + re.shelfHave + re.shelfNo) };
   return json({
-    generatedAt: new Date().toISOString(), totals: { ...tot, fixAcceptRate: rate(tot.fixesAccepted, tot.fixesOffered), gemKeepRate: rate(tot.gemsKept, tot.gemsOffered), gemHitRate: rate(tot.gemsLoved, tot.gemsLoved + tot.gemsSkipped + tot.gemsKnew) },
+    generatedAt: new Date().toISOString(), reactions, totals: { ...tot, ...reactions, fixAcceptRate: rate(tot.fixesAccepted, tot.fixesOffered), gemKeepRate: rate(tot.gemsKept, tot.gemsOffered), gemHitRate: rate(tot.gemsLoved, tot.gemsLoved + tot.gemsSkipped + tot.gemsKnew) },
     byField: Object.entries(byField).map(([k, v]) => { const [field, confidence] = k.split("|"); return { field, confidence, ...v, rate: rate(v.accepted, v.offered) }; }).sort((a, b) => b.offered - a.offered),
     sessions: sessions.sort((a, b) => (a.at < b.at ? 1 : -1)).slice(0, 100),
     librariesWithoutDownload: tot.libraries - tot.downloads > 0 ? tot.libraries - tot.downloads : 0,
