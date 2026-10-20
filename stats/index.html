@@ -162,11 +162,14 @@ footer{margin-top:60px;border-top:1px solid var(--line);padding-block:24px;font-
 .vbadge{font:700 11px "JetBrains Mono",ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#78F09A;border:1px solid #78F09A;padding:2px 7px;white-space:nowrap;line-height:1.4}
 </style></head>
 <body><div class="wrap">
-<nav><span style="display:inline-flex;align-items:center;gap:10px"><a class="brand" href="/">BINDIG</a><span class="vbadge">v0.4 beta</span></span><span class="note" id="gen"></span></nav>
+<nav><span style="display:inline-flex;align-items:center;gap:10px"><a class="brand" href="/">BINDIG</a><span class="vbadge">v0.6.2 beta</span></span><span class="note" id="gen"></span></nav>
 <header class="intro"><div class="prompt">$ ./bindig stats --private</div><h1>Usage</h1><p class="lede" id="msg">Loading…</p></header>
 <div id="out" hidden>
 <section style="padding-top:0"><div class="tiles" id="tiles"></div></section>
 <section><div class="sh"><h2>Funnel</h2></div><div class="funnel" id="funnel"></div></section>
+<section><div class="sh"><h2>Checkout by item</h2><span class="note">Started · failed to reach Stripe · paid · revenue</span></div><div class="tiles" id="checkout"></div></section>
+<section><div class="sh"><h2>Crate reactions</h2><span class="note">Bag: play next vs not me · Shelf: want or have vs not me</span></div><div class="tiles" id="reactTiles"></div>
+<div style="margin-top:22px"><div class="lbl" style="margin-bottom:10px">Hit rate by lane</div><div class="hbars" id="reactLanes"></div></div></section>
 <section><div class="sh"><h2>Scans per day</h2></div><div class="cols" id="days"></div><div class="axis" id="daysaxis"></div></section>
 <section class="two"><div><div class="sh"><h2>Genres scanned</h2></div><div class="hbars" id="genres"></div></div><div><div class="sh"><h2>Fixes found, by type</h2></div><div class="hbars" id="rules"></div></div></section>
 <section><div class="sh"><h2>Countries</h2></div><div class="hbars" id="countries"></div></section>
@@ -188,10 +191,15 @@ fetch("/api/stats?key="+encodeURIComponent(key)).then(function(r){return r.json(
  var t=d.totals;
  $("tiles").innerHTML=[["People",t.people],["Scans",t.scans],["Tracks scanned",t.tracks],["Median library",t.medianLibrary],["Fixes found",t.fixes],["Undiscovered gems",t.gems],["Duplicates",t.duplicates],["Average score",t.avgScore]].map(function(x){return '<div class="tile"><b>'+fmt(x[1])+'</b><span>'+x[0]+'</span></div>';}).join("");
  var f=d.funnel, pct=function(a,b){return b?Math.round(100*a/b)+"%":"–";};
- $("funnel").innerHTML=[["Scans",f.scans,""],["Gave email to unlock",f.emails,pct(f.emails,f.scans)],["Paid",f.paid,pct(f.paid,f.emails)],["Friend codes",f.friends||0,""],["Full runs",f.fixRuns,""],["Revenue",d.revenueCents/100,""]].map(function(x,i){return '<div class="fs"><b>'+(i===4?"$":"")+fmt(x[1])+'</b><span>'+x[0]+'</span> <i>'+x[2]+'</i></div>';}).join("");
+ $("funnel").innerHTML=[["Scans",f.scans,""],["Checkouts started",f.checkouts,pct(f.checkouts,f.scans)],["Paid",f.paid,pct(f.paid,f.checkouts)],["Friend codes",f.friends||0,""],["Full runs",f.fixRuns,""],["Revenue",d.revenueCents/100,""]].map(function(x,i){return '<div class="fs"><b>'+(i===5?"$":"")+fmt(x[1])+'</b><span>'+x[0]+'</span> <i>'+x[2]+'</i></div>';}).join("");
  var days=d.days, mx=Math.max.apply(null,days.map(function(x){return x[1];}).concat([1]));
  $("days").innerHTML=days.map(function(x){return '<div title="'+x[0]+': '+x[1]+' scans" style="height:'+(100*x[1]/mx)+'%"></div>';}).join("")||'<p class="note">No scans yet.</p>';
  $("daysaxis").innerHTML=days.length?'<span>'+days[0][0]+'</span><span>'+days[days.length-1][0]+'</span>':"";
+ var ci=d.checkoutByItem||{}, cik=Object.keys(ci);
+ $("checkout").innerHTML=cik.length?cik.map(function(k){var c=ci[k];return '<div class="tile"><b>'+fmt(c.checkouts)+'</b><span>'+esc(k)+' · started</span></div><div class="tile"><b>'+fmt(c.failed)+'</b><span>'+esc(k)+' · failed</span></div><div class="tile"><b>'+fmt(c.paid)+'</b><span>'+esc(k)+' · paid ('+pct(c.paid,c.checkouts)+')</span></div><div class="tile"><b>$'+fmt(c.cents/100)+'</b><span>'+esc(k)+' · revenue</span></div>';}).join(""):'<p class="note" style="padding:18px">No checkouts yet.</p>';
+ var re=d.reactions||{bag:{},shelf:{},byLane:[]}, hr=function(v){return v==null?"–":v+"%";};
+ $("reactTiles").innerHTML=[[hr(re.bagHitRate),"bag hit rate"],[fmt(re.bag.play||0)+" / "+fmt(re.bag.no||0),"bag: play next / not me"],[hr(re.shelfHitRate),"shelf hit rate"],[fmt(re.shelf.want||0)+" / "+fmt(re.shelf.have||0)+" / "+fmt(re.shelf.no||0),"shelf: want / have / not me"]].map(function(x){return '<div class="tile"><b>'+esc(x[0])+'</b><span>'+x[1]+'</span></div>';}).join("");
+ $("reactLanes").innerHTML=(re.byLane||[]).length?re.byLane.slice(0,15).map(function(l){return '<div class="hb" title="'+esc(l.lane)+': '+l.yes+' yes, '+l.no+' no"><span class="l">'+esc(l.lane)+'</span><span class="t"><span class="f" style="display:block;width:'+(l.hitRate||0)+'%"></span></span><span>'+hr(l.hitRate)+' of '+fmt(l.yes+l.no)+'</span></div>';}).join(""):'<p class="note">No reactions yet.</p>';
  bars($("genres"),d.genres); bars($("rules"),d.rules); bars($("countries"),d.countries);
 }).catch(function(e){$("msg").textContent=e.message;});
 })();

@@ -50,7 +50,7 @@ export default async (req, context) => {
     body: form,
   });
   const s = await r.json();
-  if (!r.ok) { console.error("stripe checkout error", s?.error?.message); const why = String(s?.error?.code || s?.error?.message || "").replace(/\b(sk|rk|pk)_(live|test)_[A-Za-z0-9*]+/g, "$1_$2_…").slice(0, 160); return json({ error: "Checkout couldn't start. Try again in a minute.", why }, 502); }
+  if (!r.ok) { console.error("stripe checkout error", s?.error?.message); const why = String(s?.error?.code || s?.error?.message || "").replace(/\b(sk|rk|pk)_(live|test)_[A-Za-z0-9*]+/g, "$1_$2_…").slice(0, 160); await record("checkoutfail", { item, code: String(s?.error?.code || r.status).slice(0, 60) }, req, context); return json({ error: "Checkout couldn't start. Try again in a minute.", why }, 502); }
   return json({ url: s.url });
 };
 

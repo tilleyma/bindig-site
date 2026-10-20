@@ -284,7 +284,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
 </head>
 <body>
 <div class="wrap">
-  <header><p class="mark"><a href="/">BINDIG</a></p><span class="badge">v0.6 beta</span></header>
+  <header><p class="mark"><a href="/">BINDIG</a></p><span class="badge">v0.6.2 beta</span></header>
 
   <div class="dividers" id="dividers" aria-hidden="true">
     <span class="dv" style="--i:0"><i class="rec"></i><b>House</b></span><span class="dv" style="--i:1"><i class="rec"></i><b>Disco</b></span><span class="dv" style="--i:2"><i class="rec"></i><b>Techno</b></span><span class="dv" style="--i:3"><i class="rec"></i><b>Minimal</b></span><span class="dv" style="--i:4"><i class="rec"></i><b>Afro</b></span><span class="dv" style="--i:5"><i class="rec"></i><b>Breaks</b></span><span class="dv" style="--i:6"><i class="rec"></i><b>Melodic</b></span><span class="dv" style="--i:7"><i class="rec"></i><b>Edits</b></span>
@@ -322,7 +322,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
 
   <section class="thread" id="thread" aria-live="polite"></section>
 
-  <footer>BINDIG digs. You DJ. · v0.6 beta · Track picks are AI suggestions, genre-checked on Discogs and Apple Music / Deezer. Hear them before you buy. · <a href="/privacy/" style="color:inherit">Privacy</a> · <a href="/terms/" style="color:inherit">Terms</a></footer>
+  <footer>BINDIG digs. You DJ. · v0.6.2 beta · Track picks are AI suggestions, genre-checked on Discogs and Apple Music / Deezer. Hear them before you buy. · <a href="/privacy/" style="color:inherit">Privacy</a> · <a href="/terms/" style="color:inherit">Terms</a></footer>
 </div>
 
 <script>
@@ -452,7 +452,8 @@ function analyse({ tracks: all, playlists, rows = [] }) {
   if (!n) throw new Error("No local tracks found in that file.");
   const dated = tracks.filter(t => /^(19|20)\d\d-\d\d/.test(t.added));
   const sortedDates = dated.map(t => t.added).sort();
-  const firstDate = sortedDates[0] || "", lastDate = sortedDates.at(-1) || "";
+  // 2nd percentile, not the oldest: a few migrated or ancient files shouldn't stretch "years digging"
+  const firstDate = sortedDates[Math.floor(.02 * (sortedDates.length - 1))] || "", lastDate = sortedDates.at(-1) || "";
   const firstYear = +firstDate.slice(0, 4) || 0, lastYear = +lastDate.slice(0, 4) || 0;
   const spanMonths = firstDate ? (lastYear - firstYear) * 12 + (+lastDate.slice(5, 7)) - (+firstDate.slice(5, 7)) + 1 : 0;
   const young = spanMonths <= 24;
@@ -461,6 +462,7 @@ function analyse({ tracks: all, playlists, rows = [] }) {
 
   const totalPlays = tracks.reduce((s, t) => s + t.plays, 0);
   const played = tracks.filter(t => t.plays > 0);
+  const playedAny = tracks.filter(t => t.plays > 0 || t.hist > 0).length;   // play count or a History playlist
   // Patterns over outliers: one track played 300 times counts no more than a normal favourite.
   const pp = played.map(t => t.plays).sort((a, b) => a - b);
   const playCap = Math.max(3, pp.length ? pp[Math.floor(.9 * (pp.length - 1))] : 3);
@@ -518,7 +520,7 @@ function analyse({ tracks: all, playlists, rows = [] }) {
   const crates = buildCrates(tracks, recent, early, weight, genreOf);
 
   return {
-    tracks: n, streamingSkipped: all.length - n, playedPct: Math.round(100 * played.length / n), totalPlays,
+    tracks: n, streamingSkipped: all.length - n, playedPct: Math.round(100 * playedAny / n), playedCount: played.length, playedAny, totalPlays,
     firstYear, lastYear, collectionAgeMonths: spanMonths, yearsDigging: Math.max(1, Math.round(spanMonths / 12)), lastAdded: lastDate,
     timelineUnit: unit, recentWindowMonths: recentMonths,
     addedLast90Days: last90,
@@ -838,8 +840,10 @@ function libraryCheck(p, h) {
   const add = (lvl, title, text) => rows.push({ lvl, title, text });
   if (n < 300) add("warn", `${n.toLocaleString()} tracks: a small crate, so far`, "Lanes and the bag crate sharpen up past about 500 tracks, so treat today's picks as a first sketch rather than gospel.");
   else add("ok", `${n.toLocaleString()} tracks to dig through`, "Plenty for BINDIG to read.");
-  if (p.playedPct < 15 || (h && h.signals && h.signals.historyThin)) add("warn", `Only ${p.playedPct}% of your tracks show a play`, "If you play from USB, those gigs only reach rekordbox when you sync the stick back. Sync, export again, and the bag crate stops suggesting records you already know.");
-  else add("ok", `${p.playedPct}% of your tracks have been played`, "Enough history to tell what you actually reach for.");
+  const pc = p.playedCount ?? T.filter(t => t.plays > 0).length, pa = p.playedAny ?? pc;
+  const playTitle = `Your export shows a play count on ${pc.toLocaleString()} of ${n.toLocaleString()} tracks` + (pa > pc ? ` (${pa.toLocaleString()} counting History playlists)` : "");
+  if (p.playedPct < 35 || (h && h.signals && h.signals.historyThin)) add("warn", playTitle, "If rekordbox shows more, export again after syncing (File > Export Collection in xml format). USB gigs only reach rekordbox after you sync the stick back.");
+  else add("ok", playTitle, "Enough history to tell what you actually reach for.");
   if (blank > 30) add("bad", `${blank}% of your tracks have no genre`, "BINDIG builds lanes from your genre tags and can't hear the music yet, so untagged tracks sit out of every crate. Tag the ones you care about and run it again.");
   else add("ok", `Genres tagged on ${100 - blank}% of tracks`, "Your lanes are built from these.");
   if (keyed < 60) add("warn", `Keys on only ${keyed}% of tracks`, "Analyse them in rekordbox and your bag crate comes back in Camelot order.");
